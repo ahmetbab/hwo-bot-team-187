@@ -1,5 +1,7 @@
 package redlynx.pong;
 
+import redlynx.mikabot.TestBot;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,7 +57,7 @@ public class Pong {
         listenerThread = new PongListenerThread(netInput, serverMessageQueue);
         listenerThread.start();
         // start game state loop
-        gameData = new PongGameBot(name,communicator, serverMessageQueue);
+        gameData = new TestBot(name,communicator, serverMessageQueue);
         gameData.start();
         
        
@@ -79,10 +81,8 @@ public class Pong {
 			Pong p = new Pong(name, host, Integer.parseInt(port));
 			
 		} catch (NumberFormatException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     	
