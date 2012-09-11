@@ -12,23 +12,41 @@ public class GameStatus {
         ball.y += ball.vy * dt;
     }
 
+    public void reset() {
+        left.reset();
+        right.reset();
+        ball.reset();
+        conf.reset();
+    }
+
+    public Player getPedal(PongGameBot.PlayerSide side) {
+        if(side == PongGameBot.PlayerSide.LEFT)
+            return left;
+        return right;
+    }
+
     public static class Player {
-		double y = -1;
-        double vy = 0;
-		String name;
+		public double y = -1;
+        public double vy = 0;
+		public String name;
 
         public void copy(Player player) {
             y = player.y;
             vy = player.vy;
             name = player.name;
         }
-	}
+
+        public void reset() {
+            y = -1;
+            vy = 0;
+        }
+    }
 
 	public static class Ball {
-		double x = -1;
-		double y = -1;
-        double vx = 0;
-        double vy = 0;
+		public double x = -1;
+		public double y = -1;
+        public double vx = 0;
+        public double vy = 0;
 
         public void copy(Ball ball) {
             x = ball.x;
@@ -36,15 +54,25 @@ public class GameStatus {
             vx = ball.vx;
             vy = ball.vy;
         }
-	}
 
-	protected static class Conf {
-		int maxWidth = -1;
-		int maxHeight = -1;
-		int paddleHeight;
-		int paddleWidth;
-		int ballRadius;
-		int tickInterval;
+        public void reset() {
+            x = y = -1;
+            vx = vy = 0;
+        }
+
+        public void tick(float dt) {
+            x += vx * dt;
+            y += vy * dt;
+        }
+    }
+
+	public static class Conf {
+		public int maxWidth = -1;
+		public int maxHeight = -1;
+		public int paddleHeight;
+		public int paddleWidth;
+		public int ballRadius;
+		public int tickInterval;
 
         public void copy(Conf conf) {
             maxHeight = conf.maxHeight;
@@ -54,9 +82,12 @@ public class GameStatus {
             ballRadius = conf.ballRadius;
             tickInterval = conf.tickInterval;
         }
-	}
 
-    GameStatus() {
+        public void reset() {
+        }
+    }
+
+    public GameStatus() {
 		left = new Player();
 		right = new Player();
 		ball = new Ball();

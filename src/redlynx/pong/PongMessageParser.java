@@ -13,10 +13,14 @@ public class PongMessageParser {
     }
 
     public void onGameStart(JSONArray players) {
-        System.out.println("GAME Started!!");
         if (players.length() == 2) {
             try {
-                System.out.println("players " + players.getString(0) +" and " + players.getString(1));
+                if(bot.getName().equals(players.getString(0))) {
+                    bot.setMySide(PongGameBot.PlayerSide.LEFT);
+                }
+                else {
+                    bot.setMySide(PongGameBot.PlayerSide.RIGHT);
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -29,7 +33,6 @@ public class PongMessageParser {
 
     public void onGameUpdate(JSONObject gameState) {
 
-        System.out.println("GAME ON!!");
         GameStatus status = new GameStatus();
 
         try {
@@ -64,7 +67,7 @@ public class PongMessageParser {
         }
 
         //TODO update bot runner calculations based on the status update
-        System.out.println("status debug: "+status.toString());
+        //System.out.println("status debug: "+status.toString());
     }
 
     public void onReceivedJSONString(String serverMessage) {
@@ -75,9 +78,9 @@ public class PongMessageParser {
             if ("gameIsOn".equals(type)) {
                 onGameUpdate(json.getJSONObject("data"));
             }
-            else if ("gameJoined".equals(type)) {
+            else if ("joined".equals(type)) {
                 String host = json.getString("data");
-                System.out.println("GAME joined!! visualization at: "+host);
+                System.out.println("GAME joined!! visualization at: " + host);
             }
             else if ("gameStarted".equals(type)) {
                 onGameStart(json.getJSONArray("data"));
@@ -87,9 +90,10 @@ public class PongMessageParser {
             }
             else {
                 // unexpected message
+                System.out.println("Unexpected message: " + serverMessage);
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            System.out.println("Not a JSON message: " + serverMessage);
         }
     }
 }

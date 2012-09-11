@@ -11,12 +11,12 @@ public class PongGameCommunicator {
     }
 
     public void sendJoin(String data) {
-        out.print("{\"msgType\":\"join\",\"data\":\"" + data + "\"}");
+        out.print("{\"msgType\":\"join\",\"data\":\"" + data + "\"}\n");
         out.flush();
     }
 
     public void sendUpdate(float data) {
-        out.print("{\"msgType\":\"changeDir\",\"data\":\"" + data + "\"}");
+        out.print("{\"msgType\":\"changeDir\",\"data\":" + data + "}\n");
         out.flush();
     }
 }

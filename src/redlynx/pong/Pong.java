@@ -2,11 +2,11 @@ package redlynx.pong;
 
 import redlynx.mikabot.TestBot;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -16,13 +16,15 @@ public class Pong {
 
     
     private final PrintStream out;
-  //  
     private final Queue<String> serverMessageQueue;
     private final PongListenerThread listenerThread;
-    private final PongGameBot gameData;
+    private final PongGameBot pongBot;
     private final PongGameCommunicator communicator;
 
     public Pong(String name, String host, int port) throws IOException {
+
+        System.out.println("Starting");
+
         connection = new Socket(host, port);
         serverMessageQueue = new ConcurrentLinkedQueue<String>();
         netInput = connection.getInputStream();
@@ -53,14 +55,14 @@ public class Pong {
         */
         
         communicator = new PongGameCommunicator(out);
+
         // start server message listener
         listenerThread = new PongListenerThread(netInput, serverMessageQueue);
         listenerThread.start();
+
         // start game state loop
-        gameData = new TestBot(name,communicator, serverMessageQueue);
-        gameData.start();
-        
-       
+        pongBot = new TestBot(name,communicator, serverMessageQueue);
+        pongBot.start();
 
         // when game is over, shut down listener thread
         listenerThread.interrupt();
@@ -76,10 +78,13 @@ public class Pong {
     	String name = args[0];
     	String host = args[1];
     	String port = args[2];
-    	
-    	try {
-			Pong p = new Pong(name, host, Integer.parseInt(port));
-			
+
+        System.out.println("name: " + name);
+        System.out.println("host: " + host);
+        System.out.println("port: " + port);
+
+        try {
+			new Pong(name, host, Integer.parseInt(port));
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

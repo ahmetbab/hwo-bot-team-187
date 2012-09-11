@@ -23,11 +23,10 @@ public class PongListenerThread extends Thread {
         int depth = 0;
         while(true) {
             try {
-
-                int cInt = inputReader.read();
-                char c = (char) cInt;
-                if (cInt == 65535) //end of stream
+                char c = (char) inputReader.read();
+                if (c == 65535) //end of stream
                     break;
+
                 msg += c;
                 switch(c) {
                     case '{':
@@ -40,7 +39,7 @@ public class PongListenerThread extends Thread {
                                 outputQueue.add(msg);
                             }
                             finally {
-                                msg = "";
+                                msg = new String("");
                             }
                         }
                         else if (depth < 0) {
