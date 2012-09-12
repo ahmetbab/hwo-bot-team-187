@@ -48,6 +48,7 @@ public abstract class PongGameBot {
 
     public void gameStateUpdate(GameStatus gameStatus) {
         lastKnownStatus.update(gameStatus);
+        lastKnownStatus.copy(gameStatus);
         extrapolatedStatus.copy(gameStatus);
         extrapolatedTime = 0;
         onGameStateUpdate(gameStatus);
@@ -84,6 +85,11 @@ public abstract class PongGameBot {
         double dt = time * 0.001;
         extrapolatedStatus.extrapolate(dt);
         extrapolatedTime += dt;
+
+        // try to collect statistics
+        // extrapolatedStatus.hits(PlayerSide.LEFT, extrapolatedStatus.ball);
+        // extrapolatedStatus.hits(PlayerSide.RIGHT, extrapolatedStatus.ball);
+
         onTick(dt);
     }
 

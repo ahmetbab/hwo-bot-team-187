@@ -1,94 +1,102 @@
 package redlynx.mikabot;
 
-import redlynx.pong.GameStatus;
-import redlynx.pong.PongGameBot;
-import redlynx.pong.PongGameCommunicator;
+import redlynx.pong.*;
+import redlynx.pong.collisionmodel.LinearModel;
+import redlynx.pong.collisionmodel.PongModel;
+import redlynx.pong.collisionmodel.PongModelInitializer;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.Queue;
 
 public class TestBot extends PongGameBot {
 
+    private TestBotState myState;
+
+    public GameStatus.Ball tmpBall = new GameStatus.Ball();
+
+    // debug info
+    private int verboseBallVelocity = 0;
+    private boolean collisionReported = false;
+
     public TestBot(String name, PongGameCommunicator communicator, Queue<String> serverMessageQueue) {
         super(name, communicator, serverMessageQueue);
+        PongModel myModel = new LinearModel();
+        try {
+            PongModelInitializer.init(myModel, new FileInputStream("pongdata.txt"));
+            System.out.println("Model error: " + myModel.modelError());
+        } catch (FileNotFoundException e) {
+            System.out.println("Couldn't init LinearModel!");
+        }
     }
-
-    boolean firstUpdate = true;
-    public GameStatus.Ball tmpBall = new GameStatus.Ball();
 
     @Override
     public void onGameStateUpdate(GameStatus newStatus) {
+
+        if(verboseBallVelocity == 0 && lastKnownStatus.ball.x > lastKnownStatus.conf.maxWidth * 0.2) {
+            verboseBallVelocity ^= 1;
+            Vector2 velocity = new Vector2(lastKnownStatus.ball.vx, lastKnownStatus.ball.vy);
+            System.out.println("Ball: " + velocity.normalize());
+            collisionReported = true;
+        }
+        else if(verboseBallVelocity == 1 && lastKnownStatus.ball.x < lastKnownStatus.conf.maxWidth * 0.2) {
+            verboseBallVelocity ^= 1;
+            Vector2 velocity = new Vector2(lastKnownStatus.ball.vx, lastKnownStatus.ball.vy);
+            System.out.println("Ball: " + velocity.normalize());
+            collisionReported = false;
+        }
+
         double ball_direction = lastKnownStatus.ball.vx;
         if(getMySide().comingTowardsMe(ball_direction)) {
             // find out impact velocity and position.
             tmpBall.copy(lastKnownStatus.ball);
-            simulate(tmpBall);
+
+            PongUtil.simulate(tmpBall, lastKnownStatus.conf);
 
             tmpBall.y -= lastKnownStatus.conf.paddleHeight * 0.5;
 
             // now we are done.
             GameStatus.Player myPedal = lastKnownStatus.getPedal(getMySide());
             double diff_y = tmpBall.y - myPedal.y;
-            if(myPedal.vy * diff_y < +0.001f) {
+            if(myState != TestBotState.STOPPED && myPedal.vy * diff_y < +0.001f) {
                 getCommunicator().sendUpdate((float) (0.99f * diff_y / Math.abs(diff_y)));
             }
         }
         else {
             // simulate twice, once there, and then back.
             tmpBall.copy(lastKnownStatus.ball);
-            simulate(tmpBall);
+
+            PongUtil.simulate(tmpBall, lastKnownStatus.conf);
 
             tmpBall.vx *= -1;
             tmpBall.tick(0.05f);
 
-            simulate(tmpBall);
+            PongUtil.simulate(tmpBall, lastKnownStatus.conf);
 
             tmpBall.y -= lastKnownStatus.conf.paddleHeight * 0.5;
 
             // now we are done.
             GameStatus.Player myPedal = lastKnownStatus.getPedal(getMySide());
             double diff_y = tmpBall.y - myPedal.y;
-            if(myPedal.vy * diff_y < +0.001f) {
+            if(myState != TestBotState.STOPPED && myPedal.vy * diff_y < +0.001f) {
                 getCommunicator().sendUpdate((float) (0.99f * diff_y / Math.abs(diff_y)));
             }
         }
     }
 
-    private void simulate(GameStatus.Ball ball) {
-        double vy = ball.vy;
-        double vx = ball.vx;
-        double x = ball.x;
-        double y = ball.y;
-
-        if(vx * vx < 0.00001f)
-            return;
-
-        while(x > lastKnownStatus.conf.ballRadius + lastKnownStatus.conf.paddleWidth && x < lastKnownStatus.conf.maxWidth - lastKnownStatus.conf.ballRadius - lastKnownStatus.conf.paddleWidth) {
-            x += vx * 0.05;
-            y += vy * 0.05;
-
-            // if collides with walls, mirror y velocity
-            if(y + lastKnownStatus.conf.ballRadius >= lastKnownStatus.conf.maxHeight) {
-                vy *= -1;
-            }
-
-            if(y - lastKnownStatus.conf.ballRadius <= 0) {
-                vy *= -1;
-            }
-        }
-
-        ball.vy = vy;
-        ball.vx = vx;
-        ball.x = x;
-        ball.y = y;
-    }
-
     @Override
     public void onGameOver(boolean won) {
+
+        myState = TestBotState.HANDLING;
+        collisionReported = false;
+        verboseBallVelocity = 0;
+
+
         if(won) {
-            System.out.println("I WON :D");
+            // System.out.println("I WON :D");
         }
         else {
-            System.out.println("I LOST D:");
+            // System.out.println("I LOST D:");
         }
 
         lastKnownStatus.reset();
@@ -98,10 +106,24 @@ public class TestBot extends PongGameBot {
 
     @Override
     public void onTick(double dt) {
-        double dy = tmpBall.y - extrapolatedStatus.getPedal(getMySide()).y;
-        if(dy * dy < extrapolatedStatus.conf.paddleHeight * extrapolatedStatus.conf.paddleHeight) {
-            // could slow down.
 
+        double dy = tmpBall.y - extrapolatedStatus.getPedal(getMySide()).y;
+        if(dy * dy < extrapolatedStatus.conf.paddleHeight * extrapolatedStatus.conf.paddleHeight / 4) {
+
+            if(myState != TestBotState.STOPPED) {
+                getCommunicator().sendUpdate(0);
+                myState = TestBotState.STOPPED;
+            }
+            else if(!collisionReported && lastKnownStatus.getPedal(getMySide()).vy == 0) {
+                System.out.println("Collision: " + (2 * dy / extrapolatedStatus.conf.paddleHeight));
+                collisionReported = true;
+            }
+
+        }
+        else {
+            if(myState == TestBotState.STOPPED) {
+                myState = TestBotState.HANDLING;
+            }
         }
     }
 }

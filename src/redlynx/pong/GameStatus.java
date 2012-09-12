@@ -25,6 +25,55 @@ public class GameStatus {
         return right;
     }
 
+    public boolean hits(PongGameBot.PlayerSide pedalSide, Ball ball) {
+
+        // if game has not started
+        if(ball.y < 0)
+            return false;
+
+        Player pedal = getPedal(pedalSide);
+        if(pedalSide == PongGameBot.PlayerSide.LEFT) {
+            if(ball.x < conf.paddleWidth) {
+                boolean notOverTop = ball.y - conf.ballRadius < pedal.y;
+                boolean notUnderBot = ball.y > pedal.y - conf.paddleHeight;
+
+                if(notOverTop && notUnderBot) {
+                    // calculate relative collision point. (-1 = pedal bottom, +1  pedal top)
+                    double bally = ball.y - conf.ballRadius * 0.5;
+                    double pedaly = pedal.y - conf.paddleHeight * 0.5;
+                    double delta = bally - pedaly;
+                    delta /= conf.paddleHeight * 0.5;
+
+                    System.out.println("Hit pedal at " + delta);
+                    ball.vx *= -1;
+                    ball.x += ball.vx * 0.05;
+                    return true;
+                }
+            }
+        }
+        else {
+            if(ball.x + conf.ballRadius > conf.maxWidth - conf.paddleWidth) {
+                boolean notOverTop = ball.y - conf.ballRadius < pedal.y;
+                boolean notUnderBot = ball.y > pedal.y - conf.paddleHeight;
+
+                if(notOverTop && notUnderBot) {
+                    // calculate relative collision point. (-1 = pedal bottom, +1  pedal top)
+                    double bally = ball.y - conf.ballRadius * 0.5;
+                    double pedaly = pedal.y - conf.paddleHeight * 0.5;
+                    double delta = bally - pedaly;
+                    delta /= conf.paddleHeight * 0.5;
+
+                    System.out.println("Hit pedal at " + delta);
+                    ball.vx *= -1;
+                    ball.x += ball.vx * 0.05;
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public static class Player {
 		public double y = -1;
         public double vy = 0;
@@ -40,6 +89,7 @@ public class GameStatus {
             y = -1;
             vy = 0;
         }
+
     }
 
 	public static class Ball {
@@ -63,6 +113,10 @@ public class GameStatus {
         public void tick(float dt) {
             x += vx * dt;
             y += vy * dt;
+        }
+
+        public String getVelocityString() {
+            return "(" + vx + ", " + vy + ")";
         }
     }
 
@@ -105,14 +159,13 @@ public class GameStatus {
     // and should instead rely on our own physics update.
     public void update(GameStatus gameStatus) {
 
-        // TODO: Is time measured in milliseconds on the server?
-        double dt = (gameStatus.time - time) / 1000.0;
+        // dt is seconds. server time is milliseconds.
+        double dt = (gameStatus.time - time) / 1000.0 + 0.00000001; // incase division by zero
+        // System.out.println("Server dt: " + dt);
         gameStatus.ball.vx = (gameStatus.ball.x - ball.x) / dt;
         gameStatus.ball.vy = (gameStatus.ball.y - ball.y) / dt;
         gameStatus.left.vy = (gameStatus.left.y - left.y) / dt;
         gameStatus.right.vy = (gameStatus.right.y - right.y) / dt;
-
-        copy(gameStatus);
     }
 
     public void copy(GameStatus gameStatus) {
