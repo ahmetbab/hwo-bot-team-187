@@ -49,9 +49,6 @@ public class ServerPlayer implements Runnable{
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
-		
-		//out.println("{\"msgType\":\"gameStarted\",\"data\":[\""+name+"\",\""+other+"\"]}\n");
-		//out.flush();
 	}
 	
 	private void sendJoinedMessage() {
