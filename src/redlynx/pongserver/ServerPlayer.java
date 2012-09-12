@@ -5,6 +5,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,11 +36,50 @@ public class ServerPlayer implements Runnable{
 		return joined;
 	}
 	public void sendStartedMessage(String other) {
-		out.println("{\"msgType\":\"gameStarted\",\"data\":[\""+name+"\",\""+other+"\"]}");
+		
+		try {
+			JSONObject json = new JSONObject();
+			json.put("msgType", "gameStarted");
+			JSONArray array = new JSONArray();
+			array.put(name);
+			array.put(other);
+			json.put("data", array);
+			out.println(json.toString());
+			out.flush();
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		//out.println("{\"msgType\":\"gameStarted\",\"data\":[\""+name+"\",\""+other+"\"]}\n");
+		//out.flush();
 	}
 	
 	private void sendJoinedMessage() {
-		out.println("{\"msgType\":\"joined\",\"data\":\"http://localhost/test.html\"}");
+		try {
+			JSONObject json = new JSONObject();
+			json.put("msgType", "joined");
+			json.put("data", "http://localhost/test.html");
+			out.println(json.toString());
+			out.flush();
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	public void sendEndMessage(String name) {
+		try {
+			JSONObject json = new JSONObject();
+			json.put("msgType", "gameIsOver");
+			json.put("data", name);
+			out.println(json.toString());
+			out.flush();
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void sendGameState(GameState gameState) {
+		out.println(gameState.toJSONString(id));
+		out.flush();
 	}
 	
 	private void messageReceived(String msg) throws JSONException {
@@ -96,4 +136,5 @@ public class ServerPlayer implements Runnable{
 			}
         }
 	}
+
 }

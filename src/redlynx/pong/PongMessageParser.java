@@ -13,8 +13,11 @@ public class PongMessageParser {
     }
 
     public void onGameStart(JSONArray players) {
+    	
         if (players.length() == 2) {
+        	
             try {
+            	System.out.println("Game Start : "+players.getString(0)+" : "+players.getString(1));
                 if(bot.getName().equals(players.getString(0))) {
                     bot.setMySide(PongGameBot.PlayerSide.LEFT);
                 }
@@ -28,6 +31,7 @@ public class PongMessageParser {
     }
 
     public void onGameOver(String winner) {
+    	System.out.println("Game Over");
         bot.onGameOver(winner.equals(bot.getName()));
     }
 
@@ -60,6 +64,9 @@ public class PongMessageParser {
             status.conf.ballRadius = conf.getInt("ballRadius");
             status.conf.tickInterval = conf.getInt("tickInterval");
 
+            
+            //System.out.println("y: "+status.left.y+" scr "+status.conf.maxWidth+","+status.conf.maxHeight+" paddleSize "+status.conf.paddleHeight);
+            
             bot.gameStateUpdate(status);
 
         } catch (JSONException e) {
