@@ -13,7 +13,7 @@ public class GameState {
 		int radius;
 		BallConfig() {
 			radius = 5;
-			speed = 1;
+			speed = 5;
 		}
 	}
 	public class Ball {
@@ -73,9 +73,9 @@ public class GameState {
 		paddle[0].y = paddle[1].y = (screenHeight / 2); //TODO parameter to randomize?
 		paddle[0].vel = paddle[1].vel = 0;
 		ball.x = 10;
-		ball.y = 10;
-		ball.dx = 1;
-		ball.dy = 1;	
+		ball.y = 10 + (Math.random() * screenHeight - 20);
+		ball.dx = Math.random() + 0.5;
+		ball.dy = Math.random() + 0.5;
 		gameEnded = false;
 		winner = -1;
 	}
@@ -116,10 +116,14 @@ public class GameState {
 			if (ball.y+ball.conf.radius >= paddle[0].y 
 				&& ball.y-ball.conf.radius <= paddle[0].y+paddleConfig.height) {
 				//bounce on left
-				
-				ball.x = paddleConfig.width + ball.conf.radius - ((ball.x - ball.conf.radius) - paddleConfig.width);
-				
+				double dy = ball.y - paddle[0].y - (paddleConfig.height * 0.5);
+                dy /= paddleConfig.height * 0.5;
+
+                ball.x = paddleConfig.width + ball.conf.radius - ((ball.x - ball.conf.radius) - paddleConfig.width);
 				ball.dx = -ball.dx; //TODO deflect
+
+                ball.dy += dy * 0.1;
+                ball.dy += (Math.random() - 0.5); // testing
 			}
 		}
 		else {
@@ -129,11 +133,16 @@ public class GameState {
 				if (ball.y+ball.conf.radius >= paddle[1].y 
 					&& ball.y-ball.conf.radius <= paddle[1].y+paddleConfig.height) {
 
+                    double dy = ball.y - paddle[1].y - (paddleConfig.height * 0.5);
+                    dy /= paddleConfig.height * 0.5;
+
 					//bounce on right
 					ball.x = (screenWidth-paddleConfig.width)-ball.conf.radius 
 					-((ball.x + ball.conf.radius) - (screenWidth-paddleConfig.width));
 										
 					ball.dx = -ball.dx; //TODO deflect
+                    ball.dy += dy * 0.1;
+                    ball.dy += (Math.random() - 0.5); // testing
 				}
 			}
 		}

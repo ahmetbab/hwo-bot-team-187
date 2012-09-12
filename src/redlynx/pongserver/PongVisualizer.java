@@ -47,9 +47,10 @@ public class PongVisualizer extends Canvas implements WindowListener {
 		int border = 5;
 		
 		g.drawRect(corner-border, corner-border, model.screenWidth+2*border, model.screenHeight+2*border);
-		g.drawRect(corner, corner, model.screenWidth,  model.screenHeight);
-		g.drawRect(corner, (int)model.paddle[0].y, model.paddleConfig.width, model.paddleConfig.height);
-		g.drawRect(corner+model.screenWidth- model.paddleConfig.width, (int)model.paddle[1].y, model.paddleConfig.width, model.paddleConfig.height);
+        g.drawRect(corner, corner, model.screenWidth,  model.screenHeight);
+
+        g.drawRect(corner, corner + (int)model.paddle[0].y, model.paddleConfig.width, model.paddleConfig.height);
+		g.drawRect(corner+model.screenWidth- model.paddleConfig.width, corner + (int)model.paddle[1].y, model.paddleConfig.width, model.paddleConfig.height);
 		
 		g.drawRect((int)(corner+model.ball.x-model.ball.conf.radius), (int)(corner+model.ball.y-model.ball.conf.radius), 2*model.ball.conf.radius, 2*model.ball.conf.radius);
 		
