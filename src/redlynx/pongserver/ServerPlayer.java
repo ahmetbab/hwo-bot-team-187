@@ -88,6 +88,7 @@ public class ServerPlayer implements Runnable{
 		if ("join".equals(type)) {
 			joined = true;
 			name = json.getString("data");
+			server.updatePlayer(id, name);
 			sendJoinedMessage();
 		}
 		if (joined) {
@@ -128,10 +129,16 @@ public class ServerPlayer implements Runnable{
                 // if io exception, quit?
                 break;
             } catch (JSONException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
         }
+	}
+	public void disconnect() {
+		try {
+			connection.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

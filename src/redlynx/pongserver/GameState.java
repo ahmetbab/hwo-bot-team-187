@@ -4,13 +4,13 @@ import org.json.JSONObject;
 
 public class GameState {
 	public class Paddle {
-		double y;
-		double vel;
-		String name;
+		public double y;
+		public double vel;
+		public String name;
 	}
 	public class BallConfig {
-		double speed; //?
-		int radius;
+		public double speed; //?
+		public int radius;
 		BallConfig() {
 			radius = 5;
 			speed = 5;
@@ -20,11 +20,11 @@ public class GameState {
 		Ball() {
 			conf = new BallConfig();
 		}
-		double x;
-		double y;
-		double dx;
-		double dy;
-		BallConfig conf;
+		public double x;
+		public double y;
+		public double dx;
+		public double dy;
+		public BallConfig conf;
 	}
 	
 	public class PaddleConfig {
@@ -33,21 +33,25 @@ public class GameState {
 			width = 10;
 			height = 50;
 		}
-		double maxSpeed;
-		int width;
-		int height;
+		public double maxSpeed;
+		public int width;
+		public int height;
 	}
 	
 	public Paddle [] paddle = new Paddle[2];
 	public Ball ball = new Ball();
 	public PaddleConfig paddleConfig = new PaddleConfig();
 	
-	int screenWidth;
-	int screenHeight;
-	int tickInterval;
+	public int screenWidth;
+	public int screenHeight;
+	public int tickInterval;
 	
 	private boolean gameEnded;
 	private int winner;
+	public int deflectionMode;
+	public int[] deflectionValue = new int[2];
+	
+	
 	public boolean hasEnded() {
 		return gameEnded;
 	}
@@ -66,6 +70,14 @@ public class GameState {
 		screenWidth = 640;
 		screenHeight = 480;
 		tickInterval = 15;
+		ball.x = screenWidth /2;
+		ball.y = screenHeight / 2;
+		paddle[0].y = paddle[1].y = (screenHeight / 2);
+		gameEnded = false;
+		winner = -1;
+		deflectionMode = 0;
+		deflectionValue[0] = 10;
+		deflectionValue[1] = 20;
 		
 	}
 	
@@ -122,8 +134,8 @@ public class GameState {
                 ball.x = paddleConfig.width + ball.conf.radius - ((ball.x - ball.conf.radius) - paddleConfig.width);
 				ball.dx = -ball.dx; //TODO deflect
 
-                ball.dy += dy * 0.1;
-                ball.dy += (Math.random() - 0.5); // testing
+                ball.dy += dy * (deflectionValue[0]/100.0f);
+                ball.dy += (deflectionValue[1]/20.0f)*(Math.random() - 0.5); // testing
 			}
 		}
 		else {
@@ -141,18 +153,16 @@ public class GameState {
 					-((ball.x + ball.conf.radius) - (screenWidth-paddleConfig.width));
 										
 					ball.dx = -ball.dx; //TODO deflect
-                    ball.dy += dy * 0.1;
-                    ball.dy += (Math.random() - 0.5); // testing
+                    ball.dy += dy * (deflectionValue[0]/100.0f);
+                    ball.dy += (deflectionValue[1]/20.0f)*(Math.random() - 0.5); // testing
 				}
 			}
 		}
 		if (ball.x - ball.conf.radius < 0) {
-			gameEnded = true;
-			winner = 1;
+			endGame(1);
 		}
 		else if (ball.x + ball.conf.radius > screenWidth) {
-			gameEnded = true;
-			winner = 0;
+			endGame(0);
 		}
 		
 	}
@@ -208,4 +218,42 @@ public class GameState {
 		}
 		return "";
 	}
+	public synchronized void setBallSpeed(double speed) {
+		ball.conf.speed = speed;	
+	}
+	public synchronized void setBallRadius(int radius) {
+		ball.conf.radius = radius;	
+	}
+	public synchronized void setPaddleHeight(int height) {
+		paddleConfig.height = height;	
+	}
+	public synchronized void setPaddleWidth(int width) {
+		paddleConfig.width = width;	
+	}
+	public synchronized void setPaddleSpeed(double speed) {
+		paddleConfig.maxSpeed = speed;	
+	}
+	
+	public synchronized void setScreenSize(int width, int height) {
+		screenHeight = height;
+		screenWidth = width;
+	}
+	public void endGame(int winner) {
+		gameEnded = true;
+		this.winner = winner;
+		
+	}
+	public synchronized void setTickInterval(int value) {
+		tickInterval = value;
+		
+	}
+	public void setDeflectionMode(int value) {
+		deflectionMode = value;
+		
+	}
+	public void setDeflectionValue(int id, int value) {
+		deflectionValue[id] = value;
+	}
+	
+	
 }
