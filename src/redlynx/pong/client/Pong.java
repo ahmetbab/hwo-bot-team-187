@@ -1,16 +1,21 @@
 package redlynx.pong.client;
 
-import redlynx.test.TestBot;
-import redlynx.pong.client.network.PongGameCommunicator;
-import redlynx.pong.client.network.PongListenerThread;
-import redlynx.pong.client.state.PongGameBot;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import javax.swing.JFrame;
+
+import redlynx.pong.client.network.PongGameCommunicator;
+import redlynx.pong.client.network.PongListenerThread;
+import redlynx.pong.client.state.GameStateAccessor;
+import redlynx.pong.client.state.PongGameBot;
+import redlynx.pong.client.ui.PongClientFrame;
+import redlynx.pong.ui.PongVisualizer;
+import redlynx.test.TestBot;
 
 public class Pong {
     private  Socket connection;
@@ -23,7 +28,9 @@ public class Pong {
     private final PongGameBot pongBot;
     private final PongGameCommunicator communicator;
 
-    public Pong(String name, String host, int port) throws IOException {
+    private PongVisualizer visualizer;
+    
+    public Pong(String name, String host, int port, boolean visualize) throws IOException {
         connection = new Socket(host, port);
         serverMessageQueue = new ConcurrentLinkedQueue<String>();
         netInput = connection.getInputStream();
@@ -33,32 +40,44 @@ public class Pong {
         // start server message listener
         listenerThread = new PongListenerThread(netInput, serverMessageQueue);
         listenerThread.start();
-
+        
+        
         // start game state loop
         pongBot = new TestBot(name, communicator, serverMessageQueue);
+        
+        if (visualize) {
+        	GameStateAccessor accessor = new GameStateAccessor(pongBot);
+        	visualizer = new PongVisualizer(accessor);
+        	JFrame frame = new PongClientFrame(name, visualizer, accessor);
+        }
+        pongBot.setVisualizer(visualizer);
+        
         pongBot.start();
 
+        
+        
         // when game is over, shut down listener thread
         listenerThread.interrupt();
     }
 
     public static void main(String[] args) {
     	
-    	if (args.length != 3) {
-    		System.err.println("Invalid arguments: USAGE: Pong name host port");
+    	if (args.length < 3) {
+    		System.err.println("Invalid arguments: USAGE: Pong name host port [-vis]");
     		System.exit(-1);
     	}
     	
     	String name = args[0];
     	String host = args[1];
     	String port = args[2];
+    	boolean visualize = args.length == 4 && args[3].equals("-vis");
 
         System.out.println("name: " + name);
         System.out.println("host: " + host);
         System.out.println("port: " + port);
 
         try {
-			new Pong(name, host, Integer.parseInt(port));
+			new Pong(name, host, Integer.parseInt(port), visualize);
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

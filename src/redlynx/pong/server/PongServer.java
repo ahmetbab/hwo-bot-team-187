@@ -119,6 +119,7 @@ public class PongServer {
 	}
 	public synchronized void sendGameState() {
 		if (players[0] != null && players[1] != null) {
+			System.out.println("Send Game State");
 			players[0].sendGameState(gameState);
 			players[1].sendGameState(gameState);
 		}
@@ -128,7 +129,7 @@ public class PongServer {
 		
 		visualizer = new PongVisualizer(gameState);
 		
-		JFrame frame = new PongServerFrame(visualizer, gameState);
+		JFrame frame = new PongServerFrame(visualizer, gameState, this);
 		
 		this.serverPort = port;
 		

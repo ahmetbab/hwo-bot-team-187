@@ -1,9 +1,10 @@
 package redlynx.pong.client.state;
 
+import java.util.Queue;
+
 import redlynx.pong.client.network.PongGameCommunicator;
 import redlynx.pong.client.network.PongMessageParser;
-
-import java.util.Queue;
+import redlynx.pong.ui.PongVisualizer;
 
 public abstract class PongGameBot {
 
@@ -22,6 +23,8 @@ public abstract class PongGameBot {
         }
     }
 
+    private PongVisualizer visualizer;
+    
     private final Queue<String> serverMessageQueue;
     private final PongGameCommunicator communicator;
     private final PongMessageParser handler;
@@ -48,6 +51,10 @@ public abstract class PongGameBot {
         this.communicator = communicator;
         this.handler = new PongMessageParser(this);
     }
+    
+    public void setVisualizer(PongVisualizer visualizer) {
+    	this.visualizer = visualizer;
+    }
 
     public void gameStateUpdate(GameStatus gameStatus) {
         lastKnownStatus.update(gameStatus);
@@ -60,7 +67,12 @@ public abstract class PongGameBot {
 
         extrapolatedStatus.copy(gameStatus);
         extrapolatedTime = 0;
+        
+        if (visualizer != null)
+        	visualizer.render();
+        
         onGameStateUpdate(gameStatus);
+        
     }
 
     public abstract void onGameStateUpdate(GameStatus newStatus);

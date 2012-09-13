@@ -204,18 +204,14 @@ public class PongServerFrame extends JFrame implements WindowListener, ValueChan
 	}
 	
 	
-	public PongServerFrame(PongVisualizer pongGameArea, GameState model) {
+	public PongServerFrame(PongVisualizer pongGameArea, GameState model, PongServer server) {
 		super("Pong Server");
 		this.model = model;
-		//JFrame frame = new JFrame("Pong");
+		this.server = server;
+		
 	    Container content = getContentPane();
 	    content.setBackground(Color.black);
-	    //this.setMinimumSize(new Dimension(width, height));
-		//this.setPreferredSize(new Dimension(width, height));
-		
-		//frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		//frame.setSize(width,height);
-		addWindowListener(this);
+	    addWindowListener(this);
 
 	    GridBagLayout gb = new GridBagLayout();
 	    content.setLayout(gb);

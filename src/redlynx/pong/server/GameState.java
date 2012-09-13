@@ -117,7 +117,7 @@ public class GameState implements GameStateAccessorInterface {
 			}
 			
 		}
-		System.out.println("paddles: "+paddle[0].y+" : "+paddle[1].y);
+		//System.out.println("paddles: "+paddle[0].y+" : "+paddle[1].y);
 		
 		ball.x += ball.dx*ball.conf.speed;
 		ball.y += ball.dy*ball.conf.speed;
