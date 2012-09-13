@@ -1,6 +1,6 @@
 package redlynx.pong.util;
 
-import redlynx.pong.state.GameStatus;
+import redlynx.pong.client.state.GameStatus;
 
 public class PongUtil {
 

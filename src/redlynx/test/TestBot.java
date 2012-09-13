@@ -1,17 +1,17 @@
 package redlynx.test;
 
-import redlynx.pong.network.PongGameCommunicator;
-import redlynx.pong.collisionmodel.LinearModel;
-import redlynx.pong.collisionmodel.PongModel;
-import redlynx.pong.collisionmodel.PongModelInitializer;
-import redlynx.pong.state.GameStatus;
-import redlynx.pong.state.PongGameBot;
-import redlynx.pong.util.PongUtil;
-import redlynx.pong.util.Vector2;
-
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.Queue;
+
+import redlynx.pong.client.collisionmodel.LinearModel;
+import redlynx.pong.client.collisionmodel.PongModel;
+import redlynx.pong.client.collisionmodel.PongModelInitializer;
+import redlynx.pong.client.network.PongGameCommunicator;
+import redlynx.pong.client.state.GameStatus;
+import redlynx.pong.client.state.PongGameBot;
+import redlynx.pong.util.PongUtil;
+import redlynx.pong.util.Vector2;
 
 public class TestBot extends PongGameBot {
 
