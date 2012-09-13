@@ -2,6 +2,7 @@ package redlynx.pong.client.state;
 
 import java.util.Queue;
 
+import redlynx.pong.client.network.Communicator;
 import redlynx.pong.client.network.PongGameCommunicator;
 import redlynx.pong.client.network.PongMessageParser;
 import redlynx.pong.ui.PongVisualizer;
@@ -26,7 +27,7 @@ public abstract class PongGameBot {
     private PongVisualizer visualizer;
     
     private final Queue<String> serverMessageQueue;
-    private final PongGameCommunicator communicator;
+    private final Communicator communicator;
     private final PongMessageParser handler;
     private final String name;
     private PlayerSide mySide;
@@ -45,7 +46,7 @@ public abstract class PongGameBot {
         return mySide;
     }
 
-    public PongGameBot(String name, PongGameCommunicator communicator, Queue<String> serverMessageQueue) {
+    public PongGameBot(String name, Communicator communicator, Queue<String> serverMessageQueue) {
     	this.name = name;
         this.serverMessageQueue = serverMessageQueue;
         this.communicator = communicator;
@@ -82,8 +83,8 @@ public abstract class PongGameBot {
 
     public void start() {
 
-        System.out.println("Sending join");
-        this.communicator.sendJoin(name);
+        //System.out.println("Sending join");
+        //this.communicator.sendJoin(name);
 
         while(true) {
         	while (!serverMessageQueue.isEmpty()) {
@@ -120,7 +121,7 @@ public abstract class PongGameBot {
         return name;
     }
 
-    public PongGameCommunicator getCommunicator() {
+    public Communicator getCommunicator() {
         return communicator;
     }
 

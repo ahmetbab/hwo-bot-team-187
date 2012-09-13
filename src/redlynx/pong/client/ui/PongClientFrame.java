@@ -5,28 +5,35 @@ import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import redlynx.pong.client.network.Communicator;
 import redlynx.pong.client.state.GameStateAccessor;
 import redlynx.pong.ui.PongVisualizer;
 
-public class PongClientFrame extends JFrame implements WindowListener {
+public class PongClientFrame extends JFrame implements WindowListener, KeyListener {
 	
 	PongVisualizer pongGameArea;
 	GameStateAccessor accessor;
+	Communicator comm;
 	
-	public PongClientFrame(String title, PongVisualizer pongGameArea, GameStateAccessor accessor) {
+	public PongClientFrame(String title, PongVisualizer pongGameArea, GameStateAccessor accessor, Communicator comm) {
+		super(title);
 		this.pongGameArea = pongGameArea;
 		this.accessor = accessor;
+		this.comm = comm;
 		
 	    Container content = getContentPane();
 	    content.setBackground(Color.black);
 	    
 		addWindowListener(this);
+		addKeyListener(this);
 
 	    GridBagLayout gb = new GridBagLayout();
 	    content.setLayout(gb);
@@ -91,6 +98,43 @@ public class PongClientFrame extends JFrame implements WindowListener {
 
 	@Override
 	public void windowOpened(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		switch (e.getKeyCode()) {
+		case KeyEvent.VK_UP:
+			comm.sendUpdate(-1);
+			break;
+		case KeyEvent.VK_DOWN:
+			comm.sendUpdate(1);
+			break;
+		}
+	}
+
+
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		
+		switch (e.getKeyCode()) {
+		case KeyEvent.VK_UP:
+			comm.sendUpdate(0);
+			break;
+		case KeyEvent.VK_DOWN:
+			comm.sendUpdate(0);
+			break;
+		}
+	}
+
+
+
+	@Override
+	public void keyTyped(KeyEvent arg0) {
 		// TODO Auto-generated method stub
 		
 	}

@@ -7,7 +7,7 @@ import java.util.Queue;
 import redlynx.pong.client.collisionmodel.LinearModel;
 import redlynx.pong.client.collisionmodel.PongModel;
 import redlynx.pong.client.collisionmodel.PongModelInitializer;
-import redlynx.pong.client.network.PongGameCommunicator;
+import redlynx.pong.client.network.Communicator;
 import redlynx.pong.client.state.GameStatus;
 import redlynx.pong.client.state.PongGameBot;
 import redlynx.pong.util.PongUtil;
@@ -23,7 +23,7 @@ public class TestBot extends PongGameBot {
     private int verboseBallVelocity = 0;
     private boolean collisionReported = false;
 
-    public TestBot(String name, PongGameCommunicator communicator, Queue<String> serverMessageQueue) {
+    public TestBot(String name, Communicator communicator, Queue<String> serverMessageQueue) {
         super(name, communicator, serverMessageQueue);
         PongModel myModel = new LinearModel();
         try {

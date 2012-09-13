@@ -2,7 +2,7 @@ package redlynx.pong.client.network;
 
 import java.io.PrintStream;
 
-public class PongGameCommunicator {
+public class PongGameCommunicator implements Communicator {
 
     private final PrintStream out;
 

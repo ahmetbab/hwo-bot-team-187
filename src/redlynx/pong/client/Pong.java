@@ -9,6 +9,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.swing.JFrame;
 
+import redlynx.pong.client.network.Communicator;
+import redlynx.pong.client.network.NullCommunicator;
 import redlynx.pong.client.network.PongGameCommunicator;
 import redlynx.pong.client.network.PongListenerThread;
 import redlynx.pong.client.state.GameStateAccessor;
@@ -27,16 +29,18 @@ public class Pong {
     private final Queue<String> serverMessageQueue;
     private final PongListenerThread listenerThread;
     private final PongGameBot pongBot;
-    private final PongGameCommunicator communicator;
-
+    private final Communicator communicator;
+    private final Communicator devNull;
     private PongVisualizer visualizer;
     
-    public Pong(String name, String host, int port, boolean visualize) throws IOException {
+    public Pong(String name, String host, int port, boolean visualize, boolean manual) throws IOException {
         connection = new Socket(host, port);
         serverMessageQueue = new ConcurrentLinkedQueue<String>();
         netInput = connection.getInputStream();
         out = new PrintStream(connection.getOutputStream());
         communicator = new PongGameCommunicator(out);
+        
+        devNull = new NullCommunicator();
 
         // start server message listener
         listenerThread = new PongListenerThread(netInput, serverMessageQueue);
@@ -44,15 +48,18 @@ public class Pong {
         
         
         // start game state loop
-        pongBot = new TestBot(name, communicator, serverMessageQueue);
+        pongBot = new TestBot(name, manual?devNull:communicator, serverMessageQueue);
         
         if (visualize) {
         	GameStateAccessor accessor = new GameStateAccessor(pongBot);
         	visualizer = new PongVisualizer(accessor);
-        	JFrame frame = new PongClientFrame(name, visualizer, accessor);
+        	JFrame frame = new PongClientFrame(name, visualizer, accessor, manual?communicator:devNull);
         }
         pongBot.setVisualizer(visualizer);
         
+        System.out.println("Sending join");
+        communicator.sendJoin(name);
+
         pongBot.start();
 
         
@@ -72,14 +79,14 @@ public class Pong {
     	String name = args[0];
     	String host = args[1];
     	String port = args[2];
-    	boolean visualize = args.length == 4 && args[3].equals("-vis");
-
+    	boolean visualize = args.length == 4 && (args[3].equals("-vis") || args[3].equals("-manual"));
+    	boolean manual = args.length == 4 && (args[3].equals("-manual"));
         System.out.println("name: " + name);
         System.out.println("host: " + host);
         System.out.println("port: " + port);
 
         try {
-			new Pong(name, host, Integer.parseInt(port), visualize);
+			new Pong(name, host, Integer.parseInt(port), visualize, manual);
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
