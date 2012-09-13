@@ -1,8 +1,10 @@
-package redlynx.pong;
+package redlynx.pong.network;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import redlynx.pong.state.GameStatus;
+import redlynx.pong.state.PongGameBot;
 
 public class PongMessageParser {
 

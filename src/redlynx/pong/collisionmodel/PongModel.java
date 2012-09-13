@@ -1,6 +1,6 @@
 package redlynx.pong.collisionmodel;
 
-import redlynx.pong.Vector2;
+import redlynx.pong.util.Vector2;
 
 public interface PongModel {
     public void learn(double pos, Vector2 in, Vector2 out);

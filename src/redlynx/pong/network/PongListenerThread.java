@@ -1,4 +1,4 @@
-package redlynx.pong;
+package redlynx.pong.network;
 
 import java.io.IOException;
 import java.io.InputStream;

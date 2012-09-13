@@ -1,12 +1,14 @@
 package redlynx.pong;
 
-import redlynx.mikabot.TestBot;
+import redlynx.test.TestBot;
+import redlynx.pong.network.PongGameCommunicator;
+import redlynx.pong.network.PongListenerThread;
+import redlynx.pong.state.PongGameBot;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 

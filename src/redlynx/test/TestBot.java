@@ -1,9 +1,13 @@
-package redlynx.mikabot;
+package redlynx.test;
 
-import redlynx.pong.*;
+import redlynx.pong.network.PongGameCommunicator;
 import redlynx.pong.collisionmodel.LinearModel;
 import redlynx.pong.collisionmodel.PongModel;
 import redlynx.pong.collisionmodel.PongModelInitializer;
+import redlynx.pong.state.GameStatus;
+import redlynx.pong.state.PongGameBot;
+import redlynx.pong.util.PongUtil;
+import redlynx.pong.util.Vector2;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

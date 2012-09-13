@@ -1,6 +1,6 @@
 package redlynx.pong.collisionmodel;
 
-import redlynx.pong.Vector2;
+import redlynx.pong.util.Vector2;
 
 import java.util.ArrayList;
 

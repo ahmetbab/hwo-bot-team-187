@@ -1,4 +1,4 @@
-package redlynx.pong;
+package redlynx.pong.util;
 
 public class Vector2 {
 

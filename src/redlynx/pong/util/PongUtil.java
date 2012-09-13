@@ -1,4 +1,6 @@
-package redlynx.pong;
+package redlynx.pong.util;
+
+import redlynx.pong.state.GameStatus;
 
 public class PongUtil {
 
@@ -11,9 +13,10 @@ public class PongUtil {
         if(vx * vx < 0.00001f)
             return;
 
+        double dt = 0.001;
         while(x > conf.ballRadius + conf.paddleWidth && x < conf.maxWidth - conf.ballRadius - conf.paddleWidth) {
-            x += vx * 0.05;
-            y += vy * 0.05;
+            x += vx * dt;
+            y += vy * dt;
 
             // if collides with walls, mirror y velocity
             if(y + conf.ballRadius >= conf.maxHeight) {

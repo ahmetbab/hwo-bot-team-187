@@ -1,4 +1,7 @@
-package redlynx.pong;
+package redlynx.pong.state;
+
+import redlynx.pong.network.PongGameCommunicator;
+import redlynx.pong.network.PongMessageParser;
 
 import java.util.Queue;
 
@@ -49,6 +52,12 @@ public abstract class PongGameBot {
     public void gameStateUpdate(GameStatus gameStatus) {
         lastKnownStatus.update(gameStatus);
         lastKnownStatus.copy(gameStatus);
+
+        double error_x = lastKnownStatus.ball.x - extrapolatedStatus.ball.x;
+        double error_y = lastKnownStatus.ball.y - extrapolatedStatus.ball.y;
+
+        System.out.println("Error (" + extrapolatedTime + "ms): " + (error_x * error_x + error_y * error_y));
+
         extrapolatedStatus.copy(gameStatus);
         extrapolatedTime = 0;
         onGameStateUpdate(gameStatus);
@@ -69,7 +78,7 @@ public abstract class PongGameBot {
         	}
 
             long newTime = System.currentTimeMillis();
-            tick(currentTime - newTime);
+            tick(newTime - currentTime);
             currentTime = newTime;
 
             try {
@@ -85,7 +94,6 @@ public abstract class PongGameBot {
         double dt = time * 0.001;
         extrapolatedStatus.extrapolate(dt);
         extrapolatedTime += dt;
-
         // try to collect statistics
         // extrapolatedStatus.hits(PlayerSide.LEFT, extrapolatedStatus.ball);
         // extrapolatedStatus.hits(PlayerSide.RIGHT, extrapolatedStatus.ball);
@@ -99,5 +107,15 @@ public abstract class PongGameBot {
 
     public PongGameCommunicator getCommunicator() {
         return communicator;
+    }
+
+
+
+    public GameStatus getLastKnownStatus() {
+        return lastKnownStatus;
+    }
+
+    public GameStatus getExtrapolatedStatus() {
+        return extrapolatedStatus;
     }
 }

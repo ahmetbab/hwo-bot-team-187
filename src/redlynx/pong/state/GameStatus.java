@@ -1,4 +1,4 @@
-package redlynx.pong;
+package redlynx.pong.state;
 
 
 public class GameStatus {
