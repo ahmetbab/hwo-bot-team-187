@@ -35,6 +35,15 @@ public class ServerPlayer implements Runnable{
 	public boolean hasJoined() {
 		return joined;
 	}
+	
+	public void sendMessage(String formattedMessage) {
+		out.println(formattedMessage);
+		out.flush();
+	}
+	private void sendMessageLagSimulated(String formattedMessage) {
+		server.getLagSimulator().send(this, formattedMessage);
+	}
+	
 	public void sendStartedMessage(String other) {
 		
 		try {
@@ -44,8 +53,8 @@ public class ServerPlayer implements Runnable{
 			array.put(name);
 			array.put(other);
 			json.put("data", array);
-			out.println(json.toString());
-			out.flush();
+			sendMessageLagSimulated(json.toString());
+			
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -56,8 +65,7 @@ public class ServerPlayer implements Runnable{
 			JSONObject json = new JSONObject();
 			json.put("msgType", "joined");
 			json.put("data", "http://localhost/test.html");
-			out.println(json.toString());
-			out.flush();
+			sendMessageLagSimulated(json.toString());
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -67,34 +75,39 @@ public class ServerPlayer implements Runnable{
 			JSONObject json = new JSONObject();
 			json.put("msgType", "gameIsOver");
 			json.put("data", name);
-			out.println(json.toString());
-			out.flush();
+			sendMessageLagSimulated(json.toString());
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
 	public void sendGameState(GameState gameState) {
-		out.println(gameState.toJSONString(id));
-		out.flush();
+		sendMessageLagSimulated(gameState.toJSONString(id));
 	}
 	
-	private void messageReceived(String msg) throws JSONException {
+	private void messageReceivedLagSimulated(String msg) {
+		server.getLagSimulator().receive(this, msg);
+	}
+	
+	public void messageReceived(String msg) {
 		//System.out.println("r"+id+":"+msg);
-		
-		JSONObject json = new JSONObject(msg);
-		String type = json.getString("msgType");
-		
-		if ("join".equals(type)) {
-			joined = true;
-			name = json.getString("data");
-			server.updatePlayer(id, name);
-			sendJoinedMessage();
-		}
-		if (joined) {
-			if ("changeDir".equals(type)) {
-				server.changeDir(id, json.getDouble("data"));
+		try {	
+			JSONObject json = new JSONObject(msg);
+			String type = json.getString("msgType");
+			
+			if ("join".equals(type)) {
+				joined = true;
+				name = json.getString("data");
+				server.updatePlayer(id, name);
+				sendJoinedMessage();
 			}
+			if (joined) {
+				if ("changeDir".equals(type)) {
+					server.changeDir(id, json.getDouble("data"));
+				}
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -116,21 +129,17 @@ public class ServerPlayer implements Runnable{
             	case '}':
             		depth--;
             		if (depth == 0) {
-            			try {
-            				messageReceived(msg);
-            			}
-            			finally {
-            				msg = "";
-            			}
+            			
+            			messageReceivedLagSimulated(msg);
+            			msg = "";
+            			
             		}
             	}
                 
             } catch (IOException e) {
                 // if io exception, quit?
                 break;
-            } catch (JSONException e) {
-				e.printStackTrace();
-			}
+            }
         }
 	}
 	public void disconnect() {

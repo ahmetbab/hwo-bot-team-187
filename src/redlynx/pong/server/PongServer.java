@@ -22,6 +22,8 @@ public class PongServer {
 	
 	GameState gameState;
 	PongVisualizer visualizer;
+	private LagSimulator lagSimulator;
+	
 	
 	int serverPort;
 	PongServer(){
@@ -30,12 +32,15 @@ public class PongServer {
 		players = new ServerPlayer[2];
 		playerThreads = new Thread[2];
 	}
-	
+	public LagSimulator getLagSimulator() {
+		return lagSimulator;
+	}
 	public void changeDir(int id, double dir) {
 		//System.out.println("player"+id+": dir: "+dir);
 		
 		gameState.changeDir(id, dir);
 	}
+
 	void connectPlayers()
 	{
 		
@@ -119,7 +124,6 @@ public class PongServer {
 	}
 	public synchronized void sendGameState() {
 		if (players[0] != null && players[1] != null) {
-			System.out.println("Send Game State");
 			players[0].sendGameState(gameState);
 			players[1].sendGameState(gameState);
 		}
@@ -132,7 +136,8 @@ public class PongServer {
 		JFrame frame = new PongServerFrame(visualizer, gameState, this);
 		
 		this.serverPort = port;
-		
+		lagSimulator = new LagSimulator();
+		lagSimulator.start();
 		
 		
 		
@@ -220,12 +225,11 @@ public class PongServer {
 	}
 
 	public void setOutputLag(int value) {
-		// TODO Auto-generated method stub
+		lagSimulator.setOutputLag(value);
 		
 	}
 
 	public void setInputLag(int value) {
-		// TODO Auto-generated method stub
-		
+		lagSimulator.setInputLag(value);
 	}
 }

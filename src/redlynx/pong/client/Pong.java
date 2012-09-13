@@ -15,6 +15,7 @@ import redlynx.pong.client.state.GameStateAccessor;
 import redlynx.pong.client.state.PongGameBot;
 import redlynx.pong.client.ui.PongClientFrame;
 import redlynx.pong.ui.PongVisualizer;
+import redlynx.pong.util.WinTimerHack;
 import redlynx.test.TestBot;
 
 public class Pong {
@@ -66,6 +67,7 @@ public class Pong {
     		System.err.println("Invalid arguments: USAGE: Pong name host port [-vis]");
     		System.exit(-1);
     	}
+    	WinTimerHack.fixTimerAccuracy();
     	
     	String name = args[0];
     	String host = args[1];

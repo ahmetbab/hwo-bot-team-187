@@ -42,8 +42,8 @@ public class PongServerFrame extends JFrame implements WindowListener, ValueChan
 	String screenX = "Screen X";
 	String screenY = "Screen Y";
 	
-	String inputLag = "Input Lag (TODO)";
-	String outputLag = "Output Lag(TODO)";
+	String inputLag = "Input Lag";
+	String outputLag = "Output Lag";
 	String messageInterval = "Message Inteval";
 	String tickInterval = "Tick Inteval??";
 	
