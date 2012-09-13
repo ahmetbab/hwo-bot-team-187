@@ -1,5 +1,7 @@
 package redlynx.pong.server;
 
+import java.awt.Color;
+
 import org.json.JSONObject;
 
 import redlynx.pong.ui.GameStateAccessorInterface;
@@ -266,6 +268,14 @@ public class GameState implements GameStateAccessorInterface {
 	
 	
 	//accessor
+	
+	@Override
+	public int getNumberOfStatesToRender() {return 1;}
+	@Override
+	public Color getRenderColor(int stateIdx) {return Color.white;};
+	@Override
+	public void setRenderState(int stateIdx) {}
+	
 	@Override
 	public double getPedalY(int id) {
 		return paddle[id].y;

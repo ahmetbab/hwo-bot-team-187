@@ -1,10 +1,17 @@
 package redlynx.pong.ui;
 
+import java.awt.Color;
+
 import redlynx.pong.util.Vector2;
 import redlynx.pong.util.Vector2i;
 
 public interface GameStateAccessorInterface {
 
+	public int getNumberOfStatesToRender();
+	public Color getRenderColor(int stateIdx);
+	public void setRenderState(int stateIdx);
+	
+	
     public double getPedalY(int id);
     public String getPlayerName(int id);
   

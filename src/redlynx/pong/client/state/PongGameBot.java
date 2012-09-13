@@ -68,10 +68,11 @@ public abstract class PongGameBot {
         extrapolatedStatus.copy(gameStatus);
         extrapolatedTime = 0;
         
-        if (visualizer != null)
-        	visualizer.render();
+       
         
         onGameStateUpdate(gameStatus);
+        if (visualizer != null)
+        	visualizer.render();
         
     }
 
@@ -111,6 +112,8 @@ public abstract class PongGameBot {
         // extrapolatedStatus.hits(PlayerSide.RIGHT, extrapolatedStatus.ball);
 
         onTick(dt);
+        if (visualizer != null)
+        	visualizer.render();
     }
 
     public String getName() {

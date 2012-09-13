@@ -1,5 +1,7 @@
 package redlynx.pong.client.state;
 
+import java.awt.Color;
+
 import redlynx.pong.ui.GameStateAccessorInterface;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.ui.UIString;
@@ -30,6 +32,23 @@ public class GameStateAccessor implements GameStateAccessorInterface {
     public void fetchLastKnown() {
         status = bot.getLastKnownStatus();
     }
+    
+	@Override
+	public int getNumberOfStatesToRender() {
+		return 2;
+	}
+	@Override
+	public Color getRenderColor(int stateIdx) {return stateIdx==0?Color.white.darker().darker():Color.white;};
+	@Override
+	public void setRenderState(int stateIdx) {
+		if (stateIdx == 0) {
+			fetchLastKnown();
+		}
+		else  {
+			fetchExtrapolated();
+		}
+	}
+    
 
     @Override
     public int getBallRadius() {
