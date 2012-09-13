@@ -24,6 +24,6 @@ public interface GameStateAccessorInterface {
     
     
     public UILine[] getExtraLines();
-    public UIString[] getExtraString();
+    public UIString[] getExtraStrings();
     
 }

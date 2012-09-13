@@ -79,11 +79,16 @@ public class GameStateAccessor implements GameStateAccessorInterface {
     }
 	@Override
 	public UILine[] getExtraLines() {
-		// TODO Auto-generated method stub
-		return null;
+		
+		UILine[] lines = new UILine[1];
+		
+		Vector2i start = new Vector2i((int)bot.getLastKnownStatus().ball.x,(int)bot.getLastKnownStatus().ball.y);
+		Vector2i end = new Vector2i((int)bot.getExtrapolatedStatus().ball.x,(int)bot.getExtrapolatedStatus().ball.y);
+		lines[0] = new UILine(start, end, Color.red.darker());
+		return lines;
 	}
 	@Override
-	public UIString[] getExtraString() {
+	public UIString[] getExtraStrings() {
 		// TODO Auto-generated method stub
 		return null;
 	}

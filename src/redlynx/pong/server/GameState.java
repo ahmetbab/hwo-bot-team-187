@@ -305,7 +305,7 @@ public class GameState implements GameStateAccessorInterface {
 		return null;
 	}
 	@Override
-	public UIString[] getExtraString() {
+	public UIString[] getExtraStrings() {
 		return null;
 	}
 	

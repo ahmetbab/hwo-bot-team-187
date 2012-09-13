@@ -95,6 +95,27 @@ public class PongVisualizer extends JPanel
 			g.drawRect((int)(cornerx+ballPos.x-r), (int)(cornery+ballPos.y-r), 2*r, 2*r);
 		}
 		
+		UILine[] extraUILines = model.getExtraLines();
+		if (extraUILines != null) {
+			for (int i = 0; i < extraUILines.length; i++) {
+				g.setColor(extraUILines[i].getColor());
+				Vector2i start = extraUILines[i].getStart();
+				Vector2i end = extraUILines[i].getEnd();
+				g.drawLine(cornerx+start.x, cornery+start.y, cornerx+end.x, cornery+end.y);
+			}
+		}
+		
+		UIString[] extraUIStrings = model.getExtraStrings();
+		if (extraUIStrings != null) {
+			for (int i = 0; i < extraUIStrings.length; i++) {
+				g.setColor(extraUIStrings[i].getColor());
+				String text = extraUIStrings[i].getText();
+				Vector2i pos = extraUIStrings[i].getPos();
+				g.drawString(text, cornerx+pos.x, cornery+pos.y);
+			}
+		}
+		
+		
 		  
 		
 		g = imageBuffer.getGraphics();
