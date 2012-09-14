@@ -9,6 +9,11 @@ public class Vector2i {
         x = y = 0;
     }
 
+    public Vector2i(double x, double y) {
+        this.x = (int) Math.round(x);
+        this.y = (int) Math.round(y);
+    }
+
     public Vector2i(int x, int y) {
         this.x = x;
         this.y = y;

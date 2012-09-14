@@ -1,6 +1,7 @@
 package redlynx.pong.client.state;
 
 import java.awt.Color;
+import java.util.ArrayList;
 
 import redlynx.pong.ui.GameStateAccessorInterface;
 import redlynx.pong.ui.UILine;
@@ -78,18 +79,12 @@ public class GameStateAccessor implements GameStateAccessorInterface {
     	return new Vector2i(status.conf.maxWidth, status.conf.maxHeight);
     }
 	@Override
-	public UILine[] getExtraLines() {
-		
-		UILine[] lines = new UILine[1];
-		
-		Vector2i start = new Vector2i((int)bot.getLastKnownStatus().ball.x,(int)bot.getLastKnownStatus().ball.y);
-		Vector2i end = new Vector2i((int)bot.getExtrapolatedStatus().ball.x,(int)bot.getExtrapolatedStatus().ball.y);
-		lines[0] = new UILine(start, end, Color.red.darker());
-		return lines;
+	public ArrayList<UILine> getExtraLines() {
+        return bot.getDrawLines();
 	}
-	@Override
+
+    @Override
 	public UIString[] getExtraStrings() {
-		// TODO Auto-generated method stub
 		return null;
 	}
-    }
+}

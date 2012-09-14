@@ -35,7 +35,7 @@ public class PongMessageParser {
 
     public void onGameOver(String winner) {
     	System.out.println("Game Over");
-        bot.onGameOver(winner.equals(bot.getName()));
+        bot.gameOver(winner.equals(bot.getName()));
     }
 
     public void onGameUpdate(JSONObject gameState) {

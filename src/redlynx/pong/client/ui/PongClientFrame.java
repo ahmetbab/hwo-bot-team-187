@@ -113,6 +113,9 @@ public class PongClientFrame extends JFrame implements WindowListener, KeyListen
 		case KeyEvent.VK_DOWN:
 			comm.sendUpdate(1);
 			break;
+        case KeyEvent.VK_S:
+            comm.sendUpdate(0);
+            break;
 		}
 	}
 
@@ -120,15 +123,6 @@ public class PongClientFrame extends JFrame implements WindowListener, KeyListen
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-		
-		switch (e.getKeyCode()) {
-		case KeyEvent.VK_UP:
-			comm.sendUpdate(0);
-			break;
-		case KeyEvent.VK_DOWN:
-			comm.sendUpdate(0);
-			break;
-		}
 	}
 
 

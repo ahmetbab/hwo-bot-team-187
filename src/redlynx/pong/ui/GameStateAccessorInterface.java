@@ -1,6 +1,7 @@
 package redlynx.pong.ui;
 
 import java.awt.Color;
+import java.util.ArrayList;
 
 import redlynx.pong.util.Vector2;
 import redlynx.pong.util.Vector2i;
@@ -23,7 +24,7 @@ public interface GameStateAccessorInterface {
     public Vector2i getPedalDimensions();
     
     
-    public UILine[] getExtraLines();
+    public ArrayList<UILine> getExtraLines();
     public UIString[] getExtraStrings();
     
 }

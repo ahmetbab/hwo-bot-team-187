@@ -1,6 +1,7 @@
 package redlynx.pong.server;
 
 import java.awt.Color;
+import java.util.ArrayList;
 
 import org.json.JSONObject;
 
@@ -301,7 +302,7 @@ public class GameState implements GameStateAccessorInterface {
 		return new Vector2i(paddleConfig.width, paddleConfig.height);
 	}
 	@Override
-	public UILine[] getExtraLines() {
+	public ArrayList<UILine> getExtraLines() {
 		return null;
 	}
 	@Override

@@ -1,13 +1,23 @@
 package redlynx.pong.client.state;
 
+import java.util.ArrayList;
 import java.util.Queue;
 
 import redlynx.pong.client.network.Communicator;
 import redlynx.pong.client.network.PongGameCommunicator;
 import redlynx.pong.client.network.PongMessageParser;
 import redlynx.pong.ui.PongVisualizer;
+import redlynx.pong.ui.UILine;
+import redlynx.pong.util.PongUtil;
+import redlynx.pong.util.Vector2;
+
+import javax.swing.text.Highlighter;
 
 public abstract class PongGameBot {
+
+    private double totalTime = 0;
+    private final History history = new History();
+    private final VelocityStorage storage = new VelocityStorage();
 
     public static enum PlayerSide {
         LEFT(-1),
@@ -38,6 +48,10 @@ public abstract class PongGameBot {
 
     private long currentTime = System.currentTimeMillis();
 
+    public VelocityStorage getStorage() {
+        return storage;
+    }
+
     public void setMySide(PlayerSide side) {
         mySide = side;
     }
@@ -58,34 +72,64 @@ public abstract class PongGameBot {
     }
 
     public void gameStateUpdate(GameStatus gameStatus) {
-        lastKnownStatus.update(gameStatus);
-        lastKnownStatus.copy(gameStatus);
 
-        double error_x = lastKnownStatus.ball.x - extrapolatedStatus.ball.x;
-        double error_y = lastKnownStatus.ball.y - extrapolatedStatus.ball.y;
+        double squareError = PongUtil.pointDistance2Line(extrapolatedStatus.ball.getPosition(), extrapolatedStatus.ball.getNextPosition(), gameStatus.ball.getPosition());
 
-        System.out.println("Error (" + extrapolatedTime + "ms): " + (error_x * error_x + error_y * error_y));
+        storage.update(gameStatus.getPedal(mySide).y, gameStatus.time);
+        history.update(gameStatus.ball.getPosition());
 
-        extrapolatedStatus.copy(gameStatus);
+        if(history.isReliable()) {
+            lastKnownStatus.update(gameStatus, true);
+            lastKnownStatus.copy(gameStatus, true);
+            extrapolatedStatus.copy(gameStatus, true);
+        }
+        else {
+            Vector2 collisionPoint = history.getLastCollisionPoint();
+            double collisionTime = history.getLastCollisionTime();
+            double dt = totalTime - collisionTime;
+
+            if(collisionPoint != null && dt > 0.1) {
+                Vector2 directionVelocity = new Vector2();
+                directionVelocity.copy(gameStatus.ball.getPosition().minus(collisionPoint));
+                directionVelocity.scaled(1.0 / (dt + 0.0000001));
+
+                lastKnownStatus.update(gameStatus, false);
+                lastKnownStatus.copy(gameStatus, true);
+                lastKnownStatus.ball.vx = directionVelocity.x;
+                lastKnownStatus.ball.vy = directionVelocity.y;
+                extrapolatedStatus.copy(lastKnownStatus, true);
+            }
+            else {
+                lastKnownStatus.update(gameStatus, false);
+                lastKnownStatus.copy(gameStatus, true);
+                lastKnownStatus.ball.vx = extrapolatedStatus.ball.vx;
+                lastKnownStatus.ball.vy = extrapolatedStatus.ball.vy;
+                extrapolatedStatus.copy(lastKnownStatus, true);
+            }
+        }
+
         extrapolatedTime = 0;
-        
-       
-        
+
         onGameStateUpdate(gameStatus);
-        if (visualizer != null)
+        if (visualizer != null) {
         	visualizer.render();
-        
+        }
+
+    }
+
+    public void gameOver(boolean won) {
+        history.reset();
+        lastKnownStatus.reset();
+        extrapolatedStatus.reset();
+        onGameOver(won);
     }
 
     public abstract void onGameStateUpdate(GameStatus newStatus);
     public abstract void onGameOver(boolean won);
     public abstract void onTick(double dt);
+    public abstract ArrayList<UILine> getDrawLines();
 
     public void start() {
-
-        //System.out.println("Sending join");
-        //this.communicator.sendJoin(name);
-
         while(true) {
         	while (!serverMessageQueue.isEmpty()) {
         		handler.onReceivedJSONString(serverMessageQueue.remove());
@@ -106,11 +150,13 @@ public abstract class PongGameBot {
 
     private void tick(long time) {
         double dt = time * 0.001;
-        extrapolatedStatus.extrapolate(dt);
+
+        if(extrapolatedStatus.extrapolate(dt)) {
+            history.storeCollision(extrapolatedStatus.ball.getPosition(), totalTime);
+        }
+
+        totalTime += dt;
         extrapolatedTime += dt;
-        // try to collect statistics
-        // extrapolatedStatus.hits(PlayerSide.LEFT, extrapolatedStatus.ball);
-        // extrapolatedStatus.hits(PlayerSide.RIGHT, extrapolatedStatus.ball);
 
         onTick(dt);
         if (visualizer != null)
@@ -121,11 +167,14 @@ public abstract class PongGameBot {
         return name;
     }
 
-    public Communicator getCommunicator() {
-        return communicator;
+    public void requestChangeSpeed(double v) {
+        storage.update(v);
+        getCommunicator().sendUpdate((float) v);
     }
 
-
+    private Communicator getCommunicator() {
+        return communicator;
+    }
 
     public GameStatus getLastKnownStatus() {
         return lastKnownStatus;
@@ -133,5 +182,9 @@ public abstract class PongGameBot {
 
     public GameStatus getExtrapolatedStatus() {
         return extrapolatedStatus;
+    }
+
+    public History getHistory() {
+        return history;
     }
 }

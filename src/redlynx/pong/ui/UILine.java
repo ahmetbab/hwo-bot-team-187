@@ -1,7 +1,6 @@
 package redlynx.pong.ui;
 
 import java.awt.Color;
-
 import redlynx.pong.util.Vector2i;
 
 public class UILine {

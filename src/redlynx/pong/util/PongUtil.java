@@ -1,17 +1,29 @@
 package redlynx.pong.util;
 
 import redlynx.pong.client.state.GameStatus;
+import redlynx.pong.ui.UILine;
+import java.awt.Color;
+
+import java.util.ArrayList;
 
 public class PongUtil {
 
-    public static void simulate(GameStatus.Ball ball, GameStatus.Conf conf) {
+    public static double simulate(GameStatus.Ball ball, GameStatus.Conf conf) {
+        return simulate(ball, conf, null);
+    }
+
+    public static double simulate(GameStatus.Ball ball, GameStatus.Conf conf, ArrayList<UILine> lines) {
         double vy = ball.vy;
         double vx = ball.vx;
         double x = ball.x;
         double y = ball.y;
 
+        double last_x = x;
+        double last_y = y;
+
+        double totalTime = 0;
         if(vx * vx < 0.00001f)
-            return;
+            return 1000000;
 
         double dt = 0.001;
         while(x > conf.ballRadius + conf.paddleWidth && x < conf.maxWidth - conf.ballRadius - conf.paddleWidth) {
@@ -21,16 +33,48 @@ public class PongUtil {
             // if collides with walls, mirror y velocity
             if(y + conf.ballRadius >= conf.maxHeight) {
                 vy *= -1;
+                lines.add(new UILine(new Vector2i(last_x, last_y), new Vector2i(x, y), Color.green));
+                last_x = x;
+                last_y = y;
             }
 
             if(y - conf.ballRadius <= 0) {
                 vy *= -1;
+                lines.add(new UILine(new Vector2i(last_x, last_y), new Vector2i(x, y), Color.green));
+                last_x = x;
+                last_y = y;
             }
+
+            totalTime += dt;
         }
+
+        lines.add(new UILine(new Vector2i(last_x, last_y), new Vector2i(x, y), Color.green));
 
         ball.vy = vy;
         ball.vx = vx;
         ball.x = x;
         ball.y = y;
+
+        return totalTime;
     }
+
+
+    public static double pointDistance2Line(Vector2 a, Vector2 b, Vector2 p) {
+
+        double l2 = a.distanceSquared(b);
+
+        if (l2 == 0.0) {
+            return p.distanceSquared(a);
+        }
+
+        Vector2 tmp1 = new Vector2(p.x - a.x, p.y - a.y);
+        Vector2 tmp2 = new Vector2(b.x - a.x, b.y - a.y);
+        double t = (tmp1.x * tmp2.x + tmp1.y * tmp2.y) / l2;
+
+        Vector2 projection = new Vector2(a.x + tmp2.x * t, a.y + tmp2.y * t);
+        return p.distanceSquared(projection);
+    }
+
+
+
 }

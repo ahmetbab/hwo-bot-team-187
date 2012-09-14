@@ -14,7 +14,7 @@ public class Vector2 {
         this.y = y;
     }
 
-    double length() {
+    public double length() {
         return Math.sqrt(x*x + y*y + 0.000000001);
     }
 
@@ -37,5 +37,19 @@ public class Vector2 {
 
     public String toString() {
         return "(" + x + ", " + y + ")";
+    }
+
+    public Vector2 minus(Vector2 v) {
+        return new Vector2(x - v.x, y - v.y);
+    }
+
+    public void scaled(double s) {
+        x *= s;
+        y *= s;
+    }
+
+    public void copy(Vector2 v) {
+        x = v.x;
+        y = v.y;
     }
 }
