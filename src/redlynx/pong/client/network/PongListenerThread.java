@@ -3,17 +3,19 @@ package redlynx.pong.client.network;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Queue;
 
 public class PongListenerThread extends Thread {
 
 
     private final InputStreamReader inputReader;
-    private final Queue<String> outputQueue;
+    
+    private final PongMessageListener listener;
 
-    public PongListenerThread(InputStream input, Queue<String> outputQueue) {
+
+    public PongListenerThread(InputStream input, PongMessageListener listener) {
         this.inputReader = new InputStreamReader(input);
-        this.outputQueue = outputQueue;
+        this.listener = listener;
+
     }
 
 
@@ -36,7 +38,7 @@ public class PongListenerThread extends Thread {
                         depth--;
                         if (depth == 0) {
                             try {
-                                outputQueue.add(msg);
+                            	listener.messageReceived(msg);
                             }
                             finally {
                                 msg = new String("");

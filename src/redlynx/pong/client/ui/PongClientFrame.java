@@ -14,16 +14,16 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import redlynx.pong.client.network.Communicator;
-import redlynx.pong.client.state.GameStateAccessor;
+import redlynx.pong.ui.GameStateAccessorInterface;
 import redlynx.pong.ui.PongVisualizer;
 
 public class PongClientFrame extends JFrame implements WindowListener, KeyListener {
 	
 	PongVisualizer pongGameArea;
-	GameStateAccessor accessor;
+	GameStateAccessorInterface accessor;
 	Communicator comm;
 	
-	public PongClientFrame(String title, PongVisualizer pongGameArea, GameStateAccessor accessor, Communicator comm) {
+	public PongClientFrame(String title, PongVisualizer pongGameArea, GameStateAccessorInterface accessor, Communicator comm) {
 		super(title);
 		this.pongGameArea = pongGameArea;
 		this.accessor = accessor;

@@ -2,18 +2,18 @@ package redlynx.pong.client.state;
 
 import java.util.ArrayList;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
+import redlynx.pong.client.BaseBot;
 import redlynx.pong.client.network.Communicator;
-import redlynx.pong.client.network.PongGameCommunicator;
 import redlynx.pong.client.network.PongMessageParser;
+import redlynx.pong.ui.GameStateAccessorInterface;
 import redlynx.pong.ui.PongVisualizer;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector2;
 
-import javax.swing.text.Highlighter;
-
-public abstract class PongGameBot {
+public abstract class PongGameBot implements BaseBot {
 
     private double totalTime = 0;
     private final History history = new History();
@@ -37,9 +37,9 @@ public abstract class PongGameBot {
     private PongVisualizer visualizer;
     
     private final Queue<String> serverMessageQueue;
-    private final Communicator communicator;
+    private Communicator communicator;
     private final PongMessageParser handler;
-    private final String name;
+    private String name;
     private PlayerSide mySide;
 
     public final GameStatus lastKnownStatus = new GameStatus();
@@ -48,6 +48,8 @@ public abstract class PongGameBot {
 
     private long currentTime = System.currentTimeMillis();
 
+   
+    
     public VelocityStorage getStorage() {
         return storage;
     }
@@ -63,12 +65,28 @@ public abstract class PongGameBot {
     public PlayerSide getMySide() {
         return mySide;
     }
+    private GameStateAccessor accessor;
 
-    public PongGameBot(String name, Communicator communicator, Queue<String> serverMessageQueue) {
-    	this.name = name;
-        this.serverMessageQueue = serverMessageQueue;
-        this.communicator = communicator;
+    public PongGameBot() {
+    	//this.name = name;
+        this.serverMessageQueue = new ConcurrentLinkedQueue<String>();;
+        //this.communicator = communicator;
         this.handler = new PongMessageParser(this);
+        accessor = new GameStateAccessor(this);
+    }
+    public GameStateAccessorInterface getGameStateAccessor() {
+    	return accessor;
+    }
+    public void setName(String name) {
+    	this.name = name;
+    } 
+    public void setCommunicator(Communicator comm) {
+    	this.communicator = comm;
+    }
+    
+    @Override
+    public void messageReceived(String msg) {
+    	serverMessageQueue.add(msg);
     }
     
     public void setVisualizer(PongVisualizer visualizer) {
@@ -133,6 +151,7 @@ public abstract class PongGameBot {
     public abstract void onTick(double dt);
     public abstract ArrayList<UILine> getDrawLines();
 
+    @Override
     public void start() {
         while(true) {
         	while (!serverMessageQueue.isEmpty()) {

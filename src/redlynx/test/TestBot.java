@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Queue;
 
+import redlynx.pong.client.Pong;
 import redlynx.pong.client.collisionmodel.LinearModel;
 import redlynx.pong.client.collisionmodel.PongModel;
 import redlynx.pong.client.collisionmodel.PongModelInitializer;
@@ -16,6 +17,11 @@ import redlynx.pong.util.PongUtil;
 
 public class TestBot extends PongGameBot {
 
+	public static void main(String[] args) {
+		Pong.init(args, new TestBot());
+	}
+	
+	
     private TestBotState myState;
     private final GameStatus.Ball tmpBall = new GameStatus.Ball();
     private final ArrayList<UILine> lines = new ArrayList<UILine>();
@@ -23,8 +29,8 @@ public class TestBot extends PongGameBot {
 
     private double timeLeft = 10000; // this tells us how many seconds we have left until we lose.
 
-    public TestBot(String name, Communicator communicator, Queue<String> serverMessageQueue) {
-        super(name, communicator, serverMessageQueue);
+    public TestBot() {
+        //super(name, communicator);
         try {
             PongModelInitializer.init(myModel, new FileInputStream("pongdata.txt"));
             System.out.println("Model error: " + myModel.modelError());
@@ -32,6 +38,10 @@ public class TestBot extends PongGameBot {
             System.out.println("Couldn't init LinearModel!");
         }
     }
+    
+    
+    
+    
 
     @Override
     public void onGameStateUpdate(GameStatus newStatus) {
