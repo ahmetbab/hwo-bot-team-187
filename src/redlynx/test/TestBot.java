@@ -52,7 +52,6 @@ public class TestBot extends PongGameBot {
             if(myState != TestBotState.STOPPED && myPedal.vy * diff_y < +0.001f) {
                 requestChangeSpeed((float) (0.99f * diff_y / Math.abs(diff_y)));
             }
-
         }
         else {
             // simulate twice, once there, and then back.

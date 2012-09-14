@@ -52,6 +52,10 @@ public abstract class PongGameBot {
         return storage;
     }
 
+    public double getPaddleMaxVelocity() {
+        return getStorage().estimate;
+    }
+
     public void setMySide(PlayerSide side) {
         mySide = side;
     }
