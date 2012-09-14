@@ -8,6 +8,7 @@ import javax.swing.JFrame;
 
 import redlynx.pong.server.ui.PongServerFrame;
 import redlynx.pong.ui.PongVisualizer;
+import redlynx.pong.util.WinTimerHack;
 
 public class PongServer {
 	ServerSocket providerSocket;
@@ -131,6 +132,7 @@ public class PongServer {
 	
 	public void run(int port) {
 		
+		WinTimerHack.fixTimerAccuracy();
 		visualizer = new PongVisualizer(gameState);
 		
 		JFrame frame = new PongServerFrame(visualizer, gameState, this);
