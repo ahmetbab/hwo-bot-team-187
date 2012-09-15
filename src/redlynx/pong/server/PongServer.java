@@ -89,17 +89,24 @@ public class PongServer {
 		
 	}
 	
-	public synchronized void waitForPlayers() {
+	public void waitForPlayers() {
 		int count = 0;
 		try {
 			
+		
 			//TODO better wait logic that allows disconnection
-		while (players[0] != null && players[1] != null &&
-				(!players[0].hasJoined() || !players[1].hasJoined()) && count < 2000) {
+		boolean waitMore = true;
+		do {
+			synchronized (this) {
+				waitMore = (players[0] != null && players[1] != null &&
+						(!players[0].hasJoined() || !players[1].hasJoined()) && count < 2000);	
+			}
 			count++;
 			visualizer.render();
 			Thread.sleep(5);
-		}
+		} while(waitMore);
+		
+	
 		if (count >= 2000) {
 			System.out.println("players did not send join message in time!!!");
 		}
