@@ -43,9 +43,10 @@ public class Vector2 {
         return new Vector2(x - v.x, y - v.y);
     }
 
-    public void scaled(double s) {
+    public Vector2 scaled(double s) {
         x *= s;
         y *= s;
+        return this;
     }
 
     public void copy(Vector2 v) {

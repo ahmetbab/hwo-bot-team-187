@@ -4,20 +4,21 @@ import java.util.ArrayList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import redlynx.pong.util.SoftVariable;
 import redlynx.pong.client.BaseBot;
 import redlynx.pong.client.network.Communicator;
 import redlynx.pong.client.network.PongMessageParser;
 import redlynx.pong.ui.GameStateAccessorInterface;
 import redlynx.pong.ui.PongVisualizer;
 import redlynx.pong.ui.UILine;
-import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector2;
 
 public abstract class PongGameBot implements BaseBot {
 
     private double totalTime = 0;
     private final History history = new History();
-    private final VelocityStorage storage = new VelocityStorage();
+    private final PaddleVelocityStorage paddleVelocity = new PaddleVelocityStorage();
+    private final SoftVariable ballVelocity = new SoftVariable(50);
 
     public static enum PlayerSide {
         LEFT(-1),
@@ -35,7 +36,7 @@ public abstract class PongGameBot implements BaseBot {
     }
 
     private PongVisualizer visualizer;
-    
+
     private final Queue<String> serverMessageQueue;
     private Communicator communicator;
     private final PongMessageParser handler;
@@ -48,14 +49,12 @@ public abstract class PongGameBot implements BaseBot {
 
     private long currentTime = System.currentTimeMillis();
 
-   
-    
-    public VelocityStorage getStorage() {
-        return storage;
+    public PaddleVelocityStorage getPaddleVelocity() {
+        return paddleVelocity;
     }
 
     public double getPaddleMaxVelocity() {
-        return getStorage().estimate;
+        return paddleVelocity.estimate;
     }
 
     public void setMySide(PlayerSide side) {
@@ -83,7 +82,12 @@ public abstract class PongGameBot implements BaseBot {
     public void setCommunicator(Communicator comm) {
     	this.communicator = comm;
     }
-    
+
+    // quite accurate approximation of the ball velocity
+    public double getBallVelocity() {
+        return ballVelocity.value();
+    }
+
     @Override
     public void messageReceived(String msg) {
     	serverMessageQueue.add(msg);
@@ -95,15 +99,14 @@ public abstract class PongGameBot implements BaseBot {
 
     public void gameStateUpdate(GameStatus gameStatus) {
 
-        double squareError = PongUtil.pointDistance2Line(extrapolatedStatus.ball.getPosition(), extrapolatedStatus.ball.getNextPosition(), gameStatus.ball.getPosition());
-
-        storage.update(gameStatus.getPedal(mySide).y, gameStatus.time);
+        paddleVelocity.update(gameStatus.getPedal(mySide).y, gameStatus.time);
         history.update(gameStatus.ball.getPosition());
 
         if(history.isReliable()) {
             lastKnownStatus.update(gameStatus, true);
             lastKnownStatus.copy(gameStatus, true);
             extrapolatedStatus.copy(gameStatus, true);
+            ballVelocity.update(gameStatus.ball.getVelocity().length());
         }
         else {
             Vector2 collisionPoint = history.getLastCollisionPoint();
@@ -143,6 +146,7 @@ public abstract class PongGameBot implements BaseBot {
         history.reset();
         lastKnownStatus.reset();
         extrapolatedStatus.reset();
+        ballVelocity.reset(50);
         onGameOver(won);
     }
 
@@ -191,7 +195,7 @@ public abstract class PongGameBot implements BaseBot {
     }
 
     public void requestChangeSpeed(double v) {
-        storage.update(v);
+        paddleVelocity.update(v);
         getCommunicator().sendUpdate((float) v);
     }
 

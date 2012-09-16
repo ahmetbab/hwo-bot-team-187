@@ -1,4 +1,4 @@
-package redlynx.test;
+package redlynx.bots.test;
 
 public enum TestBotState {
     STOPPED,

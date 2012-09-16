@@ -1,15 +1,13 @@
-package redlynx.test;
+package redlynx.bots.test;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Queue;
 
 import redlynx.pong.client.Pong;
 import redlynx.pong.client.collisionmodel.LinearModel;
 import redlynx.pong.client.collisionmodel.PongModel;
 import redlynx.pong.client.collisionmodel.PongModelInitializer;
-import redlynx.pong.client.network.Communicator;
 import redlynx.pong.client.state.GameStatus;
 import redlynx.pong.client.state.PongGameBot;
 import redlynx.pong.ui.UILine;
@@ -85,7 +83,7 @@ public class TestBot extends PongGameBot {
         }
 
         getHistory().drawLastCollision(lines);
-        getStorage().drawReachableArea(lines, newStatus.getPedal(getMySide()).y + newStatus.conf.paddleHeight * 0.5, timeLeft, newStatus.conf.paddleHeight);
+        getPaddleVelocity().drawReachableArea(lines, newStatus.getPedal(getMySide()).y + newStatus.conf.paddleHeight * 0.5, timeLeft, newStatus.conf.paddleHeight);
     }
 
     @Override

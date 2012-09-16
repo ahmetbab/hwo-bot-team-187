@@ -169,6 +169,16 @@ public class GameStatus {
         public Vector2 getNextPosition() {
             return new Vector2(x + vx, y + vy);
         }
+
+        public Vector2 getVelocity() {
+            return new Vector2(vx, vy);
+        }
+
+        public void setVelocity(double value) {
+            Vector2 a = getVelocity().normalize().scaled(value);
+            vx = a.x;
+            vy = a.y;
+        }
     }
 
 	public static class Conf {
