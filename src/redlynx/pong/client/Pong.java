@@ -4,10 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.Socket;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
-import javax.swing.JFrame;
 
 import redlynx.pong.client.network.Communicator;
 import redlynx.pong.client.network.NullCommunicator;
@@ -25,27 +21,22 @@ public class Pong {
 
     
     private final PrintStream out;
-    private final Queue<String> serverMessageQueue;
     private final PongListenerThread listenerThread;
-    //private final PongGameBot pongBot;
+ 
     private final Communicator communicator;
     private final Communicator devNull;
     private PongVisualizer visualizer;
     
     public Pong(String name, String host, int port, BaseBot bot, boolean visualize, boolean manual) throws IOException {
         connection = new Socket(host, port);
-        serverMessageQueue = new ConcurrentLinkedQueue<String>();
         netInput = connection.getInputStream();
         out = new PrintStream(connection.getOutputStream());
         communicator = new PongGameCommunicator(out);
         
         devNull = new NullCommunicator();
-
-        
-        
         
         // start game state loop
-        //pongBot = new TestBot(name, manual?devNull:communicator);
+ 
         bot.setName(name);
         bot.setCommunicator(manual?devNull:communicator);
         
@@ -57,19 +48,16 @@ public class Pong {
         if (visualize) {
         	GameStateAccessorInterface accessor = bot.getGameStateAccessor(); //new GameStateAccessor(pongBot);
         	visualizer = new PongVisualizer(accessor);
-        	JFrame frame = new PongClientFrame(name, visualizer, accessor, manual?communicator:devNull);
+        	new PongClientFrame(name, visualizer, accessor, manual?communicator:devNull);
         	bot.setVisualizer(visualizer);
         }
-        //pongBot.setVisualizer(visualizer);
+
         
         System.out.println("Sending join");
         communicator.sendJoin(name);
 
-        //pongBot.start();
         bot.start();
-
-        
-        
+      
         // when game is over, shut down listener thread
         listenerThread.interrupt();
     }

@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import javax.swing.JFrame;
-
 import redlynx.pong.server.ui.PongServerFrame;
 import redlynx.pong.ui.PongVisualizer;
 import redlynx.pong.util.WinTimerHack;
@@ -38,8 +36,8 @@ public class PongServer {
 	}
 	public void changeDir(int id, double dir) {
 		//System.out.println("player"+id+": dir: "+dir);
-		
-		gameState.changeDir(id, dir);
+		if (!Double.isInfinite(dir) && !Double.isNaN(dir))
+			gameState.changeDir(id, dir);
 	}
 
 	void connectPlayers()
@@ -89,8 +87,9 @@ public class PongServer {
 		
 	}
 	
-	public void waitForPlayers() {
+	public void waitForPlayersToJoin() {
 		int count = 0;
+		int timeout = 100; //100*10+ ms >  1 s 
 		try {
 			
 		
@@ -99,11 +98,11 @@ public class PongServer {
 		do {
 			synchronized (this) {
 				waitMore = (players[0] != null && players[1] != null &&
-						(!players[0].hasJoined() || !players[1].hasJoined()) && count < 2000);	
+						(!players[0].hasJoined() || !players[1].hasJoined()) && count < timeout);	
 			}
 			count++;
 			visualizer.render();
-			Thread.sleep(5);
+			Thread.sleep(10);
 		} while(waitMore);
 		
 	
@@ -142,7 +141,7 @@ public class PongServer {
 		WinTimerHack.fixTimerAccuracy();
 		visualizer = new PongVisualizer(gameState);
 		
-		JFrame frame = new PongServerFrame(visualizer, gameState, this);
+		new PongServerFrame(visualizer, gameState, this);
 		
 		this.serverPort = port;
 		lagSimulator = new LagSimulator();
@@ -153,9 +152,18 @@ public class PongServer {
 		try {
 			
 			do {
-				connectPlayers();
-				waitForPlayers();
-				gameRunning = true;
+				
+				
+				do {
+					gameRunning = true;
+					connectPlayers();
+					waitForPlayersToJoin();
+					if (players[0] != null && !players[0].hasJoined())
+						kickPlayer(0);
+					if (players[1] != null && !players[1].hasJoined())
+						kickPlayer(1);
+				}while(!gameRunning);
+				
 				gameState.setPlayers(players[0].getName(), players[1].getName());
 				startGame();
 				int ticksSinceMessage = 0;
@@ -216,7 +224,9 @@ public class PongServer {
 		gameState.endGame(-1);
 	}
 	public synchronized void kickPlayer(int id) {
-		if (players[id] != null && players[id].hasJoined()) {
+		if (players[id] != null 
+			//&& players[id].hasJoined()
+			) {
 			players[id].disconnect();
 			players[id] = null;
 			gameRunning = false;

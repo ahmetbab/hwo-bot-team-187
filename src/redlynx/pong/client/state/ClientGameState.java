@@ -3,7 +3,7 @@ package redlynx.pong.client.state;
 
 import redlynx.pong.util.Vector2;
 
-public class GameStatus {
+public class ClientGameState {
 
     public boolean extrapolate(double dt) {
 
@@ -192,11 +192,30 @@ public class GameStatus {
         }
     }
 
-    public GameStatus() {
+    public ClientGameState() {
 		left = new Player();
 		right = new Player();
 		ball = new Ball();
 		conf = new Conf();
+	}
+    public ClientGameState(GameStatusSnapShot snap) {
+		left = new Player();
+		right = new Player();
+		ball = new Ball();
+		conf = new Conf();
+		left.name = snap.left.name;
+		left.y = snap.left.y;
+		right.name = snap.right.name;
+		right.y = snap.right.y;
+		ball.x = snap.ball.x;
+		ball.y = snap.ball.y;
+		conf.ballRadius = snap.conf.ballRadius;
+		conf.tickInterval = snap.conf.tickInterval;
+		conf.maxHeight = snap.conf.screenArea.y;
+		conf.maxWidth = snap.conf.screenArea.x;
+		conf.paddleHeight = snap.conf.paddleDimension.y;
+		conf.paddleWidth = snap.conf.paddleDimension.x;
+		time = snap.time;
 	}
 	
 	public long time;
@@ -208,7 +227,7 @@ public class GameStatus {
     // This is to be used on consecutive states obtained from servers.
     // If update intervals are long, these results cannot be trusted,
     // and should instead rely on our own physics update.
-    public void update(GameStatus gameStatus, boolean forceUpdateBall) {
+    public void update(ClientGameState gameStatus, boolean forceUpdateBall) {
 
         // dt is seconds. server time is milliseconds.
         double dt = (gameStatus.time - time) / 1000.0 + 0.00000001; // incase division by zero
@@ -222,7 +241,7 @@ public class GameStatus {
         gameStatus.right.vy = (gameStatus.right.y - right.y) / dt;
     }
 
-    public void copy(GameStatus gameStatus, boolean updateBallVelocity) {
+    public void copy(ClientGameState gameStatus, boolean updateBallVelocity) {
         time = gameStatus.time;
         left.copy(gameStatus.left);
         right.copy(gameStatus.right);

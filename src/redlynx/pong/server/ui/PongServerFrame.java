@@ -24,6 +24,8 @@ import redlynx.pong.ui.SliderPanel;
 import redlynx.pong.ui.ValueChangeListener;
 
 public class PongServerFrame extends JFrame implements WindowListener, ValueChangeListener {
+	private static final long serialVersionUID = 1L;
+	
 	
 	private SliderPanel[] dataSliders;
 	private ButtonPanel pauseResumeButton;
@@ -204,6 +206,7 @@ public class PongServerFrame extends JFrame implements WindowListener, ValueChan
 	}
 	
 	
+	@SuppressWarnings("deprecation")
 	public PongServerFrame(PongVisualizer pongGameArea, GameState model, PongServer server) {
 		super("Pong Server");
 		this.model = model;

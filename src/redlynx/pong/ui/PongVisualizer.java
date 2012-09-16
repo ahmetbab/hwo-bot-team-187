@@ -19,7 +19,10 @@ public class PongVisualizer extends JPanel
 
 {
 
-    private Image imageBuffer;
+    
+	private static final long serialVersionUID = 1L;
+	
+	private Image imageBuffer;
     private Image renderBuffer;
 
     private static final int cornerx = 20;
@@ -82,32 +85,33 @@ public class PongVisualizer extends JPanel
             Vector2i screenSize = model.getAreaDimensions();
             Vector2i paddleDimensions = model.getPedalDimensions();
 
-            drawRect(-border, -border, screenSize.x + 2 * border, screenSize.y + 2 * border);
-            drawRect(0, 0, screenSize.x, screenSize.y);
+            g.drawRect(cornerx -border,cornery -border, screenSize.x + 2 * border, screenSize.y + 2 * border);
+            g.drawRect(cornerx, cornery, screenSize.x, screenSize.y);
 
-            drawRect(0, (int) model.getPedalY(0), paddleDimensions.x, paddleDimensions.y);
-            drawRect(screenSize.x - paddleDimensions.x, (int)model.getPedalY(1), paddleDimensions.x, paddleDimensions.y);
+            g.drawRect(cornerx, cornery+(int) model.getPedalY(0), paddleDimensions.x, paddleDimensions.y);
+            g.drawRect(cornerx+screenSize.x - paddleDimensions.x, cornery+(int)model.getPedalY(1), paddleDimensions.x, paddleDimensions.y);
 
 
             Vector2 ballPos = model.getBallPos();
             int r = model.getBallRadius();
-            drawRect(ballPos.x-r, ballPos.y-r, 2*r, 2*r);
+            g.drawRect((int)(cornerx+ballPos.x-r), (int)(cornery+ballPos.y-r), 2*r, 2*r);
         }
 
         ArrayList<UILine> extraUILines = model.getExtraLines();
         if (extraUILines != null) {
+        	
             for (int i = 0; i < extraUILines.size(); ++i) {
                 UILine line = extraUILines.get(i);
                 drawLine(line.getStart(), line.getEnd(), line.getColor());
             }
         }
 
-        UIString[] extraUIStrings = model.getExtraStrings();
+        ArrayList<UIString> extraUIStrings = model.getExtraStrings();
         if (extraUIStrings != null) {
-            for (int i = 0; i < extraUIStrings.length; i++) {
-                g.setColor(extraUIStrings[i].getColor());
-                String text = extraUIStrings[i].getText();
-                Vector2i pos = extraUIStrings[i].getPos();
+            for (int i = 0; i < extraUIStrings.size(); i++) {
+                g.setColor(extraUIStrings.get(i).getColor());
+                String text = extraUIStrings.get(i).getText();
+                Vector2i pos = extraUIStrings.get(i).getPos();
                 g.drawString(text, cornerx+pos.x, cornery+pos.y);
             }
         }
@@ -122,10 +126,6 @@ public class PongVisualizer extends JPanel
 
         repaint();
 
-    }
-
-    private void drawRect(double x, double y, int w, int h) {
-        renderBuffer.getGraphics().drawRect((int) (cornerx + x), (int) (cornery + y), w, h);
     }
 
     private void drawLine(Vector2i start, Vector2i end, Color color) {

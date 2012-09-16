@@ -11,6 +11,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 public class SliderPanel extends JPanel implements ChangeListener {
+	private static final long serialVersionUID = 1L;
+	
 	private ValueChangeListener listener;
 	private JTextField text;
 	private JSlider slider;

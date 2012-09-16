@@ -1,7 +1,6 @@
 package redlynx.pong.ui;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -9,7 +8,7 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 
 public class ButtonPanel extends JPanel implements ActionListener {
-
+	private static final long serialVersionUID = 1L;
 	
 	private ValueChangeListener listener;
 	private JButton button;

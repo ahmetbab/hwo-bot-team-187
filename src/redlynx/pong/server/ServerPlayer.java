@@ -16,7 +16,7 @@ public class ServerPlayer implements Runnable{
 	private final InputStreamReader input;
     private final PrintStream out;
     private final PongServer server;
-	Socket connection;
+	private final Socket connection;
 	private int id;
 	private boolean joined;
 	private String name;
@@ -141,6 +141,8 @@ public class ServerPlayer implements Runnable{
                 break;
             }
         }
+        //connection closed, remove player from game
+        server.kickPlayer(id);
 	}
 	public void disconnect() {
 		try {

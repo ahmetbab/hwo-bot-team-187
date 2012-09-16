@@ -10,10 +10,9 @@ import redlynx.pong.client.network.PongMessageParser;
 import redlynx.pong.ui.GameStateAccessorInterface;
 import redlynx.pong.ui.PongVisualizer;
 import redlynx.pong.ui.UILine;
-import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector2;
 
-public abstract class PongGameBot implements BaseBot {
+public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMessageListener {
 
     private double totalTime = 0;
     private final History history = new History();
@@ -42,8 +41,8 @@ public abstract class PongGameBot implements BaseBot {
     private String name;
     private PlayerSide mySide;
 
-    public final GameStatus lastKnownStatus = new GameStatus();
-    public final GameStatus extrapolatedStatus = new GameStatus();
+    public final ClientGameState lastKnownStatus = new ClientGameState();
+    public final ClientGameState extrapolatedStatus = new ClientGameState();
     public double extrapolatedTime = 0.0;
 
     private long currentTime = System.currentTimeMillis();
@@ -93,9 +92,11 @@ public abstract class PongGameBot implements BaseBot {
     	this.visualizer = visualizer;
     }
 
-    public void gameStateUpdate(GameStatus gameStatus) {
+    @Override
+   	public void gameStateUpdate(GameStatusSnapShot snap) {
+       ClientGameState gameStatus = new ClientGameState(snap);       
 
-        double squareError = PongUtil.pointDistance2Line(extrapolatedStatus.ball.getPosition(), extrapolatedStatus.ball.getNextPosition(), gameStatus.ball.getPosition());
+        //double squareError = PongUtil.pointDistance2Line(extrapolatedStatus.ball.getPosition(), extrapolatedStatus.ball.getNextPosition(), gameStatus.ball.getPosition());
 
         storage.update(gameStatus.getPedal(mySide).y, gameStatus.time);
         history.update(gameStatus.ball.getPosition());
@@ -138,6 +139,18 @@ public abstract class PongGameBot implements BaseBot {
         }
 
     }
+    @Override
+	public void gameStart(String player1, String player2) {
+    	if (player1.equals(name))
+    		setMySide(PlayerSide.LEFT);
+    	else
+    		setMySide(PlayerSide.RIGHT);
+    }
+    @Override
+	public void gameOver(String winner) {
+    	gameOver(winner.equals(name));
+    }
+   
 
     public void gameOver(boolean won) {
         history.reset();
@@ -146,7 +159,7 @@ public abstract class PongGameBot implements BaseBot {
         onGameOver(won);
     }
 
-    public abstract void onGameStateUpdate(GameStatus newStatus);
+    public abstract void onGameStateUpdate(ClientGameState newStatus);
     public abstract void onGameOver(boolean won);
     public abstract void onTick(double dt);
     public abstract ArrayList<UILine> getDrawLines();
@@ -199,11 +212,11 @@ public abstract class PongGameBot implements BaseBot {
         return communicator;
     }
 
-    public GameStatus getLastKnownStatus() {
+    public ClientGameState getLastKnownStatus() {
         return lastKnownStatus;
     }
 
-    public GameStatus getExtrapolatedStatus() {
+    public ClientGameState getExtrapolatedStatus() {
         return extrapolatedStatus;
     }
 

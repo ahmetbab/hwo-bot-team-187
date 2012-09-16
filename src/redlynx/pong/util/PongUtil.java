@@ -1,6 +1,6 @@
 package redlynx.pong.util;
 
-import redlynx.pong.client.state.GameStatus;
+import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.ui.UILine;
 import java.awt.Color;
 
@@ -8,11 +8,11 @@ import java.util.ArrayList;
 
 public class PongUtil {
 
-    public static double simulate(GameStatus.Ball ball, GameStatus.Conf conf) {
+    public static double simulate(ClientGameState.Ball ball, ClientGameState.Conf conf) {
         return simulate(ball, conf, null);
     }
 
-    public static double simulate(GameStatus.Ball ball, GameStatus.Conf conf, ArrayList<UILine> lines) {
+    public static double simulate(ClientGameState.Ball ball, ClientGameState.Conf conf, ArrayList<UILine> lines) {
         double vy = ball.vy;
         double vx = ball.vx;
         double x = ball.x;

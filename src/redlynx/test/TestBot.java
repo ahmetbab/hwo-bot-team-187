@@ -10,7 +10,7 @@ import redlynx.pong.client.collisionmodel.LinearModel;
 import redlynx.pong.client.collisionmodel.PongModel;
 import redlynx.pong.client.collisionmodel.PongModelInitializer;
 import redlynx.pong.client.network.Communicator;
-import redlynx.pong.client.state.GameStatus;
+import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.client.state.PongGameBot;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.util.PongUtil;
@@ -23,7 +23,7 @@ public class TestBot extends PongGameBot {
 	
 	
     private TestBotState myState;
-    private final GameStatus.Ball tmpBall = new GameStatus.Ball();
+    private final ClientGameState.Ball tmpBall = new ClientGameState.Ball();
     private final ArrayList<UILine> lines = new ArrayList<UILine>();
     private final PongModel myModel = new LinearModel();
 
@@ -44,7 +44,7 @@ public class TestBot extends PongGameBot {
     
 
     @Override
-    public void onGameStateUpdate(GameStatus newStatus) {
+    public void onGameStateUpdate(ClientGameState newStatus) {
 
         double ball_direction = lastKnownStatus.ball.vx;
         if(getMySide().comingTowardsMe(ball_direction)) {
@@ -57,7 +57,7 @@ public class TestBot extends PongGameBot {
             tmpBall.y -= lastKnownStatus.conf.paddleHeight * 0.5;
 
             // now we are done.
-            GameStatus.Player myPedal = lastKnownStatus.getPedal(getMySide());
+            ClientGameState.Player myPedal = lastKnownStatus.getPedal(getMySide());
             double diff_y = tmpBall.y - myPedal.y;
             if(myState != TestBotState.STOPPED && myPedal.vy * diff_y < +0.001f) {
                 requestChangeSpeed((float) (0.99f * diff_y / Math.abs(diff_y)));
@@ -77,7 +77,7 @@ public class TestBot extends PongGameBot {
             tmpBall.y -= lastKnownStatus.conf.paddleHeight * 0.5;
 
             // now we are done.
-            GameStatus.Player myPedal = lastKnownStatus.getPedal(getMySide());
+            ClientGameState.Player myPedal = lastKnownStatus.getPedal(getMySide());
             double diff_y = tmpBall.y - myPedal.y;
             if(myState != TestBotState.STOPPED && myPedal.vy * diff_y < +0.001f) {
                 requestChangeSpeed((float) (0.99f * diff_y / Math.abs(diff_y)));

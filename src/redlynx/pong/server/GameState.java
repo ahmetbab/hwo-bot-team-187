@@ -194,8 +194,10 @@ public class GameState implements GameStateAccessorInterface {
 	
 	public synchronized String toJSONString(int id) {
 		
-		//TODO flip board for player 1
 		try {
+			
+			//System.out.println(this.toString());
+			
 			JSONObject stateMessage  = new JSONObject();
 			stateMessage.put("msgType", "gameIsOn");
 			JSONObject data = new JSONObject();
@@ -230,6 +232,20 @@ public class GameState implements GameStateAccessorInterface {
 		}
 		return "";
 	}
+	public String toString() {
+		String str = "time"+ System.currentTimeMillis();
+		str += "\nplayerName "+  paddle[0].name+" y "+paddle[0].y;
+		str += "\nplayerName "+  paddle[1].name+" y "+paddle[1].y;
+		str += "\nball ("+ball.x+", "+ball.y+")";
+		str += "\nmaxWidth"+ screenWidth;
+		str += "\nmaxHeight"+ screenHeight;
+		str += "\npaddleHeight"+ paddleConfig.height;
+		str += "\npaddleWidth"+ paddleConfig.width;
+		str += "\nballRadius" +this.ball.conf.radius;
+		str += "\ntickInterval"+ tickInterval;
+		return str;
+	}
+	
 	public synchronized void setBallSpeed(double speed) {
 		ball.conf.speed = speed;	
 	}
@@ -306,7 +322,7 @@ public class GameState implements GameStateAccessorInterface {
 		return null;
 	}
 	@Override
-	public UIString[] getExtraStrings() {
+	public ArrayList<UIString> getExtraStrings() {
 		return null;
 	}
 	

@@ -12,7 +12,7 @@ import redlynx.pong.util.Vector2i;
 public class GameStateAccessor implements GameStateAccessorInterface {
 
     private final PongGameBot bot;
-    private GameStatus status;
+    private ClientGameState status;
 
     
     public GameStateAccessor(PongGameBot bot) {
@@ -84,7 +84,7 @@ public class GameStateAccessor implements GameStateAccessorInterface {
 	}
 
     @Override
-	public UIString[] getExtraStrings() {
+	public ArrayList<UIString> getExtraStrings() {
 		return null;
 	}
 }

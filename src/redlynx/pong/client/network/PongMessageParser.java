@@ -4,80 +4,67 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import redlynx.pong.client.state.GameStatus;
-import redlynx.pong.client.state.PongGameBot;
+import redlynx.pong.client.state.GameStatusSnapShot;
 
 public class PongMessageParser {
 
-    private final PongGameBot bot;
+	public interface ParsedMessageListener {
+		public void gameStart(String player1, String player2);
+		public void gameOver(String winner);
+		public void gameStateUpdate(GameStatusSnapShot status);
+	} 
+	
+    //private final PongGameBot bot;
+	private ParsedMessageListener listener;
 
-    public PongMessageParser(PongGameBot bot) {
-        this.bot = bot;
+    public PongMessageParser(ParsedMessageListener listener) {
+        this.listener = listener;
     }
 
-    public void onGameStart(JSONArray players) {
+    private void onGameStart(JSONArray players) throws JSONException {
     	
         if (players.length() == 2) {
-        	
-            try {
             	System.out.println("Game Start : "+players.getString(0)+" : "+players.getString(1));
-                if(bot.getName().equals(players.getString(0))) {
-                    bot.setMySide(PongGameBot.PlayerSide.LEFT);
-                }
-                else {
-                    bot.setMySide(PongGameBot.PlayerSide.RIGHT);
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            	listener.gameStart(players.getString(0), players.getString(1));
         }
+        else throw new JSONException("Wrong number of players");
     }
 
-    public void onGameOver(String winner) {
+    private void onGameOver(String winner) {
     	System.out.println("Game Over");
-        bot.gameOver(winner.equals(bot.getName()));
-    }
+    	listener.gameOver(winner);
+     }
 
-    public void onGameUpdate(JSONObject gameState) {
+    private void onGameUpdate(JSONObject gameState) throws JSONException {
 
-        GameStatus status = new GameStatus();
+        GameStatusSnapShot status = new GameStatusSnapShot();
+    
+        status.time = gameState.getLong("time");
 
-        try {
-            status.time = gameState.getLong("time");
-
-            JSONObject player1 = gameState.getJSONObject("left");
-            JSONObject player2 = gameState.getJSONObject("right");
-            status.left.y    = player1.getDouble("y");
-            status.left.name = player1.getString("playerName");
-            status.right.y    = player2.getDouble("y");
-            status.right.name = player2.getString("playerName");
+        JSONObject player1 = gameState.getJSONObject("left");
+        JSONObject player2 = gameState.getJSONObject("right");
+        status.left.y    = player1.getDouble("y");
+        status.left.name = player1.getString("playerName");
+        status.right.y    = player2.getDouble("y");
+        status.right.name = player2.getString("playerName");
 
 
-            JSONObject ball = gameState.getJSONObject("ball");
-            JSONObject ballpos = ball.getJSONObject("pos");
-            status.ball.x = ballpos.getDouble("x");
-            status.ball.y = ballpos.getDouble("y");
+        JSONObject ball = gameState.getJSONObject("ball");
+        JSONObject ballpos = ball.getJSONObject("pos");
+        status.ball.x = ballpos.getDouble("x");
+        status.ball.y = ballpos.getDouble("y");
 
-            JSONObject conf = gameState.getJSONObject("conf");
+        JSONObject conf = gameState.getJSONObject("conf");
 
-            status.conf.maxWidth = conf.getInt("maxWidth");
-            status.conf.maxHeight = conf.getInt("maxHeight");
-            status.conf.paddleHeight = conf.getInt("paddleHeight");
-            status.conf.paddleWidth = conf.getInt("paddleWidth");
-            status.conf.ballRadius = conf.getInt("ballRadius");
-            status.conf.tickInterval = conf.getInt("tickInterval");
+        status.conf.screenArea.x = conf.getInt("maxWidth");
+        status.conf.screenArea.y = conf.getInt("maxHeight");
+        status.conf.paddleDimension.y = conf.getInt("paddleHeight");
+        status.conf.paddleDimension.x = conf.getInt("paddleWidth");
+        status.conf.ballRadius = conf.getInt("ballRadius");
+        status.conf.tickInterval = conf.getInt("tickInterval");
 
-            
-            //System.out.println("y: "+status.left.y+" scr "+status.conf.maxWidth+","+status.conf.maxHeight+" paddleSize "+status.conf.paddleHeight);
-            
-            bot.gameStateUpdate(status);
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        //TODO update bot runner calculations based on the status update
-        //System.out.println("status debug: "+status.toString());
+        //System.out.println("y: "+status.left.y+" scr "+status.conf.screenArea.x+","+status.conf.screenArea.y+" paddleSize "+status.conf.paddleDimension.y);
+        listener.gameStateUpdate(status);
     }
 
     public void onReceivedJSONString(String serverMessage) {
@@ -96,6 +83,7 @@ public class PongMessageParser {
                 onGameStart(json.getJSONArray("data"));
             }
             else if ("gameIsOver".equals(type)) {
+   
                 onGameOver(json.getString("data"));
             }
             else {
