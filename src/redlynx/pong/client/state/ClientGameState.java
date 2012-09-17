@@ -120,8 +120,8 @@ public class ClientGameState {
         public void tick(double dt, Conf conf) {
             y += vy * dt;
 
-            if(y < conf.paddleHeight) {
-                y = conf.paddleHeight;
+            if(y < 0) {
+                y = 0;
                 vy *= -1;
             }
             if(y > conf.maxHeight - conf.paddleHeight) {
