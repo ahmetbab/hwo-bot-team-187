@@ -58,9 +58,11 @@ public class Magmus extends PongGameBot {
             // -1 try to collide with bottom,
             // +1 try to collide with top.
             double paddleTarget = 0; // by default, aim for the centre.
-            if(opponentBot > lastKnownStatus.conf.maxHeight - opponentTop) {
+            double paddleTargetBot = 0, ballPlanBot = 10000000;
+            double paddleTargetTop = 0, ballPlanTop = 0;
+            {
                 // best shot is at bottom corner
-                double best_y = 100000;
+
                 for(int i=10; i<90; ++i) {
                     opponentDirectionBall.copy(myDirectionBall, true);
                     opponentDirectionBall.vx *= -1;
@@ -70,31 +72,39 @@ public class Magmus extends PongGameBot {
                     opponentDirectionBall.vy += myModel.guess(tmpTarget, opponentDirectionBall.vy );
                     PongUtil.simulate(opponentDirectionBall, lastKnownStatus.conf);
 
-                    if(opponentDirectionBall.y < best_y) {
-                        best_y = opponentDirectionBall.y;
-                        paddleTarget = tmpTarget;
+                    if(opponentDirectionBall.y < ballPlanBot) {
+                        ballPlanBot = opponentDirectionBall.y;
+                        paddleTargetBot = tmpTarget;
                     }
                 }
+            }
 
+            {
+                // best shot is at top corner
+                for(int i=10; i<90; ++i) {
+                    opponentDirectionBall.copy(myDirectionBall, true);
+                    opponentDirectionBall.vx *= -1;
+                    opponentDirectionBall.tick(0.01f);
 
+                    double tmpTarget = (i - 50) / 50.0;
+                    opponentDirectionBall.vy += myModel.guess(tmpTarget, opponentDirectionBall.vy );
+                    PongUtil.simulate(opponentDirectionBall, lastKnownStatus.conf);
+
+                    if(opponentDirectionBall.y > ballPlanTop) {
+                        ballPlanTop = opponentDirectionBall.y;
+                        paddleTargetTop = tmpTarget;
+                    }
+                }
+            }
+
+            double botValue = opponentBot - ballPlanBot;
+            double topValue = ballPlanTop - opponentTop;
+
+            if(botValue > topValue) {
+                paddleTarget = paddleTargetBot;
             }
             else {
-                // best shot is at top corner
-                double best_y = 0;
-                for(int i=10; i<90; ++i) {
-                    opponentDirectionBall.copy(myDirectionBall, true);
-                    opponentDirectionBall.vx *= -1;
-                    opponentDirectionBall.tick(0.01f);
-
-                    double tmpTarget = (i - 50) / 50.0;
-                    opponentDirectionBall.vy += myModel.guess(tmpTarget, opponentDirectionBall.vy );
-                    PongUtil.simulate(opponentDirectionBall, lastKnownStatus.conf);
-
-                    if(opponentDirectionBall.y > best_y) {
-                        best_y = opponentDirectionBall.y;
-                        paddleTarget = tmpTarget;
-                    }
-                }
+                paddleTarget = paddleTargetTop;
             }
 
             // visualize my plan
