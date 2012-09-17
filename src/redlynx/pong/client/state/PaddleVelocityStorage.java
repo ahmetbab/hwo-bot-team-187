@@ -6,7 +6,7 @@ import redlynx.pong.util.Vector2i;
 import java.util.ArrayList;
 import java.awt.Color;
 
-public class VelocityStorage {
+public class PaddleVelocityStorage {
 
     private double paddleSpeed = 0;
     ArrayList<Entry> history = new ArrayList<Entry>();
@@ -32,8 +32,8 @@ public class VelocityStorage {
             double dy = end.y - start.y;
             double sample = (dy / dt) / paddleSpeed;
             estimate += sample;
-            estimate *= 0.5;
-            System.out.println("estimate: " + estimate);
+            estimate *= 0.5; // fast adaptation to varying paddle move speeds.
+            // System.out.println("estimate: " + estimate);
         }
     }
 

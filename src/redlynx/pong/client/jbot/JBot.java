@@ -15,6 +15,8 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 	public static void main(String[] args) {
 		Pong.init(args, new JBot());
 	}
+
+	double prevCommand;
 	
 	private String name;
 	private PongMessageParser parser;
@@ -24,7 +26,7 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 	public JBot() {
 		parser = new PongMessageParser(this);
 		analyser = new StateAnalyzer();
-		
+		prevCommand = 0;
 	}
 	public StateAnalyzer getAnalyzer() {
 		return analyser;
@@ -90,17 +92,27 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 			moveTo(analyser.getNextHomeCollision().y);
 		}
 	}
+	
+	private void moveDir(float dir) {
+		
+		//TODO enforce 10 commands / sec limit
+		if (dir != prevCommand) {
+			prevCommand = dir;
+			comm.sendUpdate(dir);
+		}
+	}
+	
 	private void moveTo(double y) {
 		GameStatusSnapShot status = analyser.history.getStatus(0);
 		double paddlePos = status.left.y; 
 		if (paddlePos + status.conf.paddleDimension.y < y) {
-			comm.sendUpdate(1);
+			moveDir(1);
 		}
 		else if (paddlePos > y){
-			comm.sendUpdate(-1);
+			moveDir(-1);
 		}
 		else {
-			comm.sendUpdate(0);
+			moveDir(0);
 		}
 	}
 	

@@ -31,16 +31,24 @@ public class PongUtil {
             y += vy * dt;
 
             // if collides with walls, mirror y velocity
-            if(y + conf.ballRadius >= conf.maxHeight) {
+            if(y > conf.maxHeight - conf.ballRadius) {
                 vy *= -1;
-                lines.add(new UILine(new Vector2i(last_x, last_y), new Vector2i(x, y), Color.green));
+                y = conf.maxHeight - conf.ballRadius;
+
+                if(lines != null)
+                    lines.add(new UILine(new Vector2i(last_x, last_y), new Vector2i(x, y), Color.green));
+
                 last_x = x;
                 last_y = y;
             }
 
-            if(y - conf.ballRadius <= 0) {
+            if(y < conf.ballRadius) {
                 vy *= -1;
-                lines.add(new UILine(new Vector2i(last_x, last_y), new Vector2i(x, y), Color.green));
+                y = conf.ballRadius;
+
+                if(lines != null)
+                    lines.add(new UILine(new Vector2i(last_x, last_y), new Vector2i(x, y), Color.green));
+
                 last_x = x;
                 last_y = y;
             }
@@ -48,7 +56,8 @@ public class PongUtil {
             totalTime += dt;
         }
 
-        lines.add(new UILine(new Vector2i(last_x, last_y), new Vector2i(x, y), Color.green));
+        if(lines != null)
+            lines.add(new UILine(new Vector2i(last_x, last_y), new Vector2i(x, y), Color.green));
 
         ball.vy = vy;
         ball.vx = vx;

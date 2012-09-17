@@ -15,7 +15,9 @@ public class StateAnalyzer {
 	
 	Vector2 ballVel;
 	Vector2 nextOpponentCollision;
+	double opponentCollisionTime; 
 	Vector2 nextHomeCollision;
+	double homeCollisionTime;
 	double ballSpeed = 0;
 	
 	int radius;
@@ -23,7 +25,8 @@ public class StateAnalyzer {
 		history = new HistoryBuffer();
 		ballVel = new Vector2();
 		ballPos = new Vector2();
-		
+		nextHomeCollision = new Vector2();
+		nextOpponentCollision = new Vector2();
 		radius = 0;
 	}
 	void resetMatch() {
@@ -53,6 +56,8 @@ public class StateAnalyzer {
 		int radius = status.conf.ballRadius;
 		
 		if (history.getHistorySize() >= 3) {
+			Vector2 prevVel = ballVel;
+			
 			Vector2 p1 = history.getStatus(0).ball;
 			Vector2 p2 = history.getStatus(1).ball;
 			Vector2 p3 = history.getStatus(2).ball;
@@ -60,41 +65,35 @@ public class StateAnalyzer {
 			if (timeDiff == 0)
 				timeDiff = 0.001;
 			double err = PongUtil.pointDistance2Line(p1, p2, p3);
-			if (err < 1) {
+			if (err < 2) {
 				ballVel = p1.minus(p3);
 				ballVel.x /= timeDiff;
 				ballVel.y /= timeDiff;
 				ballSpeed = (3*ballSpeed+ballVel.length())/4;
-				ballVel.normalize();
-				ballVel.x *= ballSpeed;
-				ballVel.y *= ballSpeed;
+				ballVel.setLength(ballSpeed);
 			}
 			else {
 				for (int i = 0 ; i < 2; i++) {
 					Vector2 p3f = flip(p3, i, radius, status.conf.screenArea);
 					err = PongUtil.pointDistance2Line(p1, p2, p3f);
 					System.out.println("err " +err);
-					if (err < 1) {
+					if (err < 2) {
 						ballVel = p1.minus(p3f);
 						ballVel.x /= timeDiff;
 						ballVel.y /= timeDiff;
 						ballSpeed = (3*ballSpeed+ballVel.length())/4;
-						ballVel.normalize();
-						ballVel.x *= ballSpeed;
-						ballVel.y *= ballSpeed;
+						ballVel.setLength(ballSpeed);
 						return;
 					}
 					Vector2 p2f = flip(p2, i, radius, status.conf.screenArea);
 					err = PongUtil.pointDistance2Line(p1, p2f, p3f);
-					if (err < 1) {
+					if (err < 2) {
 						ballVel = p1.minus(p3f);
 						ballVel.x /= timeDiff;
 						ballVel.y /= timeDiff;
 						
 						ballSpeed = (3*ballSpeed+ballVel.length())/4;
-						ballVel.normalize();
-						ballVel.x *= ballSpeed;
-						ballVel.y *= ballSpeed;
+						ballVel.setLength(ballSpeed);
 						
 						return;
 					}
@@ -102,14 +101,26 @@ public class StateAnalyzer {
 				//TODO paddle collisions
 				//estimate paddle collision based on old position and vel
 				//new vel is collsion point - new point
+				/*
+				if (prevVel.x > 0) {
+					ballVel = history.getStatus(0).ball.minus(nextOpponentCollision);
+					ballVel.setLength(ballSpeed);
+					
+				}
+				else {
+					ballVel = history.getStatus(0).ball.minus(nextHomeCollision);
+					ballVel.setLength(ballSpeed);
+					
+				}
+				*/
+				
 				
 				ballVel = history.getStatus(0).ball.minus(history.getStatus(1).ball);
 				ballVel.x /= timeDiff;
 				ballVel.y /= timeDiff;
 				ballSpeed = (3*ballSpeed+ballVel.length())/4;
-				ballVel.normalize();
-				ballVel.x *= ballSpeed;
-				ballVel.y *= ballSpeed;
+				ballVel.setLength(ballSpeed);
+				
 			}
 			
 			
@@ -151,6 +162,7 @@ public class StateAnalyzer {
 				 }
 			 }
 			 
+			 opponentCollisionTime = time;
 			 nextOpponentCollision = collision;
 			
 		}
@@ -171,7 +183,7 @@ public class StateAnalyzer {
 					 collision = flip(collision, 1, radius, screenDim);
 				 }
 			 }
-			 
+			 homeCollisionTime = time;
 			 nextHomeCollision = collision;
 		}
 		
