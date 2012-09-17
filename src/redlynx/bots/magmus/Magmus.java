@@ -155,6 +155,10 @@ public class Magmus extends PongGameBot {
                     }
                     else {
                         // ok seems we really have to change course.
+                        if(timeLeft == 0)
+                            System.out.println("OMG OMG TIMELEFT ZERO");
+                        if(getPaddleMaxVelocity() == 0)
+                            System.out.println("OMG OMG PADDLE V ZERO");
                         double idealVelocity = (distance / timeLeft / getPaddleMaxVelocity()); // this aims for the centre of current target
                         if(idealVelocity * idealVelocity > 1.0) {
                             if(idealVelocity > 0)
@@ -201,19 +205,25 @@ public class Magmus extends PongGameBot {
         getPaddleVelocity().drawReachableArea(lines, newStatus.getPedal(getMySide()).y + newStatus.conf.paddleHeight * 0.5, timeLeft, newStatus.conf.paddleHeight);
     }
 
-    public void requestChangeSpeed(double v) {
+    public boolean requestChangeSpeed(double v) {
 
         int requestedVelocity = (int)(v * 100);
         int prevVelocity = (int)(myState.velocity() * 100);
         int delta = requestedVelocity - prevVelocity;
 
         // don't make meaningless choices
+        /*
         if(delta * delta < 10) {
-            return;
+            return false;
+        }
+        */
+
+        if(super.requestChangeSpeed(v)) {
+            myState.setVelocity(v);
+            return true;
         }
 
-        super.requestChangeSpeed(v);
-        myState.setVelocity(v);
+        return false;
     }
 
 
