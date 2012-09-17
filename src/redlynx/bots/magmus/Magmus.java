@@ -119,18 +119,17 @@ public class Magmus extends PongGameBot {
             // alter aim so that would hit with target position.
             targetPos -= paddleTarget * lastKnownStatus.conf.paddleHeight * 0.5;
 
+            // bound target position to inside play area
+            double paddleMaxPos = lastKnownStatus.conf.maxHeight - lastKnownStatus.conf.paddleHeight * 0.5;
+            double paddleMinPos = lastKnownStatus.conf.paddleHeight * 0.5;
+            targetPos = targetPos < paddleMinPos ? paddleMinPos : targetPos;
+            targetPos = targetPos > paddleMaxPos ? paddleMaxPos : targetPos;
+
             // now we are done.
             ClientGameState.Player myPedal = lastKnownStatus.getPedal(getMySide());
             double diff_y = targetPos - myPedal.y;
 
             // if not hitting accurately, alter direction.
-
-
-            // if moving to catch ball
-            // AND not going fast enough
-            // AND not going at max speed
-            // request enough speed.
-
             if(myState.catching()) {
                 boolean rightDirection = myState.velocity() * diff_y < +0.000001f;
                 double myPos = extrapolatedStatus.getPedal(getMySide()).y;
