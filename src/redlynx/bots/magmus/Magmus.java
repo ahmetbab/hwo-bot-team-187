@@ -222,9 +222,7 @@ public class Magmus extends PongGameBot {
             double diff_y = myDirectionBall.y - myPedal.y;
 
             // TODO: Create a weighted spray of bounce backs. Go to the position from which most can be caught.
-            if(myState.catching() && myPedal.vy * diff_y < +0.001f) {
-                requestChangeSpeed((float) (0.99f * diff_y / Math.abs(diff_y)));
-            }
+            requestChangeSpeed((float) (0.99f * diff_y / Math.abs(diff_y)));
         }
 
         getHistory().drawLastCollision(lines);
