@@ -27,7 +27,7 @@ public class PongModelInitializer {
             double vx_out = scanner.nextDouble();
             double vy_out = scanner.nextDouble();
 
-            model.learn(position, new Vector2(vx_in, vy_in), new Vector2(vx_out, vy_out));
+            // model.learn(position, new Vector2(vx_in, vy_in), new Vector2(vx_out, vy_out));
         }
 
     }

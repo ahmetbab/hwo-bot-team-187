@@ -20,6 +20,7 @@ public class GameState implements GameStateAccessorInterface {
 		public double vel;
 		public String name;
 	}
+
 	public class BallConfig {
 		public double speed; //?
 		public int radius;

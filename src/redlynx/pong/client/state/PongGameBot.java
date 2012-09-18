@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import redlynx.pong.client.network.MessageLimiter;
 import redlynx.pong.util.SoftVariable;
 import redlynx.pong.client.BaseBot;
 import redlynx.pong.client.network.Communicator;
@@ -19,6 +20,7 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
     private final History history = new History();
     private final PaddleVelocityStorage paddleVelocity = new PaddleVelocityStorage();
     private final SoftVariable ballVelocity = new SoftVariable(50);
+    private final MessageLimiter messageLimiter = new MessageLimiter();
 
     public static enum PlayerSide {
         LEFT(-1),
@@ -103,8 +105,8 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
 
         paddleVelocity.update(gameStatus.getPedal(mySide).y, gameStatus.time);
         history.update(gameStatus.ball.getPosition());
-
-        if(history.isReliable()) {
+        double step_dt = (gameStatus.time - lastKnownStatus.time) / 1000.0;
+        if(history.isReliable() && step_dt != 0) {
             lastKnownStatus.update(gameStatus, true);
             lastKnownStatus.copy(gameStatus, true);
             extrapolatedStatus.copy(gameStatus, true);
@@ -199,6 +201,8 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
         totalTime += dt;
         extrapolatedTime += dt;
 
+        messageLimiter.tick(dt);
+
         onTick(dt);
         if (visualizer != null)
         	visualizer.render();
@@ -208,9 +212,14 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
         return name;
     }
 
-    public void requestChangeSpeed(double v) {
-        paddleVelocity.update(v);
-        getCommunicator().sendUpdate((float) v);
+    public boolean requestChangeSpeed(double v) {
+        if(messageLimiter.canSend()) {
+            paddleVelocity.update(v);
+            getCommunicator().sendUpdate((float) v);
+            messageLimiter.send();
+            return true;
+        }
+        return false;
     }
 
     private Communicator getCommunicator() {

@@ -120,8 +120,8 @@ public class ClientGameState {
         public void tick(double dt, Conf conf) {
             y += vy * dt;
 
-            if(y < conf.paddleHeight) {
-                y = conf.paddleHeight;
+            if(y < 0) {
+                y = 0;
                 vy *= -1;
             }
             if(y > conf.maxHeight - conf.paddleHeight) {
@@ -240,7 +240,7 @@ public class ClientGameState {
     public void update(ClientGameState gameStatus, boolean forceUpdateBall) {
 
         // dt is seconds. server time is milliseconds.
-        double dt = (gameStatus.time - time) / 1000.0 + 0.00000001; // incase division by zero
+        double dt = (gameStatus.time - time) / 1000.0;
 
         if(forceUpdateBall) {
             gameStatus.ball.vx = (gameStatus.ball.x - ball.x) / dt;

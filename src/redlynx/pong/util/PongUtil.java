@@ -9,10 +9,10 @@ import java.util.ArrayList;
 public class PongUtil {
 
     public static double simulate(ClientGameState.Ball ball, ClientGameState.Conf conf) {
-        return simulate(ball, conf, null);
+        return simulate(ball, conf, null, null);
     }
 
-    public static double simulate(ClientGameState.Ball ball, ClientGameState.Conf conf, ArrayList<UILine> lines) {
+    public static double simulate(ClientGameState.Ball ball, ClientGameState.Conf conf, ArrayList<UILine> lines, Color color) {
         double vy = ball.vy;
         double vx = ball.vx;
         double x = ball.x;
@@ -36,7 +36,7 @@ public class PongUtil {
                 y = conf.maxHeight - conf.ballRadius;
 
                 if(lines != null)
-                    lines.add(new UILine(new Vector2i(last_x, last_y), new Vector2i(x, y), Color.green));
+                    lines.add(new UILine(new Vector2i(last_x, last_y), new Vector2i(x, y), color));
 
                 last_x = x;
                 last_y = y;
@@ -47,7 +47,7 @@ public class PongUtil {
                 y = conf.ballRadius;
 
                 if(lines != null)
-                    lines.add(new UILine(new Vector2i(last_x, last_y), new Vector2i(x, y), Color.green));
+                    lines.add(new UILine(new Vector2i(last_x, last_y), new Vector2i(x, y), color));
 
                 last_x = x;
                 last_y = y;
@@ -57,7 +57,7 @@ public class PongUtil {
         }
 
         if(lines != null)
-            lines.add(new UILine(new Vector2i(last_x, last_y), new Vector2i(x, y), Color.green));
+            lines.add(new UILine(new Vector2i(last_x, last_y), new Vector2i(x, y), color));
 
         ball.vy = vy;
         ball.vx = vx;
