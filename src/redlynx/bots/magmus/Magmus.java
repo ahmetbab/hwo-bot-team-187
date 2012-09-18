@@ -9,6 +9,7 @@ import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.client.state.PongGameBot;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.util.PongUtil;
+import redlynx.pong.util.Vector2;
 import redlynx.pong.util.Vector2i;
 
 import java.awt.Color;
@@ -67,11 +68,16 @@ public class Magmus extends PongGameBot {
 
                 for(int i=10; i<90; ++i) {
                     opponentDirectionBall.copy(myDirectionBall, true);
-                    opponentDirectionBall.vx *= -1;
-                    opponentDirectionBall.tick(0.01f);
+                    // opponentDirectionBall.vx *= -1;
+
 
                     double tmpTarget = (i - 50) / 50.0;
-                    opponentDirectionBall.vy += myModel.guess(tmpTarget, opponentDirectionBall.vy );
+                    Vector2 ballOut = myModel.guess(tmpTarget, opponentDirectionBall.vx, opponentDirectionBall.vy);
+                    ballOut.normalize().scaled(getBallVelocity());
+                    opponentDirectionBall.vx = ballOut.x;
+                    opponentDirectionBall.vy = ballOut.y;
+                    opponentDirectionBall.tick(0.01f);
+
                     PongUtil.simulate(opponentDirectionBall, lastKnownStatus.conf);
 
                     if(opponentDirectionBall.y < ballPlanBot) {
@@ -85,11 +91,16 @@ public class Magmus extends PongGameBot {
                 // best shot is at top corner
                 for(int i=10; i<90; ++i) {
                     opponentDirectionBall.copy(myDirectionBall, true);
-                    opponentDirectionBall.vx *= -1;
-                    opponentDirectionBall.tick(0.01f);
+                    // opponentDirectionBall.vx *= -1;
+
 
                     double tmpTarget = (i - 50) / 50.0;
-                    opponentDirectionBall.vy += myModel.guess(tmpTarget, opponentDirectionBall.vy );
+                    Vector2 ballOut = myModel.guess(tmpTarget, opponentDirectionBall.vx, opponentDirectionBall.vy);
+                    ballOut.normalize().scaled(getBallVelocity());
+                    opponentDirectionBall.vx = ballOut.x;
+                    opponentDirectionBall.vy = ballOut.y;
+                    opponentDirectionBall.tick(0.01f);
+
                     PongUtil.simulate(opponentDirectionBall, lastKnownStatus.conf);
 
                     if(opponentDirectionBall.y > ballPlanTop) {
@@ -109,12 +120,30 @@ public class Magmus extends PongGameBot {
                 paddleTarget = paddleTargetTop;
             }
 
+            // visualize my model
+            {
+                for(int i=0; i<11; ++i) {
+                    double pos = (i - 5) / 5.0;
+                    Vector2 ballOut = myModel.guess(pos, myDirectionBall.vx, myDirectionBall.vy);
+                    ballOut.normalize().scaled(100);
+
+                    double y_point = lastKnownStatus.getPedal(getMySide()).y + pos * lastKnownStatus.conf.paddleHeight * 0.5 + lastKnownStatus.conf.paddleHeight * 0.5;
+                    lines.add(new UILine(new Vector2i(10, y_point), new Vector2i(10 + ballOut.x, y_point + ballOut.y), Color.red));
+                }
+            }
+
             // visualize my plan
             {
                 opponentDirectionBall.copy(myDirectionBall, true);
-                opponentDirectionBall.vx *= -1;
+                // opponentDirectionBall.vx *= -1;
+
+
+                Vector2 ballOut = myModel.guess(paddleTarget, opponentDirectionBall.vx, opponentDirectionBall.vy);
+                ballOut.normalize().scaled(getBallVelocity());
+                opponentDirectionBall.vx = ballOut.x;
+                opponentDirectionBall.vy = ballOut.y;
                 opponentDirectionBall.tick(0.01f);
-                opponentDirectionBall.vy += myModel.guess(paddleTarget, opponentDirectionBall.vy );
+
                 PongUtil.simulate(opponentDirectionBall, lastKnownStatus.conf, lines, Color.red);
             }
 
