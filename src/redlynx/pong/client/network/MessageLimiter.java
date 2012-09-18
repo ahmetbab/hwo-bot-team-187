@@ -8,7 +8,9 @@ public class MessageLimiter {
     private ArrayList<Double> msgs = new ArrayList<Double>();
 
     public boolean canSend() {
-        return msgs.size() < 18;
+        if(msgs.size() >= 9)
+            System.out.println("ERROR EORRORRO WARNING AHAHA");
+        return msgs.size() < 9;
     }
 
     public void send() {
@@ -17,7 +19,7 @@ public class MessageLimiter {
 
     public void tick(double dt) {
         currentTime += dt;
-        while(!msgs.isEmpty() && currentTime - msgs.get(0) > 2) {
+        while(!msgs.isEmpty() && currentTime - msgs.get(0) > 1) {
             msgs.remove(0);
         }
     }

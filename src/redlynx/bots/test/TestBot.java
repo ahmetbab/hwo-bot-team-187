@@ -121,6 +121,11 @@ public class TestBot extends PongGameBot {
     }
 
     @Override
+    public String getDefaultName() {
+        return "TestBot";
+    }
+
+    @Override
     public ArrayList<UILine> getDrawLines() {
         return this.lines;
     }

@@ -9,11 +9,13 @@ import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.client.state.PongGameBot;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.util.PongUtil;
+import redlynx.pong.util.Vector2i;
+
 import java.awt.Color;
+
 
 public class Magmus extends PongGameBot {
 
-	
 	public static void main(String[] args) {
 		Pong.init(args, new Magmus());
 	}
@@ -119,9 +121,9 @@ public class Magmus extends PongGameBot {
             // alter aim so that would hit with target position.
             targetPos -= paddleTarget * lastKnownStatus.conf.paddleHeight * 0.5;
 
-            // bound target position to inside play area
-            double paddleMaxPos = lastKnownStatus.conf.maxHeight - lastKnownStatus.conf.paddleHeight * 0.5;
-            double paddleMinPos = lastKnownStatus.conf.paddleHeight * 0.5;
+            // bind target position inside play area
+            double paddleMaxPos = lastKnownStatus.conf.maxHeight - lastKnownStatus.conf.paddleHeight;
+            double paddleMinPos = 0;
             targetPos = targetPos < paddleMinPos ? paddleMinPos : targetPos;
             targetPos = targetPos > paddleMaxPos ? paddleMaxPos : targetPos;
 
@@ -139,26 +141,22 @@ public class Magmus extends PongGameBot {
 
                 double distance = (targetPos - myPos);
 
-                /*
-                if(distance * distance < reachableDistanceWithCurrentVelocity * reachableDistanceWithCurrentVelocity * 0.9 && rightDirection) {
-                    // all is well. going fast enough to catch ball.
-                    // TODO: remember to slow down when necessary, take opponents position into account
-                }
-                */
                 {
                     // if going to hit accurately with current velocity, do nothing
-                    double expectedPosition = movingDistance + myPos;
-                    double expectedDistance = targetPos - expectedPosition;
+                    double ballEndPos = myDirectionBall.y;
+                    double expectedPosition = movingDistance + myPos + lastKnownStatus.conf.paddleHeight * 0.5;
+                    double expectedDistance = ballEndPos - expectedPosition;
+
+                    lines.add(new UILine(new Vector2i(0.0, expectedPosition + 5), new Vector2i(+5.0, expectedPosition - 5), Color.orange));
+                    lines.add(new UILine(new Vector2i(0.0, expectedPosition - 5), new Vector2i(+5.0, expectedPosition + 5), Color.orange));
+                    lines.add(new UILine(new Vector2i(15, expectedPosition), new Vector2i(15, expectedPosition + expectedDistance), Color.green));
+
                     double halfPaddle = lastKnownStatus.conf.paddleHeight * 0.1;
                     if(expectedDistance * expectedDistance < halfPaddle * halfPaddle) {
                         // all ok. just let it play out.
                     }
                     else {
                         // ok seems we really have to change course.
-                        if(timeLeft == 0)
-                            System.out.println("OMG OMG TIMELEFT ZERO");
-                        if(getPaddleMaxVelocity() == 0)
-                            System.out.println("OMG OMG PADDLE V ZERO");
                         double idealVelocity = (distance / timeLeft / getPaddleMaxVelocity()); // this aims for the centre of current target
                         if(idealVelocity * idealVelocity > 1.0) {
                             if(idealVelocity > 0)
@@ -167,7 +165,6 @@ public class Magmus extends PongGameBot {
                                 idealVelocity = -1;
                         }
 
-                        // TODO: Replace with choice that takes opponents position into account.
                         if(idealVelocity != myState.velocity()) {
                             requestChangeSpeed(idealVelocity);
                         }
@@ -211,12 +208,9 @@ public class Magmus extends PongGameBot {
         int prevVelocity = (int)(myState.velocity() * 100);
         int delta = requestedVelocity - prevVelocity;
 
-        // don't make meaningless choices
-        /*
-        if(delta * delta < 10) {
+        if(delta * delta < 1) {
             return false;
         }
-        */
 
         if(super.requestChangeSpeed(v)) {
             myState.setVelocity(v);
@@ -246,26 +240,16 @@ public class Magmus extends PongGameBot {
 
     @Override
     public void onTick(double dt) {
+    }
 
-        /*
-        double dy = myDirectionBall.y - extrapolatedStatus.getPedal(getMySide()).y;
-        if(dy * dy < 0.5 * extrapolatedStatus.conf.paddleHeight * extrapolatedStatus.conf.paddleHeight / 4) {
-            if(myState.catching()) {
-                requestChangeSpeed(0);
-                myState.setToWaiting();
-            }
-        }
-        else {
-            if(!myState.catching()) {
-                myState.setToHandling();
-            }
-        }
-        */
-
+    @Override
+    public String getDefaultName() {
+        return "Magmus";
     }
 
     @Override
     public ArrayList<UILine> getDrawLines() {
         return this.lines;
     }
+
 }

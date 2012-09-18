@@ -29,8 +29,13 @@ public class PaddleVelocityStorage {
             Entry end = history.get(history.size()-1);
 
             double dt = (end.time - start.time) * 0.001;
+
+            if(dt < 0.2) {
+                return;
+            }
+
             double dy = end.y - start.y;
-            double sample = (dy / dt) / paddleSpeed;
+            double sample = Math.abs((dy / dt) / paddleSpeed);
             estimate += sample;
             estimate *= 0.5; // fast adaptation to varying paddle move speeds.
             // System.out.println("estimate: " + estimate);

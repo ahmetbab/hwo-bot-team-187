@@ -66,21 +66,24 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
     public PlayerSide getMySide() {
         return mySide;
     }
+
     private GameStateAccessor accessor;
 
     public PongGameBot() {
     	//this.name = name;
-        this.serverMessageQueue = new ConcurrentLinkedQueue<String>();;
-        //this.communicator = communicator;
+        this.serverMessageQueue = new ConcurrentLinkedQueue<String>();
         this.handler = new PongMessageParser(this);
         accessor = new GameStateAccessor(this);
     }
+
     public GameStateAccessorInterface getGameStateAccessor() {
     	return accessor;
     }
+
     public void setName(String name) {
     	this.name = name;
     } 
+
     public void setCommunicator(Communicator comm) {
     	this.communicator = comm;
     }
@@ -147,10 +150,15 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
     }
     @Override
 	public void gameStart(String player1, String player2) {
-    	if (player1.equals(name))
-    		setMySide(PlayerSide.LEFT);
-    	else
-    		setMySide(PlayerSide.RIGHT);
+        // Server does not swap name orders. Always select left manually.
+    	if(true || player1.equals(name)) {
+            System.out.println("I'm left");
+            setMySide(PlayerSide.LEFT);
+        }
+    	else {
+            System.out.println("I'm right");
+            setMySide(PlayerSide.RIGHT);
+        }
     }
     @Override
 	public void gameOver(String winner) {
@@ -169,6 +177,7 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
     public abstract void onGameStateUpdate(ClientGameState newStatus);
     public abstract void onGameOver(boolean won);
     public abstract void onTick(double dt);
+    public abstract String getDefaultName();
     public abstract ArrayList<UILine> getDrawLines();
 
     @Override

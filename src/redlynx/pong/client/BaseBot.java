@@ -15,4 +15,7 @@ public interface BaseBot extends PongMessageListener {
 	
 	public void start();
 
+    // the name this bot would like to have if it could decide.
+    String getDefaultName();
+
 }

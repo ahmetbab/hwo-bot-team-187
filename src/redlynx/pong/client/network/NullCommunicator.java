@@ -2,10 +2,15 @@ package redlynx.pong.client.network;
 
 public class NullCommunicator implements Communicator {
 
-	 public void sendJoin(String data) {     
-	 }
+    @Override
+    public void sendJoin(String data) {
+    }
 
-	 public void sendUpdate(float data) {
-		  
-	 }
+    @Override
+    public void sendUpdate(float data) {
+    }
+
+    @Override
+    public void sendRequestMatch(String name, String matchBot) {
+    }
 }

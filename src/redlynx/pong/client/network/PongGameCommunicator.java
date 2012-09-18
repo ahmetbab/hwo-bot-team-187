@@ -19,4 +19,10 @@ public class PongGameCommunicator implements Communicator {
         out.print("{\"msgType\":\"changeDir\",\"data\":" + data + "}\n");
         out.flush();
     }
+
+    @Override
+    public void sendRequestMatch(String name, String matchBot) {
+        out.print("{\"msgType\":\"requestDuel\",\"data\":[\"" + name + "\",\""+ matchBot + "\"]}\n");
+        out.flush();
+    }
 }

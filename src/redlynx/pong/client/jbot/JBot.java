@@ -23,12 +23,14 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 	private PongVisualizer visualizer;
 	private Communicator comm;
 	private StateAnalyzer analyser;
-	public JBot() {
+
+    public JBot() {
 		parser = new PongMessageParser(this);
 		analyser = new StateAnalyzer();
 		prevCommand = 0;
 	}
-	public StateAnalyzer getAnalyzer() {
+
+    public StateAnalyzer getAnalyzer() {
 		return analyser;
 	}
 	@Override
@@ -129,8 +131,11 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 			e.printStackTrace();
 		}
 	}
-		
 
+    @Override
+    public String getDefaultName() {
+        return "JBot";
+    }
 
 
 }
