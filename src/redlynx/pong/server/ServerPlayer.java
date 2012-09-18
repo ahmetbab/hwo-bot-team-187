@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -20,6 +22,8 @@ public class ServerPlayer implements Runnable{
 	private int id;
 	private boolean joined;
 	private String name;
+	private Deque<Long> messageLimiter;
+	private int messageLimitPerSecond = 10;
 	ServerPlayer(int id, Socket con, PongServer server) throws IOException {
 		connection = con;
 		joined = false;
@@ -27,6 +31,7 @@ public class ServerPlayer implements Runnable{
 		this.server = server;
 	 	out = new PrintStream(connection.getOutputStream());
 	 	input = new InputStreamReader(connection.getInputStream());
+	 	messageLimiter = new ArrayDeque<Long>();
 
 	}
 	public String getName() {
@@ -86,6 +91,14 @@ public class ServerPlayer implements Runnable{
 	}
 	
 	private void messageReceivedLagSimulated(String msg) {
+		long time = System.nanoTime();
+		messageLimiter.add(time);
+		while (messageLimiter.size() >= messageLimitPerSecond) {
+			System.out.println("Messages per second ("+name+") "+(10*1000000000.0/((time - messageLimiter.peekFirst()))));
+			if (time - messageLimiter.removeFirst() < 1000000000) {
+				System.out.println("Too many Messages for player: "+name);
+			} 
+		}
 		server.getLagSimulator().receive(this, msg);
 	}
 	
