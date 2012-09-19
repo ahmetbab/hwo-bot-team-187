@@ -82,7 +82,7 @@ public class JBotStateAccessor implements GameStateAccessorInterface{
     	return status.conf.screenArea;
     }
     
-    private void drawX(Vector2 pos, ArrayList<UILine> lines) {
+    public static void drawX(Vector2 pos, ArrayList<UILine> lines) {
     	lines.add(new UILine(pos.x-5,pos.y-5, pos.x+5,pos.y+5, Color.yellow));
     	lines.add(new UILine(pos.x-5,pos.y+5, pos.x+5,pos.y-5, Color.yellow));
     	
@@ -93,14 +93,28 @@ public class JBotStateAccessor implements GameStateAccessorInterface{
 		Vector2 pos = analyzer.getLastBallPos();
 		Vector2 vel = analyzer.getLastBallVel();
 		ArrayList<UILine> lines = new ArrayList<UILine>();
-		lines.add(UILine.createFromDirection(pos, vel, 1, Color.red));
+		lines.add(UILine.createFromDirection(pos, vel, 100/vel.length(), Color.red));
 		
-		Vector2 colPos = analyzer.getNextOpponentCollision();
-		if (colPos != null)
-			drawX(colPos, lines);
-		Vector2 homeColPos = analyzer.getNextHomeCollision();
-		if (homeColPos != null)
-			drawX(homeColPos, lines);
+		
+		StateAnalyzer.Collision col = analyzer.getNextOpponentCollision();
+		
+		if (col.pos != null) {
+			drawX(col.pos, lines);
+			lines.add(UILine.createFromDirection(col.pos, col.dir, 20/col.dir.length(), Color.green));
+		}
+		StateAnalyzer.Collision homeCol = analyzer.getNextHomeCollision();
+		
+		if (homeCol.pos != null) {
+			drawX(homeCol.pos, lines);
+			
+			lines.add(UILine.createFromDirection(homeCol.pos, homeCol.dir, 20/homeCol.dir.length(), Color.green));
+		}
+		
+		
+		ArrayList<UILine> botlines = bot.getExtraLines();
+		lines.addAll(botlines);
+		
+		
         return lines;
 	}
 

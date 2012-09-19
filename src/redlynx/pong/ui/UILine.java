@@ -20,7 +20,7 @@ public class UILine {
 	}
 
     public static UILine createFromDirection(Vector2 pos, Vector2 dir, double mul, Color c) {
-		return new UILine(new Vector2i((int)pos.x, (int)pos.y), new Vector2i((int)(pos.x+dir.x*mul),(int)( pos.y+dir.y*mul)), Color.red);
+		return new UILine(new Vector2i((int)pos.x, (int)pos.y), new Vector2i((int)(pos.x+dir.x*mul),(int)( pos.y+dir.y*mul)), c);
 	}
 	public Vector2i getStart() {
 		return start;
