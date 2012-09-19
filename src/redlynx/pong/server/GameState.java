@@ -98,9 +98,9 @@ public class GameState implements GameStateAccessorInterface {
 		paddle[0].y = paddle[1].y = (screenHeight / 2); //TODO parameter to randomize?
 		paddle[0].vel = paddle[1].vel = 0;
 		ball.x = 10;
-		ball.y = 10 + (Math.random() * screenHeight - 20);
+		ball.y = 10 + (Math.random() * (screenHeight - 20));
 		ball.dx = Math.random() + 0.5;
-		ball.dy = Math.random() + 0.5;
+		ball.dy = 0.5*Math.random() + 0.5;
 		gameEnded = false;
 		winner = -1;
 	}
@@ -145,7 +145,7 @@ public class GameState implements GameStateAccessorInterface {
                 dy /= paddleConfig.height * 0.5;
 
                 ball.x = paddleConfig.width + ball.conf.radius - ((ball.x - ball.conf.radius) - paddleConfig.width);
-				ball.dx = -ball.dx; //TODO deflect
+				ball.dx = -ball.dx*1.01; //TODO deflect
 
                 ball.dy += dy * (deflectionValue[0]/100.0f);
                 ball.dy += (deflectionValue[1]/20.0f)*(Math.random() - 0.5); // testing
@@ -165,7 +165,7 @@ public class GameState implements GameStateAccessorInterface {
 					ball.x = (screenWidth-paddleConfig.width)-ball.conf.radius 
 					-((ball.x + ball.conf.radius) - (screenWidth-paddleConfig.width));
 										
-					ball.dx = -ball.dx; //TODO deflect
+					ball.dx = -ball.dx*1.01; //TODO deflect
                     ball.dy += dy * (deflectionValue[0]/100.0f);
                     ball.dy += (deflectionValue[1]/20.0f)*(Math.random() - 0.5); // testing
 				}
