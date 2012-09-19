@@ -22,8 +22,9 @@ public class Magmus extends PongGameBot {
 	}
 	
     private MagmusState myState = new MagmusState();
+
     private final ClientGameState.Ball myDirectionBall = new ClientGameState.Ball();
-    private final ClientGameState.Ball opponentDirectionBall = new ClientGameState.Ball();
+    private final ClientGameState.Ball tmpBall = new ClientGameState.Ball();
 
     private final ArrayList<UILine> lines = new ArrayList<UILine>();
     private final PongModel myModel = new LinearModel();
@@ -34,170 +35,30 @@ public class Magmus extends PongGameBot {
 
     @Override
     public void onGameStateUpdate(ClientGameState newStatus) {
+
+        lines.clear();
         double ball_direction = lastKnownStatus.ball.vx;
 
         if(getMySide().comingTowardsMe(ball_direction)) {
             // find out impact velocity and position.
-            myDirectionBall.copy(lastKnownStatus.ball, true);
+            myDirectionBall.copy(newStatus.ball, true);
             myDirectionBall.setVelocity(getBallVelocity());
-
-            lines.clear();
             timeLeft = PongUtil.simulate(myDirectionBall, lastKnownStatus.conf, lines, Color.green);
 
-
-
             // this is the expected y value when colliding against our paddle.
-            double targetPos = myDirectionBall.y - lastKnownStatus.conf.paddleHeight * 0.5;
+            Vector2 target = evaluate(newStatus, PlayerSide.RIGHT, myDirectionBall, tmpBall);
+            double targetPos = target.x;
+            double paddleTarget = target.y;
 
-            opponentDirectionBall.copy(myDirectionBall, true);
-            opponentDirectionBall.vx *= -1;
-            opponentDirectionBall.tick(0.01f);
+            // draw stuff on the hud.
+            visualise(newStatus, paddleTarget);
 
-            double opponentTime = PongUtil.simulate(opponentDirectionBall, lastKnownStatus.conf, lines, Color.green) + timeLeft;
-            double opponentReach = opponentTime * getPaddleMaxVelocity() + lastKnownStatus.conf.paddleHeight * 0.5;
-            double opponentBot = newStatus.getPedal(PlayerSide.RIGHT).y - opponentReach - lastKnownStatus.conf.paddleHeight * 0.5;
-            double opponentTop = newStatus.getPedal(PlayerSide.RIGHT).y + opponentReach - lastKnownStatus.conf.paddleHeight * 0.5;
-
-            // -1 try to collide with bottom,
-            // +1 try to collide with top.
-            double paddleTarget = 0; // by default, aim for the centre.
-            double paddleTargetBot = 0, ballPlanBot = 10000000;
-            double paddleTargetTop = 0, ballPlanTop = 0;
-            {
-                // best shot is at bottom corner
-
-                for(int i=10; i<90; ++i) {
-                    opponentDirectionBall.copy(myDirectionBall, true);
-                    // opponentDirectionBall.vx *= -1;
-
-
-                    double tmpTarget = (i - 50) / 50.0;
-                    Vector2 ballOut = myModel.guess(tmpTarget, opponentDirectionBall.vx, opponentDirectionBall.vy);
-                    ballOut.normalize().scaled(getBallVelocity());
-                    opponentDirectionBall.vx = ballOut.x;
-                    opponentDirectionBall.vy = ballOut.y;
-                    opponentDirectionBall.tick(0.01f);
-
-                    PongUtil.simulate(opponentDirectionBall, lastKnownStatus.conf);
-
-                    if(opponentDirectionBall.y < ballPlanBot) {
-                        ballPlanBot = opponentDirectionBall.y;
-                        paddleTargetBot = tmpTarget;
-                    }
-                }
-            }
-
-            {
-                // best shot is at top corner
-                for(int i=10; i<90; ++i) {
-                    opponentDirectionBall.copy(myDirectionBall, true);
-                    // opponentDirectionBall.vx *= -1;
-
-
-                    double tmpTarget = (i - 50) / 50.0;
-                    Vector2 ballOut = myModel.guess(tmpTarget, opponentDirectionBall.vx, opponentDirectionBall.vy);
-                    ballOut.normalize().scaled(getBallVelocity());
-                    opponentDirectionBall.vx = ballOut.x;
-                    opponentDirectionBall.vy = ballOut.y;
-                    opponentDirectionBall.tick(0.01f);
-
-                    PongUtil.simulate(opponentDirectionBall, lastKnownStatus.conf);
-
-                    if(opponentDirectionBall.y > ballPlanTop) {
-                        ballPlanTop = opponentDirectionBall.y;
-                        paddleTargetTop = tmpTarget;
-                    }
-                }
-            }
-
-            double botValue = opponentBot - ballPlanBot;
-            double topValue = ballPlanTop - opponentTop;
-
-            if(botValue > topValue) {
-                paddleTarget = paddleTargetBot;
-            }
-            else {
-                paddleTarget = paddleTargetTop;
-            }
-
-            // visualize my model
-            {
-                for(int i=0; i<11; ++i) {
-                    double pos = (i - 5) / 5.0;
-                    Vector2 ballOut = myModel.guess(pos, myDirectionBall.vx, myDirectionBall.vy);
-                    ballOut.normalize().scaled(100);
-
-                    double y_point = lastKnownStatus.getPedal(getMySide()).y + pos * lastKnownStatus.conf.paddleHeight * 0.5 + lastKnownStatus.conf.paddleHeight * 0.5;
-                    lines.add(new UILine(new Vector2i(10, y_point), new Vector2i(10 + ballOut.x, y_point + ballOut.y), Color.red));
-                }
-            }
-
-            // visualize my plan
-            {
-                opponentDirectionBall.copy(myDirectionBall, true);
-                // opponentDirectionBall.vx *= -1;
-
-
-                Vector2 ballOut = myModel.guess(paddleTarget, opponentDirectionBall.vx, opponentDirectionBall.vy);
-                ballOut.normalize().scaled(getBallVelocity());
-                opponentDirectionBall.vx = ballOut.x;
-                opponentDirectionBall.vy = ballOut.y;
-                opponentDirectionBall.tick(0.01f);
-
-                PongUtil.simulate(opponentDirectionBall, lastKnownStatus.conf, lines, Color.red);
-            }
-
-            // alter aim so that would hit with target position.
-            targetPos -= paddleTarget * lastKnownStatus.conf.paddleHeight * 0.5;
-
-            // bind target position inside play area
-            double paddleMaxPos = lastKnownStatus.conf.maxHeight - lastKnownStatus.conf.paddleHeight;
-            double paddleMinPos = 0;
-            targetPos = targetPos < paddleMinPos ? paddleMinPos : targetPos;
-            targetPos = targetPos > paddleMaxPos ? paddleMaxPos : targetPos;
-
-            // now we are done.
-            ClientGameState.Player myPedal = lastKnownStatus.getPedal(getMySide());
-            double diff_y = targetPos - myPedal.y;
-
-            // if not hitting accurately, alter direction.
+            // check if we need to do something.
             if(myState.catching()) {
-                boolean rightDirection = myState.velocity() * diff_y < +0.000001f;
-                double myPos = extrapolatedStatus.getPedal(getMySide()).y;
-
-                double movingDistance = timeLeft * myState.velocity() * getPaddleMaxVelocity();
-                double reachableDistanceWithCurrentVelocity = Math.abs(movingDistance) + lastKnownStatus.conf.paddleHeight * 0.5;
-
+                double myPos = lastKnownStatus.getPedal(getMySide()).y;
                 double distance = (targetPos - myPos);
-
-                {
-                    // if going to hit accurately with current velocity, do nothing
-                    double ballEndPos = myDirectionBall.y;
-                    double expectedPosition = movingDistance + myPos + lastKnownStatus.conf.paddleHeight * 0.5;
-                    double expectedDistance = ballEndPos - expectedPosition;
-
-                    lines.add(new UILine(new Vector2i(0.0, expectedPosition + 5), new Vector2i(+5.0, expectedPosition - 5), Color.orange));
-                    lines.add(new UILine(new Vector2i(0.0, expectedPosition - 5), new Vector2i(+5.0, expectedPosition + 5), Color.orange));
-                    lines.add(new UILine(new Vector2i(15, expectedPosition), new Vector2i(15, expectedPosition + expectedDistance), Color.green));
-
-                    double halfPaddle = lastKnownStatus.conf.paddleHeight * 0.1;
-                    if(expectedDistance * expectedDistance < halfPaddle * halfPaddle) {
-                        // all ok. just let it play out.
-                    }
-                    else {
-                        // ok seems we really have to change course.
-                        double idealVelocity = (distance / timeLeft / getPaddleMaxVelocity()); // this aims for the centre of current target
-                        if(idealVelocity * idealVelocity > 1.0) {
-                            if(idealVelocity > 0)
-                                idealVelocity = +1;
-                            else
-                                idealVelocity = -1;
-                        }
-
-                        if(idealVelocity != myState.velocity()) {
-                            requestChangeSpeed(idealVelocity);
-                        }
-                    }
+                if(needToReact(targetPos)) {
+                    changeCourse(distance);
                 }
             }
         }
@@ -206,16 +67,20 @@ public class Magmus extends PongGameBot {
             myDirectionBall.copy(lastKnownStatus.ball, true);
             myDirectionBall.setVelocity(getBallVelocity());
 
-            lines.clear();
-            timeLeft = PongUtil.simulate(myDirectionBall, lastKnownStatus.conf, lines, Color.red);
+            timeLeft = PongUtil.simulate(myDirectionBall, lastKnownStatus.conf, lines, Color.green);
 
-            myDirectionBall.vx *= -1;
-            myDirectionBall.tick(0.01f);
+            // this is the current worst case. should try to cover that?
+            Vector2 target = evaluate(newStatus, PlayerSide.LEFT, myDirectionBall, tmpBall);
+            double paddleTarget = target.y;
 
-            double timeLeftAfter = PongUtil.simulate(myDirectionBall, lastKnownStatus.conf, lines, Color.green);
+            // draw stuff on the hud.
+            visualise(newStatus, target.y);
+
+            ballCollideToPaddle(paddleTarget, myDirectionBall);
+            double timeLeftAfter = PongUtil.simulate(myDirectionBall, lastKnownStatus.conf, lines, Color.red);
             timeLeft += timeLeftAfter;
 
-            myDirectionBall.y -= lastKnownStatus.conf.paddleHeight * 0.5;
+            // myDirectionBall.y -= lastKnownStatus.conf.paddleHeight * 0.5;
 
             // now we are done.
             ClientGameState.Player myPedal = lastKnownStatus.getPedal(getMySide());
@@ -227,6 +92,117 @@ public class Magmus extends PongGameBot {
 
         getHistory().drawLastCollision(lines);
         getPaddleVelocity().drawReachableArea(lines, newStatus.getPedal(getMySide()).y + newStatus.conf.paddleHeight * 0.5, timeLeft, newStatus.conf.paddleHeight);
+    }
+
+    private void visualise(ClientGameState newStatus, double paddleTarget) {
+        // visualize my model
+        {
+            for(int i=0; i<11; ++i) {
+                double pos = (i - 5) / 5.0;
+                Vector2 ballOut = myModel.guess(pos, myDirectionBall.vx, myDirectionBall.vy);
+                ballOut.normalize().scaled(100);
+
+                double y_point = lastKnownStatus.getPedal(getMySide()).y + pos * lastKnownStatus.conf.paddleHeight * 0.5 + lastKnownStatus.conf.paddleHeight * 0.5;
+                lines.add(new UILine(new Vector2i(10, y_point), new Vector2i(10 + ballOut.x, y_point + ballOut.y), Color.red));
+            }
+        }
+
+        // visualize my plan
+        {
+            tmpBall.copy(myDirectionBall, true);
+            ballCollideToPaddle(paddleTarget, tmpBall);
+            PongUtil.simulate(tmpBall, lastKnownStatus.conf, lines, Color.red);
+        }
+    }
+
+    private void changeCourse(double distance) {
+        // ok seems we really have to change course.
+        double idealVelocity = (distance / timeLeft / getPaddleMaxVelocity()); // this aims for the centre of current target
+        if(idealVelocity * idealVelocity > 1.0) {
+            if(idealVelocity > 0)
+                idealVelocity = +1;
+            else
+                idealVelocity = -1;
+        }
+
+        if(idealVelocity != myState.velocity()) {
+            requestChangeSpeed(idealVelocity);
+        }
+    }
+
+    private boolean needToReact(double targetPos) {
+
+        double myPos = lastKnownStatus.getPedal(getMySide()).y;
+        double movingDistance = timeLeft * myState.velocity() * getPaddleMaxVelocity();
+
+        double ballEndPos = myDirectionBall.y;
+        double expectedPosition = movingDistance + myPos + lastKnownStatus.conf.paddleHeight * 0.5;
+        double expectedDistance = ballEndPos - expectedPosition;
+
+        /*
+        lines.add(new UILine(new Vector2i(0.0, expectedPosition + 5), new Vector2i(+5.0, expectedPosition - 5), Color.orange));
+        lines.add(new UILine(new Vector2i(0.0, expectedPosition - 5), new Vector2i(+5.0, expectedPosition + 5), Color.orange));
+        lines.add(new UILine(new Vector2i(15, expectedPosition), new Vector2i(15, expectedPosition + expectedDistance), Color.green));
+        */
+
+        double halfPaddle = lastKnownStatus.conf.paddleHeight * 0.1;
+        return expectedDistance * expectedDistance >= halfPaddle * halfPaddle;
+    }
+
+    private Vector2 evaluate(ClientGameState state, PlayerSide catcher, ClientGameState.Ball collidingBallState, ClientGameState.Ball tmpBall) {
+        double targetPos = collidingBallState.y - state.conf.paddleHeight * 0.5;
+        double botValue = -10000;
+        double topValue = -10000;
+        double paddleTargetBot = 0;
+        double paddleTargetTop = 0;
+        double paddleMaxPos = lastKnownStatus.conf.maxHeight - lastKnownStatus.conf.paddleHeight;
+        double paddleMinPos = 0;
+        {
+            for(int i=10; i<90; ++i) {
+                double tmpTarget = (i - 50) / 50.0;
+                double evaluatedPaddlePos = targetPos - tmpTarget * state.conf.paddleHeight * 0.5;
+
+                // if return not possible, don't evaluate it.
+                if(paddleMaxPos < evaluatedPaddlePos || paddleMinPos > evaluatedPaddlePos) {
+                    continue;
+                }
+
+                tmpBall.copy(collidingBallState, true);
+                ballCollideToPaddle(tmpTarget, tmpBall);
+                double opponentTime = PongUtil.simulate(tmpBall, state.conf);
+                double opponentReach = opponentTime * getPaddleMaxVelocity() + state.conf.paddleHeight * 0.5;
+                double opponentBot = state.getPedal(catcher).y - opponentReach - state.conf.paddleHeight * 0.5;
+                double opponentTop = state.getPedal(catcher).y + opponentReach - state.conf.paddleHeight * 0.5;
+
+                double tmpBotValue = -(tmpBall.y - opponentBot);
+                double tmpTopValue = +(tmpBall.y - opponentTop);
+
+                if(tmpBotValue > botValue) {
+                    botValue = tmpBotValue;
+                    paddleTargetBot = tmpTarget;
+                }
+
+                if(tmpTopValue > topValue) {
+                    topValue = tmpTopValue;
+                    paddleTargetTop = tmpTarget;
+                }
+            }
+        }
+
+        // bind target position inside play area
+        double paddleTarget = (botValue > topValue) ? paddleTargetBot : paddleTargetTop;
+        targetPos -= paddleTarget * state.conf.paddleHeight * 0.5;
+        targetPos = targetPos < paddleMinPos ? paddleMinPos : targetPos;
+        targetPos = targetPos > paddleMaxPos ? paddleMaxPos : targetPos;
+        return new Vector2(targetPos, paddleTarget);
+    }
+
+    private void ballCollideToPaddle(double paddleRelativePos, ClientGameState.Ball ball) {
+        Vector2 ballOut = myModel.guess(paddleRelativePos, ball.vx, ball.vy);
+        ballOut.normalize().scaled(getBallVelocity());
+        ball.vx = ballOut.x;
+        ball.vy = ballOut.y;
+        ball.tick(0.01f);
     }
 
     public boolean requestChangeSpeed(double v) {
