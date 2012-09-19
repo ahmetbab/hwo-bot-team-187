@@ -51,7 +51,9 @@ public class Magmus extends PongGameBot {
             double paddleTarget = target.y;
 
             // draw stuff on the hud.
-            visualise(newStatus, paddleTarget);
+            visualiseModel(0, lastKnownStatus.getPedal(PlayerSide.LEFT).y);
+            visualisePlan(paddleTarget, Color.red);
+            visualisePlan(0, Color.green);
 
             // check if we need to do something.
             if(myState.catching()) {
@@ -74,13 +76,13 @@ public class Magmus extends PongGameBot {
             double paddleTarget = target.y;
 
             // draw stuff on the hud.
-            visualise(newStatus, target.y);
+            visualiseModel(lastKnownStatus.conf.maxWidth, lastKnownStatus.getPedal(PlayerSide.RIGHT).y);
+            visualisePlan(paddleTarget, Color.red);
+            visualisePlan(0, Color.green);
 
             ballCollideToPaddle(paddleTarget, myDirectionBall);
             double timeLeftAfter = PongUtil.simulate(myDirectionBall, lastKnownStatus.conf, lines, Color.red);
             timeLeft += timeLeftAfter;
-
-            // myDirectionBall.y -= lastKnownStatus.conf.paddleHeight * 0.5;
 
             // now we are done.
             ClientGameState.Player myPedal = lastKnownStatus.getPedal(getMySide());
@@ -94,7 +96,16 @@ public class Magmus extends PongGameBot {
         getPaddleVelocity().drawReachableArea(lines, newStatus.getPedal(getMySide()).y + newStatus.conf.paddleHeight * 0.5, timeLeft, newStatus.conf.paddleHeight);
     }
 
-    private void visualise(ClientGameState newStatus, double paddleTarget) {
+    private void visualisePlan(double paddleTarget, Color color) {
+        // visualize my plan
+        {
+            tmpBall.copy(myDirectionBall, true);
+            ballCollideToPaddle(paddleTarget, tmpBall);
+            PongUtil.simulate(tmpBall, lastKnownStatus.conf, lines, color);
+        }
+    }
+
+    private void visualiseModel(double x, double y) {
         // visualize my model
         {
             for(int i=0; i<11; ++i) {
@@ -102,16 +113,9 @@ public class Magmus extends PongGameBot {
                 Vector2 ballOut = myModel.guess(pos, myDirectionBall.vx, myDirectionBall.vy);
                 ballOut.normalize().scaled(100);
 
-                double y_point = lastKnownStatus.getPedal(getMySide()).y + pos * lastKnownStatus.conf.paddleHeight * 0.5 + lastKnownStatus.conf.paddleHeight * 0.5;
-                lines.add(new UILine(new Vector2i(10, y_point), new Vector2i(10 + ballOut.x, y_point + ballOut.y), Color.red));
+                double y_point = y + pos * lastKnownStatus.conf.paddleHeight * 0.5 + lastKnownStatus.conf.paddleHeight * 0.5;
+                lines.add(new UILine(new Vector2i(x, y_point), new Vector2i(x + ballOut.x, y_point + ballOut.y), Color.red));
             }
-        }
-
-        // visualize my plan
-        {
-            tmpBall.copy(myDirectionBall, true);
-            ballCollideToPaddle(paddleTarget, tmpBall);
-            PongUtil.simulate(tmpBall, lastKnownStatus.conf, lines, Color.red);
         }
     }
 
