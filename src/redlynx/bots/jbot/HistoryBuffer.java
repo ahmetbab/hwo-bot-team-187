@@ -1,6 +1,4 @@
-package redlynx.pong.client.jbot;
-
-import java.lang.reflect.Array;
+package redlynx.bots.jbot;
 
 import redlynx.pong.client.state.GameStatusSnapShot;
 

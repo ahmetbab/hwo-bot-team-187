@@ -1,17 +1,17 @@
-package redlynx.pong;
+package redlynx.bots;
 
+import redlynx.bots.jbot.JBot;
 import redlynx.bots.magmus.Magmus;
 import redlynx.bots.test.TestBot;
 import redlynx.pong.client.BaseBot;
 import redlynx.pong.client.Pong;
-import redlynx.pong.client.jbot.JBot;
 
 public class PongMatcher {
 
     // takes no arguments.
     public static void main(String[] args) {
         BaseBot bot1 = new Magmus();
-        BaseBot bot2 = new TestBot();
+        BaseBot bot2 = new JBot();
 
         createMatch(bot1, bot2);
     }
@@ -19,7 +19,7 @@ public class PongMatcher {
     private static void createMatch(final BaseBot bot1, final BaseBot bot2) {
 
         final String[] args1 = {bot1.getDefaultName(), "boris.helloworldopen.fi", "9090", "-vis", "-match", bot2.getDefaultName()};
-        final String[] args2 = {bot2.getDefaultName(), "boris.helloworldopen.fi", "9090", "-manual", "-match", bot1.getDefaultName()};
+        final String[] args2 = {bot2.getDefaultName(), "boris.helloworldopen.fi", "9090", "-vis", "-match", bot1.getDefaultName()};
 
 
         new Thread() {

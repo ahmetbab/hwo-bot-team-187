@@ -1,4 +1,4 @@
-package redlynx.pong.client.jbot;
+package redlynx.bots.jbot;
 
 import java.awt.Color;
 import java.util.ArrayList;

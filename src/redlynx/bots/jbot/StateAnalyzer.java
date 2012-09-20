@@ -1,4 +1,4 @@
-package redlynx.pong.client.jbot;
+package redlynx.bots.jbot;
 
 import redlynx.pong.client.state.GameStatusSnapShot;
 import redlynx.pong.util.PongUtil;

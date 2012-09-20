@@ -1,12 +1,7 @@
-package redlynx.pong.client.jbot;
+package redlynx.bots.jbot;
 
-import redlynx.pong.client.BaseBot;
 import redlynx.pong.client.Pong;
-import redlynx.pong.client.network.Communicator;
-import redlynx.pong.client.network.PongMessageParser;
 import redlynx.pong.client.state.GameStatusSnapShot;
-import redlynx.pong.ui.GameStateAccessorInterface;
-import redlynx.pong.ui.PongVisualizer;
 
 public class HitAndCenterBot extends JBot  
 {

@@ -41,17 +41,21 @@ public class Magmus extends PongGameBot {
 
         if(getMySide().comingTowardsMe(ball_direction)) {
             // find out impact velocity and position.
-            myDirectionBall.copy(newStatus.ball, true);
+            myDirectionBall.copy(lastKnownStatus.ball, true);
             myDirectionBall.setVelocity(getBallVelocity());
             timeLeft = PongUtil.simulate(myDirectionBall, lastKnownStatus.conf, lines, Color.green);
 
+            Vector2 reach = getPaddlePossibleReturns(newStatus, PlayerSide.LEFT, timeLeft);
+            double minReach = reach.x;
+            double maxReach = reach.y;
+
             // this is the expected y value when colliding against our paddle.
-            Vector2 target = evaluate(newStatus, PlayerSide.RIGHT, myDirectionBall, tmpBall);
+            Vector2 target = evaluate(newStatus, PlayerSide.RIGHT, myDirectionBall, tmpBall, minReach, maxReach);
             double targetPos = target.x;
             double paddleTarget = target.y;
 
             // draw stuff on the hud.
-            visualiseModel(0, lastKnownStatus.getPedal(PlayerSide.LEFT).y);
+            visualiseModel(0, lastKnownStatus.getPedal(PlayerSide.LEFT).y, minReach, maxReach);
             visualisePlan(paddleTarget, Color.red);
             visualisePlan(0, Color.green);
 
@@ -70,13 +74,17 @@ public class Magmus extends PongGameBot {
             myDirectionBall.setVelocity(getBallVelocity());
 
             timeLeft = PongUtil.simulate(myDirectionBall, lastKnownStatus.conf, lines, Color.green);
+            Vector2 reach = getPaddlePossibleReturns(newStatus, PlayerSide.RIGHT, timeLeft);
+
+            double minReach = reach.x;
+            double maxReach = reach.y;
 
             // this is the current worst case. should try to cover that?
-            Vector2 target = evaluate(newStatus, PlayerSide.LEFT, myDirectionBall, tmpBall);
+            Vector2 target = evaluate(newStatus, PlayerSide.LEFT, myDirectionBall, tmpBall, minReach, maxReach);
             double paddleTarget = target.y;
 
             // draw stuff on the hud.
-            visualiseModel(lastKnownStatus.conf.maxWidth, lastKnownStatus.getPedal(PlayerSide.RIGHT).y);
+            visualiseModel(lastKnownStatus.conf.maxWidth, lastKnownStatus.getPedal(PlayerSide.RIGHT).y, minReach, maxReach);
             visualisePlan(paddleTarget, Color.red);
             visualisePlan(0, Color.green);
 
@@ -96,26 +104,50 @@ public class Magmus extends PongGameBot {
         getPaddleVelocity().drawReachableArea(lines, newStatus.getPedal(getMySide()).y + newStatus.conf.paddleHeight * 0.5, timeLeft, newStatus.conf.paddleHeight);
     }
 
-    private void visualisePlan(double paddleTarget, Color color) {
-        // visualize my plan
-        {
-            tmpBall.copy(myDirectionBall, true);
-            ballCollideToPaddle(paddleTarget, tmpBall);
-            PongUtil.simulate(tmpBall, lastKnownStatus.conf, lines, color);
-        }
+    private Vector2 getPaddlePossibleReturns(ClientGameState state, PlayerSide side, double timeLeft) {
+
+        timeLeft -= 0.1;
+
+        Vector2 ans = new Vector2();
+        double paddleMid = state.getPedal(side).y + 0.5 * state.conf.paddleHeight;
+        double maxReach = paddleMid + timeLeft * getPaddleMaxVelocity() + 0.5 * state.conf.paddleHeight;
+        double minReach = paddleMid - timeLeft * getPaddleMaxVelocity() - 0.5 * state.conf.paddleHeight;
+        maxReach -= myDirectionBall.y;
+        minReach -= myDirectionBall.y;
+        maxReach /= 0.5 * state.conf.paddleHeight;
+        minReach /= 0.5 * state.conf.paddleHeight;
+
+        System.out.println("maxReach: " + maxReach);
+        System.out.println("minReach: " + minReach);
+
+        maxReach = Math.min(+1, maxReach);
+        minReach = Math.max(-1, minReach);
+        ans.x = -maxReach;
+        ans.y = -minReach;
+        return ans;
     }
 
-    private void visualiseModel(double x, double y) {
-        // visualize my model
-        {
-            for(int i=0; i<11; ++i) {
-                double pos = (i - 5) / 5.0;
-                Vector2 ballOut = myModel.guess(pos, myDirectionBall.vx, myDirectionBall.vy);
-                ballOut.normalize().scaled(100);
+    private void visualisePlan(double paddleTarget, Color color) {
+        tmpBall.copy(myDirectionBall, true);
+        ballCollideToPaddle(paddleTarget, tmpBall);
+        PongUtil.simulate(tmpBall, lastKnownStatus.conf, lines, color);
+    }
 
-                double y_point = y + pos * lastKnownStatus.conf.paddleHeight * 0.5 + lastKnownStatus.conf.paddleHeight * 0.5;
-                lines.add(new UILine(new Vector2i(x, y_point), new Vector2i(x + ballOut.x, y_point + ballOut.y), Color.red));
+    private void visualiseModel(double x, double y, double minReach, double maxReach) {
+        for(int i=0; i<11; ++i) {
+            double pos = (i - 5) / 5.0;
+
+            Color color = Color.green;
+
+            if(pos < minReach || pos > maxReach) {
+                color = Color.red;
             }
+
+            Vector2 ballOut = myModel.guess(pos, myDirectionBall.vx, myDirectionBall.vy);
+            ballOut.normalize().scaled(100);
+
+            double y_point = y + pos * lastKnownStatus.conf.paddleHeight * 0.5 + lastKnownStatus.conf.paddleHeight * 0.5;
+            lines.add(new UILine(new Vector2i(x, y_point), new Vector2i(x + ballOut.x, y_point + ballOut.y), color));
         }
     }
 
@@ -153,7 +185,7 @@ public class Magmus extends PongGameBot {
         return expectedDistance * expectedDistance >= halfPaddle * halfPaddle;
     }
 
-    private Vector2 evaluate(ClientGameState state, PlayerSide catcher, ClientGameState.Ball collidingBallState, ClientGameState.Ball tmpBall) {
+    private Vector2 evaluate(ClientGameState state, PlayerSide catcher, ClientGameState.Ball collidingBallState, ClientGameState.Ball tmpBall, double minVal, double maxVal) {
         double targetPos = collidingBallState.y - state.conf.paddleHeight * 0.5;
         double botValue = -10000;
         double topValue = -10000;
@@ -166,8 +198,13 @@ public class Magmus extends PongGameBot {
                 double tmpTarget = (i - 50) / 50.0;
                 double evaluatedPaddlePos = targetPos - tmpTarget * state.conf.paddleHeight * 0.5;
 
-                // if return not possible, don't evaluate it.
+                // if return not physically possible, don't evaluate it.
                 if(paddleMaxPos < evaluatedPaddlePos || paddleMinPos > evaluatedPaddlePos) {
+                    continue;
+                }
+
+                // if not enough time left to make the return, don't evaluate it.
+                if(tmpTarget < minVal || tmpTarget > maxVal) {
                     continue;
                 }
 
