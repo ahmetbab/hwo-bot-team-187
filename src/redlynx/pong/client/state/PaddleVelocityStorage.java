@@ -26,7 +26,7 @@ public class PaddleVelocityStorage {
     }
 
     public void update(double y, long time) {
-        if(paddleSpeed == 0)
+        if(paddleSpeed * paddleSpeed < 0.25)
             return;
 
         history.add(new Entry(time, y));
