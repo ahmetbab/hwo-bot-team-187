@@ -8,8 +8,6 @@ public class MessageLimiter {
     private ArrayList<Double> msgs = new ArrayList<Double>();
 
     public boolean canSend() {
-        if(msgs.size() >= 9)
-            System.out.println("ERROR EORRORRO WARNING AHAHA");
         return msgs.size() < 9;
     }
 
