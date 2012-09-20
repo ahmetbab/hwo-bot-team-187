@@ -29,13 +29,6 @@ public class TestBot extends PongGameBot {
     private double timeLeft = 10000; // this tells us how many seconds we have left until we lose.
 
     public TestBot() {
-        //super(name, communicator);
-        try {
-            PongModelInitializer.init(myModel, new FileInputStream("pongdata.txt"));
-            System.out.println("Model error: " + myModel.modelError());
-        } catch (FileNotFoundException e) {
-            System.out.println("Couldn't init LinearModel!");
-        }
     }
     
     
