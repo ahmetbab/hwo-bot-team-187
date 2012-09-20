@@ -96,7 +96,6 @@ public class Magmus extends PongGameBot {
             ClientGameState.Player myPedal = lastKnownStatus.getPedal(getMySide());
             double diff_y = myDirectionBall.y - myPedal.y;
 
-            // TODO: Create a weighted spray of bounce backs. Go to the position from which most can be caught.
             requestChangeSpeed((float) (0.99f * diff_y / Math.abs(diff_y)));
         }
 
@@ -116,10 +115,6 @@ public class Magmus extends PongGameBot {
         minReach -= myDirectionBall.y;
         maxReach /= 0.5 * state.conf.paddleHeight;
         minReach /= 0.5 * state.conf.paddleHeight;
-
-        System.out.println("maxReach: " + maxReach);
-        System.out.println("minReach: " + minReach);
-
         maxReach = Math.min(+1, maxReach);
         minReach = Math.max(-1, minReach);
         ans.x = -maxReach;
@@ -134,12 +129,22 @@ public class Magmus extends PongGameBot {
     }
 
     private void visualiseModel(double x, double y, double minReach, double maxReach) {
+
+        double targetPos = myDirectionBall.y - lastKnownStatus.conf.paddleHeight * 0.5;
+        double paddleMaxPos = lastKnownStatus.conf.maxHeight - lastKnownStatus.conf.paddleHeight;
+        double paddleMinPos = 0;
+
         for(int i=0; i<11; ++i) {
             double pos = (i - 5) / 5.0;
 
             Color color = Color.green;
 
             if(pos < minReach || pos > maxReach) {
+                color = Color.blue;
+            }
+
+            double evaluatedPaddlePos = targetPos - pos * lastKnownStatus.conf.paddleHeight * 0.5;
+            if(paddleMaxPos < evaluatedPaddlePos || paddleMinPos > evaluatedPaddlePos) {
                 color = Color.red;
             }
 
@@ -174,12 +179,6 @@ public class Magmus extends PongGameBot {
         double ballEndPos = myDirectionBall.y;
         double expectedPosition = movingDistance + myPos + lastKnownStatus.conf.paddleHeight * 0.5;
         double expectedDistance = ballEndPos - expectedPosition;
-
-        /*
-        lines.add(new UILine(new Vector2i(0.0, expectedPosition + 5), new Vector2i(+5.0, expectedPosition - 5), Color.orange));
-        lines.add(new UILine(new Vector2i(0.0, expectedPosition - 5), new Vector2i(+5.0, expectedPosition + 5), Color.orange));
-        lines.add(new UILine(new Vector2i(15, expectedPosition), new Vector2i(15, expectedPosition + expectedDistance), Color.green));
-        */
 
         double halfPaddle = lastKnownStatus.conf.paddleHeight * 0.1;
         return expectedDistance * expectedDistance >= halfPaddle * halfPaddle;
