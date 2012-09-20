@@ -16,6 +16,9 @@ public class StateAnalyzer {
 			pos = new Vector2();
 			dir = new Vector2();
 		}
+		public String toString() {
+			return "t:"+time+" "+pos+" "+dir;
+		}
 	}
 	
 	HistoryBuffer history;
@@ -30,6 +33,7 @@ public class StateAnalyzer {
 	Collision prevHomeCollision;
 	
 	double ballSpeed = 0;
+	double tickInterval = 0;
 	
 	int radius;
 	public StateAnalyzer() {
@@ -228,7 +232,7 @@ public class StateAnalyzer {
 			 nextHomeCollision.dir.x = -nextOpponentCollision.dir.x;
 			 nextHomeCollision.dir.y = (folds%2==0?1:-1)*nextOpponentCollision.dir.y;
 		}
-		else { //coming our way
+		else if (ballVel.x < 0) { //coming our way
 		
 			
 			 double time = ((paddleDim.x+radius) - ballPos.x) / ballVel.x;
@@ -249,14 +253,24 @@ public class StateAnalyzer {
 			 nextOpponentCollision.dir.y = (folds%2==0?1:-1)*nextHomeCollision.dir.y;
 			 //System.out.println("next opp "+nextOpponentCollision.pos);
 		}
+		else {
+			nextHomeCollision.time = 1000000;
+			nextOpponentCollision.time = 1000000;
+		}
 		
 		
 	} 
 	
 	public void addState(GameStatusSnapShot status) {
 		history.addSnapShot(status);
+		if (history.getHistorySize() == 2) {
+			tickInterval = history.getStatus(0).time-history.getStatus(1).time;
+		}
+		else if (history.getHistorySize() >= 3) {
+			long diff = history.getStatus(0).time-history.getStatus(1).time;
+			tickInterval = (tickInterval*4+diff) / 5; //smoothed estimate 
+		}
 		calculateBallVelocity();
-		
 		calculateNextCollisions();
 		//status.left.y
 	}
@@ -278,6 +292,9 @@ public class StateAnalyzer {
 		return nextHomeCollision;
 	}
 	
+	public double getTickIntervalEstimate() {
+		return tickInterval;
+	}
 
 	
 }
