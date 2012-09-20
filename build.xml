@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="pongbot" default="all">
+  
+  
+  <property file="build.properties"/>
+  <!-- Uncomment the following property if no tests compilation is needed -->
+  <!-- 
+  <property name="skip.tests" value="true"/>
+   -->
+  
+  <!-- Compiler options -->
+  
+  <property name="compiler.debug" value="on"/>
+  <property name="compiler.generate.no.warnings" value="off"/>
+  <property name="compiler.args" value=""/>
+  <property name="compiler.max.memory" value="128m"/>
+  <patternset id="ignored.files">
+    <exclude name="**/CVS/**"/>
+    <exclude name="**/SCCS/**"/>
+    <exclude name="**/RCS/**"/>
+    <exclude name="**/rcs/**"/>
+    <exclude name="**/.DS_Store/**"/>
+    <exclude name="**/.svn/**"/>
+    <exclude name="**/.pyc/**"/>
+    <exclude name="**/.pyo/**"/>
+    <exclude name="**/*.pyc/**"/>
+    <exclude name="**/*.pyo/**"/>
+    <exclude name="**/.git/**"/>
+    <exclude name="**/*.hprof/**"/>
+    <exclude name="**/_svn/**"/>
+    <exclude name="**/.hg/**"/>
+    <exclude name="**/*.lib/**"/>
+    <exclude name="**/*~/**"/>
+    <exclude name="**/__pycache__/**"/>
+    <exclude name="**/.bundle/**"/>
+    <exclude name="**/*.o/**"/>
+    <exclude name="**/*.obj/**"/>
+    <exclude name="**/*.rbc/**"/>
+  </patternset>
+  <patternset id="library.patterns">
+    <include name="*.zip"/>
+    <include name="*.apk"/>
+    <include name="*.war"/>
+    <include name="*.egg"/>
+    <include name="*.ear"/>
+    <include name="*.ane"/>
+    <include name="*.swc"/>
+    <include name="*.jar"/>
+  </patternset>
+  <patternset id="compiler.resources">
+    <include name="**/?*.properties"/>
+    <include name="**/?*.xml"/>
+    <include name="**/?*.gif"/>
+    <include name="**/?*.png"/>
+    <include name="**/?*.jpeg"/>
+    <include name="**/?*.jpg"/>
+    <include name="**/?*.html"/>
+    <include name="**/?*.dtd"/>
+    <include name="**/?*.tld"/>
+    <include name="**/?*.ftl"/>
+  </patternset>
+  
+  <!-- JDK definitions -->
+  
+  <property name="jdk.bin.1.6" value="${jdk.home.1.6}/bin"/>
+  <path id="jdk.classpath.1.6">
+    <fileset dir="${jdk.home.1.6}">
+      <include name="jre/lib/jsse.jar"/>
+      <include name="jre/lib/rt.jar"/>
+      <include name="jre/lib/jce.jar"/>
+      <include name="jre/lib/alt-string.jar"/>
+      <include name="jre/lib/plugin.jar"/>
+      <include name="jre/lib/resources.jar"/>
+      <include name="jre/lib/alt-rt.jar"/>
+      <include name="jre/lib/management-agent.jar"/>
+      <include name="jre/lib/deploy.jar"/>
+      <include name="jre/lib/charsets.jar"/>
+      <include name="jre/lib/javaws.jar"/>
+      <include name="jre/lib/ext/sunjce_provider.jar"/>
+      <include name="jre/lib/ext/localedata.jar"/>
+      <include name="jre/lib/ext/sunpkcs11.jar"/>
+      <include name="jre/lib/ext/dnsns.jar"/>
+    </fileset>
+  </path>
+  
+  <property name="project.jdk.home" value="${jdk.home.1.6}"/>
+  <property name="project.jdk.bin" value="${jdk.bin.1.6}"/>
+  <property name="project.jdk.classpath" value="jdk.classpath.1.6"/>
+  
+  
+  <!-- Global Libraries -->
+  
+  <!-- Modules -->
+  
+  
+  <!-- Module pongbot -->
+  
+  <dirname property="module.pongbot.basedir" file="${ant.file}"/>
+  
+  
+  <property name="module.jdk.home.pongbot" value="${jdk.home.1.6}"/>
+  <property name="module.jdk.bin.pongbot" value="${jdk.bin.1.6}"/>
+  <property name="module.jdk.classpath.pongbot" value="jdk.classpath.1.6"/>
+  
+  <property name="compiler.args.pongbot" value="${compiler.args}"/>
+  
+  <property name="pongbot.output.dir" value="${module.pongbot.basedir}/out/production/pongbot"/>
+  <property name="pongbot.testoutput.dir" value="${module.pongbot.basedir}/out/test/pongbot"/>
+  
+  <path id="pongbot.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="pongbot.module.production.classpath">
+    <path refid="${module.jdk.classpath.pongbot}"/>
+  </path>
+  
+  <path id="pongbot.runtime.production.module.classpath">
+    <pathelement location="${pongbot.output.dir}"/>
+  </path>
+  
+  <path id="pongbot.module.classpath">
+    <path refid="${module.jdk.classpath.pongbot}"/>
+    <pathelement location="${pongbot.output.dir}"/>
+  </path>
+  
+  <path id="pongbot.runtime.module.classpath">
+    <pathelement location="${pongbot.testoutput.dir}"/>
+    <pathelement location="${pongbot.output.dir}"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.pongbot">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.pongbot">
+    <patternset refid="excluded.from.module.pongbot"/>
+  </patternset>
+  
+  <path id="pongbot.module.sourcepath">
+    <dirset dir="${module.pongbot.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.pongbot" depends="compile.module.pongbot.production,compile.module.pongbot.tests" description="Compile module pongbot"/>
+  
+  <target name="compile.module.pongbot.production" description="Compile module pongbot; production classes">
+    <mkdir dir="${pongbot.output.dir}"/>
+    <javac destdir="${pongbot.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.pongbot}/javac">
+      <compilerarg line="${compiler.args.pongbot}"/>
+      <bootclasspath refid="pongbot.module.bootclasspath"/>
+      <classpath refid="pongbot.module.production.classpath"/>
+      <src refid="pongbot.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.pongbot"/>
+    </javac>
+    
+    <copy todir="${pongbot.output.dir}">
+      <fileset dir="${module.pongbot.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.pongbot.tests" depends="compile.module.pongbot.production" description="compile module pongbot; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.pongbot" description="cleanup module">
+    <delete dir="${pongbot.output.dir}"/>
+    <delete dir="${pongbot.testoutput.dir}"/>
+  </target>
+  
+  <target name="init" description="Build initialization">
+    <!-- Perform any build initialization in this target -->
+  </target>
+  
+  <target name="clean" depends="clean.module.pongbot" description="cleanup all"/>
+  
+  <target name="build.modules" depends="init, clean, compile.module.pongbot" description="build all modules"/>
+  
+  <target name="all" depends="build.modules" description="build all"/>
+</project>
