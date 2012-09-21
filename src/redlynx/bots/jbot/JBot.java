@@ -172,8 +172,138 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 		return y;
 	} 
 	
+	private static final double max_eval = 100000000000.0; //certain win
+
+	
+	private double evalMax(double y, Vector2 hitVector, double paddleLeftY, double paddleRightY) {
+		GameStatusSnapShot status = analyser.history.getStatus(0);
+		int ph = status.conf.paddleDimension.y;
+		
+		 
+		
+		int screenWidth = status.conf.screenArea.x-2*status.conf.paddleDimension.x-2*status.conf.ballRadius;
+		double maxPaddleSpeed = paddleVelocity.estimate;
+		
+		int startPixel = Math.min(status.conf.paddleDimension.y/10, 10); // TODO remove pixels that cannot be used due to corner or time*speed  
+		int endPixel  = status.conf.paddleDimension.y-startPixel;
+		
+		Vector2 hit = new Vector2();
+		
+		double maxScore = 0;
+		
+		
+		
+		for (int i = startPixel; i < endPixel; i++) {
+			double scaledPaddleHitPosition = (i -(ph/2))/(ph/2.0);
+			
+			Vector2 deflected = collisionModel.guess(scaledPaddleHitPosition, hitVector.x, hitVector.y);
+					
+		
+			
+			double time = Math.abs(screenWidth/deflected.x);
+			double coly = y+ time*deflected.y;
+			hit.y = coly;
+			int folds = analyser.foldToScreen(hit, status.conf.ballRadius, status.conf.screenArea);
+			//hitVector.x = deflected.x;
+			//hitVector.y = folds%2 == 0? deflected.y:deflected.y;
+			
+			double opponentDistance = Math.abs(hit.y-paddleRightY);
+			double timeToBlock = opponentDistance / maxPaddleSpeed;
+			
+			if (timeToBlock > time ) {
+				//score += max_eval;
+				maxScore = max_eval;
+				
+			}
+			else {
+				
+				double s = 1-(time - timeToBlock); 
+				if (s > maxScore)
+					maxScore = s;
+				
+				
+			}
+
+		}
+		return maxScore;
+	
+		
+	}
+	
+	private double evalMinMax(double y, Vector2 hitVector,double timeForHit, double paddleLeftY, double paddleRightY) {
+
+		GameStatusSnapShot status = analyser.history.getStatus(0);
+		int ph = status.conf.paddleDimension.y;
+		
+		 
+		
+		int screenWidth = status.conf.screenArea.x-2*status.conf.paddleDimension.x-2*status.conf.ballRadius;
+		double maxPaddleSpeed = paddleVelocity.estimate;
+		
+		int startPixel = Math.min(status.conf.paddleDimension.y/10, 10); // TODO remove pixels that cannot be used due to corner or time*speed  
+		int endPixel  = status.conf.paddleDimension.y-startPixel;
+		
+		
+		Vector2 hit = new Vector2();
+		Vector2 hitV = new Vector2();
+		
+		double minScore = 1000000000000.0;
+
+		{
+			double opponentDistance = Math.abs(y-paddleRightY);
+			double timeToBlock = opponentDistance / maxPaddleSpeed;
+			if (timeToBlock > timeForHit) {
+				return max_eval+(timeToBlock-timeForHit);
+			}
+		}
+		
+		for (int i = startPixel; i < endPixel; i++) {
+			double scaledPaddleHitPosition = (i -(ph/2))/(ph/2.0);
+			
+			Vector2 deflected = collisionModel.guess(scaledPaddleHitPosition, hitVector.x, hitVector.y);
+					
+		
+			
+			double time = Math.abs(screenWidth/deflected.x);
+			double coly = y+ time*deflected.y;
+			
+			hit.y = coly;
+			
+			
+			int folds = analyser.foldToScreen(hit, status.conf.ballRadius, status.conf.screenArea);
+			hitV.x = deflected.x;
+			hitV.y = folds%2 == 0? deflected.y:deflected.y;
+			
+			
+			double myDistance = Math.abs(coly-paddleLeftY);
+			double timeToBlock = myDistance / maxPaddleSpeed;
+			
+			if (timeToBlock > time ) {
+				minScore = -max_eval-(timeToBlock-timeForHit);
+				
+			}
+			else {
+				
+				
+				double testScore = evalMax( coly, hitVector, paddleLeftY, paddleRightY);//TODO estimate paddle positions
+				if (testScore < minScore) {
+					minScore = testScore;
+				}
+				
+				
+				
+			}
+
+		}
+		
+	
+		return minScore;
+		
+	
+	}
 	private double attack() {
 		GameStatusSnapShot status = analyser.history.getStatus(0);
+		double myPaddleY = status.left.y+status.conf.paddleDimension.y/2;
 		double opponentPaddleY = status.right.y+status.conf.paddleDimension.y/2;
 		StateAnalyzer.Collision col = analyser.getNextHomeCollision();
 		
@@ -182,6 +312,7 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 		double maxPaddleSpeed = paddleVelocity.estimate;
 
 		Vector2 hit = new Vector2();
+		Vector2 hitVector = new Vector2();
 		hit.x = status.conf.screenArea.x-status.conf.paddleDimension.x-status.conf.ballRadius;
 		
 		double minTime = 100000000; 
@@ -191,6 +322,13 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 		
 		int startPixel = Math.min(status.conf.paddleDimension.y/10, 5); 
 		int endPixel  = status.conf.paddleDimension.y-startPixel;
+		
+		
+		double estimatedPosLeft = status.conf.screenArea.y / 2;
+		double estimatedPosRight = status.conf.screenArea.y / 2;
+		
+		double maxScore = -100000000000000.0;
+	
 		
 		for (int i = startPixel; i < endPixel; i++) {
 			double scaledPaddleHitPosition = (i -(ph/2))/(ph/2.0);
@@ -203,18 +341,13 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 			double y = col.pos.y+ time*deflected.y;
 			
 			hit.y = y;
+			double opponentDistance = Math.abs(y-opponentPaddleY);
+			double timeToBlock = opponentDistance / maxPaddleSpeed;
 			
 			int folds = analyser.foldToScreen(hit, status.conf.ballRadius, status.conf.screenArea);
 			
-			double opponentDistance = Math.abs(y-opponentPaddleY);
-			double timeToBlock = opponentDistance / maxPaddleSpeed;
-			if (time - timeToBlock  < minTime) {
-				bestDeflectionIx = i;
-				minTime = (timeToBlock-time);
-				targeting.aimedTarget.copy(hit);
-				targeting.deflectionVector.copy(deflected);
-				
-			}
+			hitVector.x = deflected.x;
+			hitVector.y = folds%2 == 0? deflected.y:deflected.y;
 			
 			if (visualizer != null) {
 				Vector2 defCopy = new Vector2();
@@ -224,6 +357,24 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 				debug.copy(hit);	
 				attackers.add(debug);
 			}
+			double value = evalMinMax(hit.y, hitVector, time, myPaddleY, opponentPaddleY);
+			
+			System.out.println("value "+value);
+			if (value > maxScore) {
+				maxScore = value;
+		
+				System.out.println("maxScore updated");
+		
+			//if (time - timeToBlock  < minTime) {
+				bestDeflectionIx = i;
+				minTime = (time-timeToBlock);
+				targeting.aimedTarget.copy(hit);
+				targeting.deflectionVector.copy(deflectedVectors.get(deflectedVectors.size()-1));
+				
+			}
+			
+			
+		
 		}
 		targeting.paddleHitPixel = bestDeflectionIx;
 		
@@ -294,8 +445,12 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 		//System.out.println("dist "+Math.abs(dist)+" "+analyser.getTickIntervalEstimate()/1000.0f*0.1*maxPaddleSpeed);
 		double tickIntervalInSeconds = analyser.getTickIntervalEstimate()/1000.0f;
 		double absDist = Math.abs(dist);
+		double lagEstimate = tickIntervalInSeconds/2;
+		if (lagEstimate > inTime)
+			inTime -= lagEstimate;
 		
-		if (absDist < tickIntervalInSeconds*0.1*maxPaddleSpeed) {
+		
+		if (absDist < tickIntervalInSeconds/2*0.1*maxPaddleSpeed && absDist < status.conf.paddleDimension.y/2) {
 			moveDir(0);
 			
 		}

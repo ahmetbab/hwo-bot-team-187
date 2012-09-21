@@ -96,7 +96,7 @@ public class Magmus extends PongGameBot {
             ClientGameState.Player myPedal = lastKnownStatus.getPedal(getMySide());
             double diff_y = myDirectionBall.y - myPedal.y;
 
-            requestChangeSpeed((float) (0.99f * diff_y / Math.abs(diff_y)));
+            requestChangeSpeed((float) (0.99f * diff_y / Math.abs(diff_y))); //TODO check div by zero
         }
 
         getHistory().drawLastCollision(lines);
