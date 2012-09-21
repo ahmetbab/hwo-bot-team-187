@@ -1,7 +1,7 @@
-package redlynx.bots.magmus;
+package redlynx.bots.abSlither;
 
-import java.util.ArrayList;
-
+import redlynx.bots.magmus.MagmusState;
+import redlynx.gametree.AlphaBeta;
 import redlynx.pong.client.Pong;
 import redlynx.pong.client.collisionmodel.LinearModel;
 import redlynx.pong.client.collisionmodel.PongModel;
@@ -12,21 +12,22 @@ import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector2;
 import redlynx.pong.util.Vector2i;
 
-import java.awt.Color;
+import java.awt.*;
+import java.util.ArrayList;
 
+public class Slither extends PongGameBot {
 
-public class Magmus extends PongGameBot {
+    public static void main(String[] args) {
+        Pong.init(args, new Slither());
+    }
 
-	public static void main(String[] args) {
-		Pong.init(args, new Magmus());
-	}
-	
     private MagmusState myState = new MagmusState();
 
     private final ClientGameState.Ball myDirectionBall = new ClientGameState.Ball();
     private final ClientGameState.Ball tmpBall = new ClientGameState.Ball();
 
     private final ArrayList<UILine> lines = new ArrayList<UILine>();
+    private final PongModel myModel = new LinearModel();
 
     double timeLeft = 10000;
     private int numWins = 0;
@@ -44,14 +45,14 @@ public class Magmus extends PongGameBot {
             myDirectionBall.setVelocity(getBallVelocity());
             timeLeft = PongUtil.simulate(myDirectionBall, lastKnownStatus.conf, lines, Color.green);
 
-            Vector2 reach = getPaddlePossibleReturns(newStatus, PlayerSide.LEFT, timeLeft);
-            double minReach = reach.x;
-            double maxReach = reach.y;
-
             // this is the expected y value when colliding against our paddle.
-            Vector2 target = MagmusEvaluator.offensiveEval(this, newStatus, PlayerSide.RIGHT, myDirectionBall, tmpBall, minReach, maxReach);
+            Vector2 target = evaluate(newStatus, PlayerSide.RIGHT, myDirectionBall, tmpBall, timeLeft);
             double targetPos = target.x;
             double paddleTarget = target.y;
+
+            Vector2 reach = getPaddlePossibleReturns(newStatus, PlayerSide.RIGHT, timeLeft);
+            double minReach = reach.x;
+            double maxReach = reach.y;
 
             // draw stuff on the hud.
             visualiseModel(0, lastKnownStatus.getPedal(PlayerSide.LEFT).y, minReach, maxReach);
@@ -72,15 +73,14 @@ public class Magmus extends PongGameBot {
             myDirectionBall.copy(lastKnownStatus.ball, true);
             myDirectionBall.setVelocity(getBallVelocity());
 
+            // this is the current worst case. should try to cover that?
             timeLeft = PongUtil.simulate(myDirectionBall, lastKnownStatus.conf, lines, Color.green);
-            Vector2 reach = getPaddlePossibleReturns(newStatus, PlayerSide.RIGHT, timeLeft);
+            Vector2 target = evaluate(newStatus, PlayerSide.LEFT, myDirectionBall, tmpBall, timeLeft);
+            double paddleTarget = target.y;
 
+            Vector2 reach = getPaddlePossibleReturns(newStatus, PlayerSide.RIGHT, timeLeft);
             double minReach = reach.x;
             double maxReach = reach.y;
-
-            // this is the current worst case. should try to cover that?
-            Vector2 target = MagmusEvaluator.offensiveEval(this, newStatus, PlayerSide.LEFT, myDirectionBall, tmpBall, minReach, maxReach);
-            double paddleTarget = target.y;
 
             // draw stuff on the hud.
             visualiseModel(lastKnownStatus.conf.maxWidth, lastKnownStatus.getPedal(PlayerSide.RIGHT).y, minReach, maxReach);
@@ -95,7 +95,7 @@ public class Magmus extends PongGameBot {
             ClientGameState.Player myPedal = lastKnownStatus.getPedal(getMySide());
             double diff_y = myDirectionBall.y - myPedal.y;
 
-            requestChangeSpeed((float) (0.99f * diff_y / Math.abs(diff_y))); //TODO check div by zero
+            requestChangeSpeed((float) (0.99f * diff_y / (Math.abs(diff_y) + 0.0000000000001)));
         }
 
         getHistory().drawLastCollision(lines);
@@ -103,10 +103,13 @@ public class Magmus extends PongGameBot {
     }
 
     private Vector2 getPaddlePossibleReturns(ClientGameState state, PlayerSide side, double timeLeft) {
+
+        timeLeft -= 0.1;
+
         Vector2 ans = new Vector2();
         double paddleMid = state.getPedal(side).y + 0.5 * state.conf.paddleHeight;
-        double maxReach = paddleMid + timeLeft * getPaddleMaxVelocity();
-        double minReach = paddleMid - timeLeft * getPaddleMaxVelocity();
+        double maxReach = paddleMid + timeLeft * getPaddleMaxVelocity() + 0.5 * state.conf.paddleHeight;
+        double minReach = paddleMid - timeLeft * getPaddleMaxVelocity() - 0.5 * state.conf.paddleHeight;
         maxReach -= myDirectionBall.y;
         minReach -= myDirectionBall.y;
         maxReach /= 0.5 * state.conf.paddleHeight;
@@ -180,6 +183,64 @@ public class Magmus extends PongGameBot {
         return expectedDistance * expectedDistance >= halfPaddle * halfPaddle;
     }
 
+    private Vector2 evaluate(ClientGameState state, PlayerSide catcher, ClientGameState.Ball collidingBallState, ClientGameState.Ball tmpBall, double allowedTime) {
+
+        Vector2 reach = getPaddlePossibleReturns(state, PlayerSide.getOtherSide(catcher), allowedTime);
+        double minVal = reach.x;
+        double maxVal = reach.y;
+
+        double targetPos = collidingBallState.y - state.conf.paddleHeight * 0.5;
+        double botValue = -10000;
+        double topValue = -10000;
+        double paddleTargetBot = 0;
+        double paddleTargetTop = 0;
+        double paddleMaxPos = lastKnownStatus.conf.maxHeight - lastKnownStatus.conf.paddleHeight;
+        double paddleMinPos = 0;
+        {
+            for(int i=10; i<90; ++i) {
+                double tmpTarget = (i - 50) / 50.0;
+                double evaluatedPaddlePos = targetPos - tmpTarget * state.conf.paddleHeight * 0.5;
+
+                // if return not physically possible, don't evaluate it.
+                if(paddleMaxPos < evaluatedPaddlePos || paddleMinPos > evaluatedPaddlePos) {
+                    continue;
+                }
+
+                // if not enough time left to make the return, don't evaluate it.
+                if(tmpTarget < minVal || tmpTarget > maxVal) {
+                    continue;
+                }
+
+                tmpBall.copy(collidingBallState, true);
+                ballCollideToPaddle(tmpTarget, tmpBall);
+                double opponentTime = PongUtil.simulate(tmpBall, state.conf);
+                double opponentReach = opponentTime * getPaddleMaxVelocity() + state.conf.paddleHeight * 0.5;
+                double opponentBot = state.getPedal(catcher).y - opponentReach - state.conf.paddleHeight * 0.5;
+                double opponentTop = state.getPedal(catcher).y + opponentReach - state.conf.paddleHeight * 0.5;
+
+                double tmpBotValue = -(tmpBall.y - opponentBot);
+                double tmpTopValue = +(tmpBall.y - opponentTop);
+
+                if(tmpBotValue > botValue) {
+                    botValue = tmpBotValue;
+                    paddleTargetBot = tmpTarget;
+                }
+
+                if(tmpTopValue > topValue) {
+                    topValue = tmpTopValue;
+                    paddleTargetTop = tmpTarget;
+                }
+            }
+        }
+
+        // bind target position inside play area
+        double paddleTarget = (botValue > topValue) ? paddleTargetBot : paddleTargetTop;
+        targetPos -= paddleTarget * state.conf.paddleHeight * 0.5;
+        targetPos = targetPos < paddleMinPos ? paddleMinPos : targetPos;
+        targetPos = targetPos > paddleMaxPos ? paddleMaxPos : targetPos;
+        return new Vector2(targetPos, paddleTarget);
+    }
+
     public boolean requestChangeSpeed(double v) {
 
         int requestedVelocity = (int)(v * 100);
@@ -209,7 +270,7 @@ public class Magmus extends PongGameBot {
             ++numWins;
         }
 
-        System.out.println("Game ended, wins " + numWins + "/" + numGames + " (" + ((float)numWins / numGames) + ")");
+        // System.out.println("Game ended, wins " + numWins + "/" + numGames + " (" + ((float)numWins / numGames) + ")");
 
         lastKnownStatus.reset();
         extrapolatedStatus.reset();
@@ -222,7 +283,7 @@ public class Magmus extends PongGameBot {
 
     @Override
     public String getDefaultName() {
-        return "Magmus";
+        return "Slither";
     }
 
     @Override

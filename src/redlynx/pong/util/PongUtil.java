@@ -25,7 +25,7 @@ public class PongUtil {
         if(vx * vx < 0.00001f)
             return 1000000;
 
-        double dt = 0.001;
+        double dt = 0.005;
         while(x > conf.ballRadius + conf.paddleWidth && x < conf.maxWidth - conf.ballRadius - conf.paddleWidth) {
             x += vx * dt;
             y += vy * dt;

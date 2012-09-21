@@ -24,14 +24,14 @@ public class PongMessageParser {
     private void onGameStart(JSONArray players) throws JSONException {
     	
         if (players.length() == 2) {
-            	System.out.println("Game Start : "+players.getString(0)+" : "+players.getString(1));
+            	// System.out.println("Game Start : "+players.getString(0)+" : "+players.getString(1));
             	listener.gameStart(players.getString(0), players.getString(1));
         }
         else throw new JSONException("Wrong number of players");
     }
 
     private void onGameOver(String winner) {
-    	System.out.println("Game Over");
+    	// System.out.println("Game Over");
     	listener.gameOver(winner);
      }
 

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import redlynx.pong.client.collisionmodel.LinearModel;
+import redlynx.pong.client.collisionmodel.PongModel;
 import redlynx.pong.client.network.MessageLimiter;
 import redlynx.pong.util.SoftVariable;
 import redlynx.pong.client.BaseBot;
@@ -21,6 +23,7 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
     private final PaddleVelocityStorage paddleVelocity = new PaddleVelocityStorage();
     private final SoftVariable ballVelocity = new SoftVariable(50);
     private final MessageLimiter messageLimiter = new MessageLimiter();
+    public final PongModel myModel = new LinearModel();
 
     public static enum PlayerSide {
         LEFT(-1),
@@ -34,6 +37,12 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
 
         public boolean comingTowardsMe(double ball_direction) {
             return side * ball_direction >= 0;
+        }
+
+        public static PlayerSide getOtherSide(PlayerSide catcher) {
+            if(catcher == LEFT)
+                return RIGHT;
+            return LEFT;
         }
     }
 
@@ -152,11 +161,11 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
 	public void gameStart(String player1, String player2) {
         // Server does not swap name orders. Always select left manually.
     	if(true || player1.equals(name)) {
-            System.out.println("I'm left");
+            // System.out.println("I'm left");
             setMySide(PlayerSide.LEFT);
         }
     	else {
-            System.out.println("I'm right");
+            // System.out.println("I'm right");
             setMySide(PlayerSide.RIGHT);
         }
     }
@@ -219,6 +228,14 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
 
     public String getName() {
         return name;
+    }
+
+    public void ballCollideToPaddle(double paddleRelativePos, ClientGameState.Ball ball) {
+        Vector2 ballOut = myModel.guess(paddleRelativePos, ball.vx, ball.vy);
+        ballOut.normalize().scaled(getBallVelocity());
+        ball.vx = ballOut.x;
+        ball.vy = ballOut.y;
+        ball.tick(0.01f);
     }
 
     public boolean requestChangeSpeed(double v) {

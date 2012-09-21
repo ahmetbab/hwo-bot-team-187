@@ -1,7 +1,6 @@
 package redlynx.bots;
 
 import redlynx.bots.magmus.Magmus;
-import redlynx.bots.test.TestBot;
 import redlynx.pong.client.BaseBot;
 import redlynx.pong.client.Pong;
 
@@ -12,8 +11,8 @@ public class PongDueler {
     }
 
     private static void createMatch(final BaseBot bot1) {
-        String opponentName = "keijo";
-        final String[] args1 = {bot1.getDefaultName(), "boris.helloworldopen.fi", "9090", "-manual", "-match", opponentName};
+        String opponentName = "urho";
+        final String[] args1 = {"kekkonen", "boris.helloworldopen.fi", "9090", "-vis", "-match", opponentName};
         Pong.init(args1, bot1);
     }
 }

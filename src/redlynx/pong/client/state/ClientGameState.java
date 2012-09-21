@@ -179,6 +179,10 @@ public class ClientGameState {
             vx = a.x;
             vy = a.y;
         }
+
+        public double getSpeed() {
+            return Math.sqrt(vx * vx + vy * vy);
+        }
     }
 
 	public static class Conf {

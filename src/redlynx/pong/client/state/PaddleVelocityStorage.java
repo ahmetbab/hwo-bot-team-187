@@ -42,12 +42,10 @@ public class PaddleVelocityStorage {
             }
 
             double dy = end.y - start.y;
-           // System.out.println("dt "+dt+" ps "+paddleSpeed+" es "+estimate );
             double sample = Math.abs((dy / dt) / paddleSpeed);
             
             int historyWeight = 5;
             estimate =  (estimate*historyWeight+ sample)/(historyWeight+1); // fast adaptation to varying paddle move speeds.
-            //System.out.println("estimate: " + estimate);
         }
     }
 
