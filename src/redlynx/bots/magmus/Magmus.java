@@ -96,8 +96,9 @@ public class Magmus extends PongGameBot {
             timeLeft = PongUtil.simulate(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
             Vector2 reach = getPaddlePossibleReturns(newStatus, PlayerSide.RIGHT, timeLeft);
 
-            double minReach = reach.x;
-            double maxReach = reach.y;
+            // add an extra ten percent, just to be sure.
+            double minReach = reach.x - 0.1;
+            double maxReach = reach.y + 0.1;
 
             // this is the current worst case. should try to cover that?
             Vector3 target = MagmusEvaluator.offensiveEval(this, newStatus, PlayerSide.LEFT, ballWorkMemory, ballTemp, minReach, maxReach);
