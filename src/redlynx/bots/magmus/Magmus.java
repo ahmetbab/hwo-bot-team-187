@@ -3,14 +3,13 @@ package redlynx.bots.magmus;
 import java.util.ArrayList;
 
 import redlynx.pong.client.Pong;
-import redlynx.pong.client.collisionmodel.LinearModel;
-import redlynx.pong.client.collisionmodel.PongModel;
 import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.client.state.PongGameBot;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector2;
 import redlynx.pong.util.Vector2i;
+import redlynx.pong.util.Vector3;
 
 import java.awt.Color;
 
@@ -22,11 +21,8 @@ public class Magmus extends PongGameBot {
 	}
 	
     private MagmusState myState = new MagmusState();
-
-    private final ClientGameState.Ball myDirectionBall = new ClientGameState.Ball();
-    private final ClientGameState.Ball tmpBall = new ClientGameState.Ball();
-
     private final ArrayList<UILine> lines = new ArrayList<UILine>();
+    private boolean shoutPlan = true;
 
     double timeLeft = 10000;
     private int numWins = 0;
@@ -40,16 +36,38 @@ public class Magmus extends PongGameBot {
 
         if(getMySide().comingTowardsMe(ball_direction)) {
             // find out impact velocity and position.
-            myDirectionBall.copy(lastKnownStatus.ball, true);
-            myDirectionBall.setVelocity(getBallVelocity());
-            timeLeft = PongUtil.simulate(myDirectionBall, lastKnownStatus.conf, lines, Color.green);
+            ballWorkMemory.copy(lastKnownStatus.ball, true);
+            ballWorkMemory.setVelocity(getBallVelocity());
+            timeLeft = PongUtil.simulate(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
 
             Vector2 reach = getPaddlePossibleReturns(newStatus, PlayerSide.LEFT, timeLeft);
             double minReach = reach.x;
             double maxReach = reach.y;
 
             // this is the expected y value when colliding against our paddle.
-            Vector2 target = MagmusEvaluator.offensiveEval(this, newStatus, PlayerSide.RIGHT, myDirectionBall, tmpBall, minReach, maxReach);
+            Vector3 target = MagmusEvaluator.offensiveEval(this, newStatus, PlayerSide.RIGHT, ballWorkMemory, ballTemp, minReach, maxReach);
+            boolean defending = false;
+
+            // when no winning move available
+            if(target.z < 0) {
+                defending = true;
+                ballWorkMemory.copy(lastKnownStatus.ball, true);
+                ballWorkMemory.setVelocity(getBallVelocity());
+                timeLeft = PongUtil.simulate(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
+                target = MagmusEvaluator.defensiveEval(this, newStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory);
+            }
+
+
+            if(shoutPlan) {
+                shoutPlan = false;
+                if(defending) {
+                    System.out.println("Defense score: " + target.z);
+                }
+                else {
+                    System.out.println("Offense score: " + target.z);
+                }
+            }
+
             double targetPos = target.x;
             double paddleTarget = target.y;
 
@@ -68,18 +86,22 @@ public class Magmus extends PongGameBot {
             }
         }
         else {
-            // simulate twice, once there, and then back.
-            myDirectionBall.copy(lastKnownStatus.ball, true);
-            myDirectionBall.setVelocity(getBallVelocity());
 
-            timeLeft = PongUtil.simulate(myDirectionBall, lastKnownStatus.conf, lines, Color.green);
+            shoutPlan = true;
+
+            // simulate twice, once there, and then back.
+            ballWorkMemory.copy(lastKnownStatus.ball, true);
+            ballWorkMemory.setVelocity(getBallVelocity());
+
+            timeLeft = PongUtil.simulate(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
             Vector2 reach = getPaddlePossibleReturns(newStatus, PlayerSide.RIGHT, timeLeft);
 
-            double minReach = reach.x;
-            double maxReach = reach.y;
+            // add an extra ten percent, just to be sure.
+            double minReach = reach.x - 0.1;
+            double maxReach = reach.y + 0.1;
 
             // this is the current worst case. should try to cover that?
-            Vector2 target = MagmusEvaluator.offensiveEval(this, newStatus, PlayerSide.LEFT, myDirectionBall, tmpBall, minReach, maxReach);
+            Vector3 target = MagmusEvaluator.offensiveEval(this, newStatus, PlayerSide.LEFT, ballWorkMemory, ballTemp, minReach, maxReach);
             double paddleTarget = target.y;
 
             // draw stuff on the hud.
@@ -87,13 +109,13 @@ public class Magmus extends PongGameBot {
             visualisePlan(paddleTarget, Color.red);
             visualisePlan(0, Color.green);
 
-            ballCollideToPaddle(paddleTarget, myDirectionBall);
-            double timeLeftAfter = PongUtil.simulate(myDirectionBall, lastKnownStatus.conf, lines, Color.red);
+            ballCollideToPaddle(paddleTarget, ballWorkMemory);
+            double timeLeftAfter = PongUtil.simulate(ballWorkMemory, lastKnownStatus.conf, lines, Color.red);
             timeLeft += timeLeftAfter;
 
             // now we are done.
             ClientGameState.Player myPedal = lastKnownStatus.getPedal(getMySide());
-            double diff_y = myDirectionBall.y - myPedal.y;
+            double diff_y = ballWorkMemory.y - myPedal.y;
 
             requestChangeSpeed((float) (0.99f * diff_y / Math.abs(diff_y))); //TODO check div by zero
         }
@@ -102,31 +124,15 @@ public class Magmus extends PongGameBot {
         getPaddleVelocity().drawReachableArea(lines, newStatus.getPedal(getMySide()).y + newStatus.conf.paddleHeight * 0.5, timeLeft, newStatus.conf.paddleHeight);
     }
 
-    private Vector2 getPaddlePossibleReturns(ClientGameState state, PlayerSide side, double timeLeft) {
-        Vector2 ans = new Vector2();
-        double paddleMid = state.getPedal(side).y + 0.5 * state.conf.paddleHeight;
-        double maxReach = paddleMid + timeLeft * getPaddleMaxVelocity();
-        double minReach = paddleMid - timeLeft * getPaddleMaxVelocity();
-        maxReach -= myDirectionBall.y;
-        minReach -= myDirectionBall.y;
-        maxReach /= 0.5 * state.conf.paddleHeight;
-        minReach /= 0.5 * state.conf.paddleHeight;
-        maxReach = Math.min(+1, maxReach);
-        minReach = Math.max(-1, minReach);
-        ans.x = -maxReach;
-        ans.y = -minReach;
-        return ans;
-    }
-
     private void visualisePlan(double paddleTarget, Color color) {
-        tmpBall.copy(myDirectionBall, true);
-        ballCollideToPaddle(paddleTarget, tmpBall);
-        PongUtil.simulate(tmpBall, lastKnownStatus.conf, lines, color);
+        ballTemp.copy(ballWorkMemory, true);
+        ballCollideToPaddle(paddleTarget, ballTemp);
+        PongUtil.simulate(ballTemp, lastKnownStatus.conf, lines, color);
     }
 
     private void visualiseModel(double x, double y, double minReach, double maxReach) {
 
-        double targetPos = myDirectionBall.y - lastKnownStatus.conf.paddleHeight * 0.5;
+        double targetPos = ballWorkMemory.y - lastKnownStatus.conf.paddleHeight * 0.5;
         double paddleMaxPos = lastKnownStatus.conf.maxHeight - lastKnownStatus.conf.paddleHeight;
         double paddleMinPos = 0;
 
@@ -144,7 +150,7 @@ public class Magmus extends PongGameBot {
                 color = Color.red;
             }
 
-            Vector2 ballOut = myModel.guess(pos, myDirectionBall.vx, myDirectionBall.vy);
+            Vector2 ballOut = myModel.guess(pos, ballWorkMemory.vx, ballWorkMemory.vy);
             ballOut.normalize().scaled(100);
 
             double y_point = y + pos * lastKnownStatus.conf.paddleHeight * 0.5 + lastKnownStatus.conf.paddleHeight * 0.5;
@@ -172,12 +178,12 @@ public class Magmus extends PongGameBot {
         double myPos = lastKnownStatus.getPedal(getMySide()).y;
         double movingDistance = timeLeft * myState.velocity() * getPaddleMaxVelocity();
 
-        double ballEndPos = myDirectionBall.y;
+        double ballEndPos = ballWorkMemory.y;
         double expectedPosition = movingDistance + myPos + lastKnownStatus.conf.paddleHeight * 0.5;
         double expectedDistance = ballEndPos - expectedPosition;
 
         double halfPaddle = lastKnownStatus.conf.paddleHeight * 0.1;
-        return expectedDistance * expectedDistance >= halfPaddle * halfPaddle;
+        return expectedDistance * expectedDistance >= halfPaddle * halfPaddle || reallyShouldUpdateRegardless();
     }
 
     public boolean requestChangeSpeed(double v) {

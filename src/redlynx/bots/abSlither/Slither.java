@@ -102,24 +102,6 @@ public class Slither extends PongGameBot {
         getPaddleVelocity().drawReachableArea(lines, newStatus.getPedal(getMySide()).y + newStatus.conf.paddleHeight * 0.5, timeLeft, newStatus.conf.paddleHeight);
     }
 
-    private Vector2 getPaddlePossibleReturns(ClientGameState state, PlayerSide side, double timeLeft) {
-
-        timeLeft -= 0.1;
-
-        Vector2 ans = new Vector2();
-        double paddleMid = state.getPedal(side).y + 0.5 * state.conf.paddleHeight;
-        double maxReach = paddleMid + timeLeft * getPaddleMaxVelocity() + 0.5 * state.conf.paddleHeight;
-        double minReach = paddleMid - timeLeft * getPaddleMaxVelocity() - 0.5 * state.conf.paddleHeight;
-        maxReach -= myDirectionBall.y;
-        minReach -= myDirectionBall.y;
-        maxReach /= 0.5 * state.conf.paddleHeight;
-        minReach /= 0.5 * state.conf.paddleHeight;
-        maxReach = Math.min(+1, maxReach);
-        minReach = Math.max(-1, minReach);
-        ans.x = -maxReach;
-        ans.y = -minReach;
-        return ans;
-    }
 
     private void visualisePlan(double paddleTarget, Color color) {
         tmpBall.copy(myDirectionBall, true);

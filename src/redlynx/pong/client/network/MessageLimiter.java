@@ -21,4 +21,8 @@ public class MessageLimiter {
             msgs.remove(0);
         }
     }
+
+    public boolean shouldUpdate() {
+        return msgs.size() < 3;
+    }
 }

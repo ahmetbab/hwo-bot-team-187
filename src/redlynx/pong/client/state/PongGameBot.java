@@ -25,6 +25,9 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
     private final MessageLimiter messageLimiter = new MessageLimiter();
     public final PongModel myModel = new LinearModel();
 
+    public final ClientGameState.Ball ballWorkMemory = new ClientGameState.Ball();
+    public final ClientGameState.Ball ballTemp = new ClientGameState.Ball();
+
     public static enum PlayerSide {
         LEFT(-1),
         RIGHT(+1);
@@ -83,6 +86,22 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
         this.serverMessageQueue = new ConcurrentLinkedQueue<String>();
         this.handler = new PongMessageParser(this);
         accessor = new GameStateAccessor(this);
+    }
+
+    public Vector2 getPaddlePossibleReturns(ClientGameState state, PlayerSide side, double timeLeft) {
+        Vector2 ans = new Vector2();
+        double paddleMid = state.getPedal(side).y + 0.5 * state.conf.paddleHeight;
+        double maxReach = paddleMid + timeLeft * getPaddleMaxVelocity();
+        double minReach = paddleMid - timeLeft * getPaddleMaxVelocity();
+        maxReach -= ballWorkMemory.y;
+        minReach -= ballWorkMemory.y;
+        maxReach /= 0.5 * state.conf.paddleHeight;
+        minReach /= 0.5 * state.conf.paddleHeight;
+        maxReach = Math.min(+1, maxReach);
+        minReach = Math.max(-1, minReach);
+        ans.x = -maxReach;
+        ans.y = -minReach;
+        return ans;
     }
 
     public GameStateAccessorInterface getGameStateAccessor() {
@@ -246,6 +265,11 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
             return true;
         }
         return false;
+    }
+
+    // if have not sent an update in a long time, then update.
+    public boolean reallyShouldUpdateRegardless() {
+        return messageLimiter.shouldUpdate();
     }
 
     private Communicator getCommunicator() {
