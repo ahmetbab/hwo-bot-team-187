@@ -4,13 +4,15 @@ import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.client.state.PongGameBot;
 import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector2;
+import redlynx.pong.util.Vector3;
 
 public class MagmusEvaluator {
 
 
     private static ClientGameState.Ball ballMemory = new ClientGameState.Ball();
+    private static ClientGameState.Ball ballMemory2 = new ClientGameState.Ball();
 
-    public static Vector2 offensiveEval(PongGameBot bot, ClientGameState state, PongGameBot.PlayerSide catcher, ClientGameState.Ball collidingBallState, ClientGameState.Ball tmpBall, double minVal, double maxVal) {
+    public static Vector3 offensiveEval(PongGameBot bot, ClientGameState state, PongGameBot.PlayerSide catcher, ClientGameState.Ball collidingBallState, ClientGameState.Ball tmpBall, double minVal, double maxVal) {
         double targetPos = collidingBallState.y - state.conf.paddleHeight * 0.5;
         double botValue = -10000;
         double topValue = -10000;
@@ -18,9 +20,6 @@ public class MagmusEvaluator {
         double paddleTargetTop = 0;
         double paddleMaxPos = state.conf.maxHeight - state.conf.paddleHeight;
         double paddleMinPos = 0;
-
-        double defensiveMaxMinScore = -1000000;
-        double defensiveMaxMinTarget = 0;
 
         {
             for(int i=10; i<90; ++i) {
@@ -56,47 +55,32 @@ public class MagmusEvaluator {
                     topValue = tmpTopValue;
                     paddleTargetTop = tmpTarget;
                 }
-
-                /*
-                double defensiveScore = MagmusEvaluator.defensiveEval(bot, state, PongGameBot.PlayerSide.getOtherSide(catcher), opponentBot, opponentTop, tmpBall);
-                if(defensiveScore > defensiveMaxMinScore) {
-                    defensiveMaxMinScore = defensiveScore;
-                    defensiveMaxMinTarget = tmpTarget;
-                }
-                */
             }
         }
 
         double bestValue = (botValue > topValue) ? botValue : topValue;
 
         // found a solid attack move! lets do that.
-        if(true || bestValue > 0) {
-            double paddleTarget = (botValue > topValue) ? paddleTargetBot : paddleTargetTop;
-            targetPos -= paddleTarget * state.conf.paddleHeight * 0.5;
+        double paddleTarget = (botValue > topValue) ? paddleTargetBot : paddleTargetTop;
+        targetPos -= paddleTarget * state.conf.paddleHeight * 0.5;
 
-            // bind target position inside play area
-            targetPos = targetPos < paddleMinPos ? paddleMinPos : targetPos;
-            targetPos = targetPos > paddleMaxPos ? paddleMaxPos : targetPos;
-            return new Vector2(targetPos, paddleTarget);
-        }
-        else {
-            targetPos -= defensiveMaxMinTarget * state.conf.paddleHeight * 0.5;
-
-            // bind target position inside play area
-            targetPos = targetPos < paddleMinPos ? paddleMinPos : targetPos;
-            targetPos = targetPos > paddleMaxPos ? paddleMaxPos : targetPos;
-            return new Vector2(targetPos, defensiveMaxMinTarget);
-        }
+        // bind target position inside play area
+        targetPos = targetPos < paddleMinPos ? paddleMinPos : targetPos;
+        targetPos = targetPos > paddleMaxPos ? paddleMaxPos : targetPos;
+        return new Vector3(targetPos, paddleTarget, bestValue);
     }
 
 
-    private static double defensiveEval(PongGameBot bot, ClientGameState state, PongGameBot.PlayerSide catcher, double minVal, double maxVal, ClientGameState.Ball tmpBall) {
+    // defensive eval tries to minimize opponents offensive eval.
+    public static Vector3 defensiveEval(PongGameBot bot, ClientGameState state, PongGameBot.PlayerSide catcher, double minVal, double maxVal, ClientGameState.Ball tmpBall) {
 
         double targetPos = tmpBall.y - state.conf.paddleHeight * 0.5;
         double paddleMaxPos = state.conf.maxHeight - state.conf.paddleHeight;
         double paddleMinPos = 0;
 
-        double minScore = 10000;
+        double minScore = -10000;
+        double minTarget = 0;
+        double minTargetPos = targetPos;
 
         for(int i=5; i<=45; ++i) {
             double tmpTarget = (i - 25) / 25.0;
@@ -115,29 +99,29 @@ public class MagmusEvaluator {
             ballMemory.copy(tmpBall, true);
             bot.ballCollideToPaddle(tmpTarget, ballMemory);
 
-            double opponentTime = PongUtil.simulate(ballMemory, state.conf);
+            // should take extra defense time into account somehow?
+            double defenseTime = PongUtil.simulate(ballMemory, state.conf);
 
             // which returns are possible for the opponent?
-            double opponentReach = opponentTime * bot.getPaddleMaxVelocity() + state.conf.paddleHeight * 0.5;
-            double opponentBot = state.getPedal(catcher).y - opponentReach - state.conf.paddleHeight * 0.5;
-            double opponentTop = state.getPedal(catcher).y + opponentReach - state.conf.paddleHeight * 0.5;
+            Vector2 possibleReturns = bot.getPaddlePossibleReturns(state, PongGameBot.PlayerSide.getOtherSide(catcher), defenseTime);
 
-            if(opponentBot < tmpBall.y - state.conf.paddleHeight * 0.5) opponentBot = ballMemory.y - state.conf.paddleHeight * 0.5;
-            if(opponentTop > tmpBall.y + state.conf.paddleHeight * 0.5) opponentTop = ballMemory.y + state.conf.paddleHeight * 0.5;
-            opponentBot -= ballMemory.y;
-            opponentTop -= ballMemory.y;
+            double defenseBot = possibleReturns.x;
+            double defenseTop = possibleReturns.y;
 
-            // these are the possible return deflection values
-            opponentBot /= state.conf.paddleHeight * 0.5;
-            opponentTop /= state.conf.paddleHeight * 0.5;
+            Vector3 opponentBestMove = offensiveEval(bot, state, PongGameBot.PlayerSide.getOtherSide(catcher), ballMemory, ballMemory2, defenseBot, defenseTop);
 
-            double score = opponentTop - opponentBot;
-            if(score < minScore) {
+            double score = -opponentBestMove.z;
+
+            if(score > minScore) {
                 minScore = score;
+                minTarget = tmpTarget;
+                minTargetPos = targetPos - tmpTarget * state.conf.paddleHeight * 0.5;
             }
         }
 
-        return minScore;
+        // if score < 0, opponent can make a winning move now.
+        // otherwise we should be able to counter anything.
+        return new Vector3(minTargetPos, minTarget, minScore);
     }
 
 }
