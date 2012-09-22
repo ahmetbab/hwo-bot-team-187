@@ -5,6 +5,8 @@ import java.util.ArrayList;
 
 import org.json.JSONObject;
 
+import redlynx.pong.client.collisionmodel.LinearModel;
+import redlynx.pong.client.collisionmodel.PongModel;
 import redlynx.pong.ui.GameStateAccessorInterface;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.ui.UIString;
@@ -63,7 +65,7 @@ public class GameState implements GameStateAccessorInterface {
 	private int winner;
 	public int deflectionMode;
 	public int[] deflectionValue = new int[2];
-	
+	PongModel model;
 	
 	public boolean hasEnded() {
 		return gameEnded;
@@ -91,6 +93,7 @@ public class GameState implements GameStateAccessorInterface {
 		deflectionMode = 0;
 		deflectionValue[0] = 10;
 		deflectionValue[1] = 20;
+		model = new LinearModel();
 		
 	}
 	
@@ -123,6 +126,10 @@ public class GameState implements GameStateAccessorInterface {
 		}
 		//System.out.println("paddles: "+paddle[0].y+" : "+paddle[1].y);
 		
+		Vector2 oldPos = new Vector2(ball.x, ball.y);
+		Vector2 ballVel = new Vector2(ball.dx*ball.conf.speed, ball.dy*ball.conf.speed);
+		
+		
 		ball.x += ball.dx*ball.conf.speed;
 		ball.y += ball.dy*ball.conf.speed;
 		
@@ -135,11 +142,78 @@ public class GameState implements GameStateAccessorInterface {
 			ball.dy = -ball.dy;
 		}
 		
+		if (ballVel.x < 0) {
+			if (ball.x - ball.conf.radius <= paddleConfig.width) {
+				double time = (oldPos.x-(paddleConfig.width+ball.conf.radius))/ballVel.x;
+				double collisionY = oldPos.y+time*ballVel.y;
+				
+				
+				
+				if (collisionY+ball.conf.radius < paddle[0].y || collisionY-ball.conf.radius > paddle[0].y+paddleConfig.height) {
+					endGame(1);
+				}
+				else {
+					
+					double paddleCollision =(collisionY-(paddle[0].y+paddleConfig.height/2))/(paddleConfig.height/2.0);
+					
+					Vector2 deflected = model.guess(paddleCollision, ballVel.x, ballVel.y);
+					
+					double ballspeed = ballVel.length();
+					ballVel.x = deflected.x;
+					ballVel.y = deflected.y;
+					ballVel.normalize();
+					
+					Vector2 col = new Vector2((paddleConfig.width+ball.conf.radius), collisionY);
+					Vector2 dist = oldPos.minus(col);
+					double speedLeft = ballspeed - dist.length();
+					ball.x = col.x+speedLeft*ballVel.x;
+					ball.y = col.y+speedLeft*ballVel.y;
+					ball.dx = ballVel.x*ballspeed*1.01/ball.conf.speed;
+					ball.dy = ballVel.y*ballspeed*1.01/ball.conf.speed;
+				}
+			}
+			
+		} 
+		else {
+			if (ball.x + ball.conf.radius >= screenWidth-paddleConfig.width) {
+				double time = (screenWidth-paddleConfig.width - ball.conf.radius- oldPos.x)/ballVel.x;
+				double collisionY = oldPos.y+time*ballVel.y;
+				
+				
+				
+				if (collisionY+ball.conf.radius < paddle[1].y || collisionY-ball.conf.radius > paddle[1].y+paddleConfig.height) {
+					endGame(0);
+				}
+				else {
+					
+					double paddleCollision =(collisionY-(paddle[1].y+paddleConfig.height/2))/(paddleConfig.height/2.0);
+					
+					Vector2 deflected = model.guess(paddleCollision, ballVel.x, ballVel.y);
+					
+					double ballspeed = ballVel.length();
+					ballVel.x = deflected.x;
+					ballVel.y = deflected.y;
+					ballVel.normalize();
+					
+					Vector2 col = new Vector2((screenWidth-paddleConfig.width-ball.conf.radius), collisionY);
+					Vector2 dist = oldPos.minus(col);
+					double speedLeft = ballspeed - dist.length();
+					ball.x = col.x+speedLeft*ballVel.x;
+					ball.y = col.y+speedLeft*ballVel.y;
+					ball.dx = ballVel.x*ballspeed*1.01/ball.conf.speed;
+					ball.dy = ballVel.y*ballspeed*1.01/ball.conf.speed;
+				}
+			}
+		}
+		
+		/*
 		if (ball.x - ball.conf.radius <= paddleConfig.width) {
+			
 			
 			//TODO more accurate collision check?
 			if (ball.y+ball.conf.radius >= paddle[0].y 
 				&& ball.y-ball.conf.radius <= paddle[0].y+paddleConfig.height) {
+				
 				//bounce on left
 				double dy = ball.y - paddle[0].y - (paddleConfig.height * 0.5);
                 dy /= paddleConfig.height * 0.5;
@@ -150,6 +224,7 @@ public class GameState implements GameStateAccessorInterface {
                 ball.dy += dy * (deflectionValue[0]/100.0f);
                 ball.dy += (deflectionValue[1]/20.0f)*(Math.random() - 0.5); // testing
 			}
+			
 		}
 		else {
 			if (ball.x + ball.conf.radius >= screenWidth-paddleConfig.width) {
@@ -177,6 +252,7 @@ public class GameState implements GameStateAccessorInterface {
 		else if (ball.x + ball.conf.radius > screenWidth) {
 			endGame(0);
 		}
+		*/
 		
 	}
 	public long getTickInterval() {
