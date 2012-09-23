@@ -12,7 +12,7 @@ public class PongMatcher {
     // takes no arguments.
     public static void main(String[] args) {
         BaseBot bot1 = new Magmus();
-        BaseBot bot2 = new JBot();
+        BaseBot bot2 = new Slither();
 
         createMatch(bot1, bot2);
     }

@@ -179,6 +179,7 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
         }
 
     }
+
     @Override
 	public void gameStart(String player1, String player2) {
         // Server does not swap name orders. Always select left manually.
@@ -191,6 +192,7 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
             setMySide(PlayerSide.RIGHT);
         }
     }
+
     @Override
 	public void gameOver(String winner) {
     	gameOver(winner.equals(name));

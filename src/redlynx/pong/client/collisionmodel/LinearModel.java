@@ -14,8 +14,9 @@ public class LinearModel implements PongModel {
 
     @Override
     public Vector2 guess(double pos, double vx_in, double vy_in) {
+        double inLength = Math.sqrt(vx_in * vx_in + vy_in * vy_in);
         out.x = -vx_in;
-        out.y = +vy_in + pos * Math.sqrt(vx_in * vx_in + vy_in * vy_in) * 0.3;
+        out.y = +vy_in + pos * inLength * 0.25 + pos * Math.abs(vy_in / vx_in) * inLength * 0.10;
         return out;
     }
 
