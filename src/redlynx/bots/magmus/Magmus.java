@@ -33,11 +33,11 @@ public class Magmus extends PongGameBot {
     public void onGameStateUpdate(ClientGameState newStatus) {
 
         lines.clear();
-        double ball_direction = lastKnownStatus.ball.vx;
+        double ball_direction = newStatus.ball.vx;
 
         if(getMySide().comingTowardsMe(ball_direction)) {
             // find out impact velocity and position.
-            ballWorkMemory.copy(lastKnownStatus.ball, true);
+            ballWorkMemory.copy(newStatus.ball, true);
             ballWorkMemory.setVelocity(getBallVelocity());
             timeLeft = PongUtil.simulate(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
 
@@ -52,7 +52,7 @@ public class Magmus extends PongGameBot {
             // when no winning move available
             if(target.z < 100) {
                 defending = true;
-                ballWorkMemory.copy(lastKnownStatus.ball, true);
+                ballWorkMemory.copy(newStatus.ball, true);
                 ballWorkMemory.setVelocity(getBallVelocity());
                 timeLeft = PongUtil.simulate(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
                 target = evaluator.defensiveEval(this, lastKnownStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory);
@@ -87,7 +87,7 @@ public class Magmus extends PongGameBot {
         }
         else {
             // simulate twice, once there, and then back.
-            ballWorkMemory.copy(lastKnownStatus.ball, true);
+            ballWorkMemory.copy(newStatus.ball, true);
             ballWorkMemory.setVelocity(getBallVelocity());
 
             timeLeft = PongUtil.simulate(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
@@ -127,7 +127,7 @@ public class Magmus extends PongGameBot {
             ClientGameState.Player myPedal = lastKnownStatus.getPedal(getMySide());
             double diff_y = ballWorkMemory.y - myPedal.y;
 
-            requestChangeSpeed((float) (0.99f * diff_y / Math.abs(diff_y))); //TODO check div by zero
+            requestChangeSpeed((float) (0.999f * diff_y / Math.abs(diff_y))); //TODO check div by zero
         }
 
         getHistory().drawLastCollision(lines);
@@ -147,8 +147,8 @@ public class Magmus extends PongGameBot {
         double paddleMinPos = 0;
 
         for(int i=0; i<11; ++i) {
-            double pos = (i - 5) / 5.0;
 
+            double pos = (i - 5) / 5.0;
             Color color = Color.green;
 
             if(pos < minReach || pos > maxReach) {
@@ -165,6 +165,7 @@ public class Magmus extends PongGameBot {
 
             double y_point = y + pos * lastKnownStatus.conf.paddleHeight * 0.5 + lastKnownStatus.conf.paddleHeight * 0.5;
             lines.add(new UILine(new Vector2i(x, y_point), new Vector2i(x + ballOut.x, y_point + ballOut.y), color));
+
         }
     }
 

@@ -149,7 +149,7 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
             double collisionTime = history.getLastCollisionTime();
             double dt = totalTime - collisionTime;
 
-            if(collisionPoint != null && dt > 0.1) {
+            if(collisionPoint != null && dt > 0.3) {
                 Vector2 directionVelocity = new Vector2();
                 directionVelocity.copy(gameStatus.ball.getPosition().minus(collisionPoint));
                 directionVelocity.scaled(1.0 / (dt + 0.0000001));
@@ -171,7 +171,9 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
 
         extrapolatedTime = 0;
 
-        onGameStateUpdate(gameStatus);
+        // to avoid any confusion later..
+        onGameStateUpdate(lastKnownStatus);
+
         if (visualizer != null) {
         	visualizer.render();
         }
