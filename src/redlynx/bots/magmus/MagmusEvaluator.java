@@ -28,23 +28,26 @@ public class MagmusEvaluator {
 
                 // if return not physically possible, don't evaluate it.
                 if(paddleMaxPos < evaluatedPaddlePos || paddleMinPos > evaluatedPaddlePos) {
+                    // System.out.println("out of bounds");
                     continue;
                 }
 
                 // if not enough time left to make the return, don't evaluate it.
                 if(tmpTarget < minVal || tmpTarget > maxVal) {
+                    // System.out.println("not enough time");
                     continue;
                 }
 
                 tmpBall.copy(collidingBallState, true);
                 bot.ballCollideToPaddle(tmpTarget, tmpBall);
+
                 double opponentTime = PongUtil.simulate(tmpBall, state.conf);
                 double opponentReach = opponentTime * bot.getPaddleMaxVelocity() + state.conf.paddleHeight * 0.5;
-                double opponentBot = state.getPedal(catcher).y - opponentReach - state.conf.paddleHeight * 0.5;
-                double opponentTop = state.getPedal(catcher).y + opponentReach - state.conf.paddleHeight * 0.5;
+                double opponentBot = state.getPedal(catcher).y - opponentReach + state.conf.paddleHeight * 0.5;
+                double opponentTop = state.getPedal(catcher).y + opponentReach + state.conf.paddleHeight * 0.5;
 
-                double tmpBotValue = -(tmpBall.y - opponentBot);
-                double tmpTopValue = +(tmpBall.y - opponentTop);
+                double tmpBotValue = +(opponentBot - tmpBall.y);
+                double tmpTopValue = -(opponentTop - tmpBall.y);
 
                 if(tmpBotValue > botValue) {
                     botValue = tmpBotValue;
@@ -103,12 +106,26 @@ public class MagmusEvaluator {
             double defenseTime = PongUtil.simulate(ballMemory, state.conf);
 
             // which returns are possible for the opponent?
-            Vector2 possibleReturns = bot.getPaddlePossibleReturns(state, PongGameBot.PlayerSide.getOtherSide(catcher), defenseTime);
+            // Vector2 possibleReturns = bot.getPaddlePossibleReturns(state, ballMemory, PongGameBot.PlayerSide.getOtherSide(catcher), defenseTime);
+            double opponentReach = defenseTime * bot.getPaddleMaxVelocity() + state.conf.paddleHeight * 0.5;
+            double opponentBot = state.getPedal(catcher).y - opponentReach + state.conf.paddleHeight * 0.5;
+            double opponentTop = state.getPedal(catcher).y + opponentReach + state.conf.paddleHeight * 0.5;
 
-            double defenseBot = possibleReturns.x;
-            double defenseTop = possibleReturns.y;
+            double tmpBotValue = +(opponentBot - ballMemory.y) / (state.conf.paddleHeight * 0.5);
+            double tmpTopValue = +(opponentTop - ballMemory.y) / (state.conf.paddleHeight * 0.5);
 
-            Vector3 opponentBestMove = offensiveEval(bot, state, PongGameBot.PlayerSide.getOtherSide(catcher), ballMemory, ballMemory2, defenseBot, defenseTop);
+            // TODO: Review the range checking code.
+
+            /*
+            if(tmpBotValue > +1.0) {
+                System.out.println("bot: " + ", reach: " + opponentReach + "ball: " + ballMemory.y + ", opponentTop: " + opponentBot + ", tmpTop: " + tmpBotValue);
+            }
+            if(tmpTopValue < -1.0) {
+                System.out.println("top: " + tmpTopValue + ", reach: " + opponentReach + "ball: " + ballMemory.y + ", opponentTop: " + opponentTop + ", tmpTop: " + tmpTopValue);
+            }
+            */
+
+            Vector3 opponentBestMove = offensiveEval(bot, state, PongGameBot.PlayerSide.getOtherSide(catcher), ballMemory, ballMemory2, tmpBotValue, tmpTopValue);
 
             double score = -opponentBestMove.z;
 

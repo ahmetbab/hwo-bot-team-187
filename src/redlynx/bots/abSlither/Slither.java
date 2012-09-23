@@ -50,7 +50,7 @@ public class Slither extends PongGameBot {
             double targetPos = target.x;
             double paddleTarget = target.y;
 
-            Vector2 reach = getPaddlePossibleReturns(newStatus, PlayerSide.RIGHT, timeLeft);
+            Vector2 reach = getPaddlePossibleReturns(newStatus, myDirectionBall, PlayerSide.RIGHT, timeLeft);
             double minReach = reach.x;
             double maxReach = reach.y;
 
@@ -78,7 +78,7 @@ public class Slither extends PongGameBot {
             Vector2 target = evaluate(newStatus, PlayerSide.LEFT, myDirectionBall, tmpBall, timeLeft);
             double paddleTarget = target.y;
 
-            Vector2 reach = getPaddlePossibleReturns(newStatus, PlayerSide.RIGHT, timeLeft);
+            Vector2 reach = getPaddlePossibleReturns(newStatus, myDirectionBall, PlayerSide.RIGHT, timeLeft);
             double minReach = reach.x;
             double maxReach = reach.y;
 
@@ -167,7 +167,7 @@ public class Slither extends PongGameBot {
 
     private Vector2 evaluate(ClientGameState state, PlayerSide catcher, ClientGameState.Ball collidingBallState, ClientGameState.Ball tmpBall, double allowedTime) {
 
-        Vector2 reach = getPaddlePossibleReturns(state, PlayerSide.getOtherSide(catcher), allowedTime);
+        Vector2 reach = getPaddlePossibleReturns(state, collidingBallState, PlayerSide.getOtherSide(catcher), allowedTime);
         double minVal = reach.x;
         double maxVal = reach.y;
 

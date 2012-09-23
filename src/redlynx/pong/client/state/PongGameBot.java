@@ -88,13 +88,13 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
         accessor = new GameStateAccessor(this);
     }
 
-    public Vector2 getPaddlePossibleReturns(ClientGameState state, PlayerSide side, double timeLeft) {
+    public Vector2 getPaddlePossibleReturns(ClientGameState state, ClientGameState.Ball ball, PlayerSide side, double timeLeft) {
         Vector2 ans = new Vector2();
         double paddleMid = state.getPedal(side).y + 0.5 * state.conf.paddleHeight;
         double maxReach = paddleMid + timeLeft * getPaddleMaxVelocity();
         double minReach = paddleMid - timeLeft * getPaddleMaxVelocity();
-        maxReach -= ballWorkMemory.y;
-        minReach -= ballWorkMemory.y;
+        maxReach -= ball.y;
+        minReach -= ball.y;
         maxReach /= 0.5 * state.conf.paddleHeight;
         minReach /= 0.5 * state.conf.paddleHeight;
         maxReach = Math.min(+1, maxReach);
@@ -254,7 +254,7 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
         ballOut.normalize().scaled(getBallVelocity());
         ball.vx = ballOut.x;
         ball.vy = ballOut.y;
-        ball.tick(0.01f);
+        ball.tick(0.02f);
     }
 
     public boolean requestChangeSpeed(double v) {

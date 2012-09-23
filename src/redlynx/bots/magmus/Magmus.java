@@ -40,7 +40,7 @@ public class Magmus extends PongGameBot {
             ballWorkMemory.setVelocity(getBallVelocity());
             timeLeft = PongUtil.simulate(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
 
-            Vector2 reach = getPaddlePossibleReturns(newStatus, PlayerSide.LEFT, timeLeft);
+            Vector2 reach = getPaddlePossibleReturns(newStatus, ballWorkMemory, PlayerSide.LEFT, timeLeft);
             double minReach = reach.x;
             double maxReach = reach.y;
 
@@ -49,23 +49,20 @@ public class Magmus extends PongGameBot {
             boolean defending = false;
 
             // when no winning move available
-            if(target.z < 0) {
+            if(target.z < 100) {
                 defending = true;
                 ballWorkMemory.copy(lastKnownStatus.ball, true);
                 ballWorkMemory.setVelocity(getBallVelocity());
                 timeLeft = PongUtil.simulate(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
-                target = MagmusEvaluator.defensiveEval(this, newStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory);
+                target = MagmusEvaluator.defensiveEval(this, lastKnownStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory);
             }
 
 
-            if(shoutPlan) {
-                shoutPlan = false;
-                if(defending) {
-                    System.out.println("Defense score: " + target.z);
-                }
-                else {
-                    System.out.println("Offense score: " + target.z);
-                }
+            if(defending) {
+                System.out.println("############## " + target.z);
+            }
+            else {
+                System.out.println("-------------- " + target.z);
             }
 
             double targetPos = target.x;
@@ -86,15 +83,12 @@ public class Magmus extends PongGameBot {
             }
         }
         else {
-
-            shoutPlan = true;
-
             // simulate twice, once there, and then back.
             ballWorkMemory.copy(lastKnownStatus.ball, true);
             ballWorkMemory.setVelocity(getBallVelocity());
 
             timeLeft = PongUtil.simulate(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
-            Vector2 reach = getPaddlePossibleReturns(newStatus, PlayerSide.RIGHT, timeLeft);
+            Vector2 reach = getPaddlePossibleReturns(newStatus, ballWorkMemory, PlayerSide.RIGHT, timeLeft);
 
             // add an extra ten percent, just to be sure.
             double minReach = reach.x - 0.1;

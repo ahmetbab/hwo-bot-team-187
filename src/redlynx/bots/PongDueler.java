@@ -11,8 +11,8 @@ public class PongDueler {
     }
 
     private static void createMatch(final BaseBot bot1) {
-        String opponentName = "urho";
-        final String[] args1 = {"kekkonen", "boris.helloworldopen.fi", "9090", "-vis", "-match", opponentName};
+        String opponentName = "harponger";
+        final String[] args1 = {"Sauron", "boris.helloworldopen.fi", "9090", "-vis", "-match", opponentName};
         Pong.init(args1, bot1);
     }
 }
