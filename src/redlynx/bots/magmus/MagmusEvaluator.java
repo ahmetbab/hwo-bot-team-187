@@ -1,9 +1,8 @@
 package redlynx.bots.magmus;
 
 import redlynx.pong.client.state.ClientGameState;
-import redlynx.pong.client.state.PongGameBot;
+import redlynx.pong.client.PongGameBot;
 import redlynx.pong.util.PongUtil;
-import redlynx.pong.util.Vector2;
 import redlynx.pong.util.Vector3;
 
 public class MagmusEvaluator {

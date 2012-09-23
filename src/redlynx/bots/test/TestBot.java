@@ -1,15 +1,12 @@
 package redlynx.bots.test;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 import redlynx.pong.client.Pong;
 import redlynx.pong.client.collisionmodel.LinearModel;
 import redlynx.pong.client.collisionmodel.PongModel;
-import redlynx.pong.client.collisionmodel.PongModelInitializer;
 import redlynx.pong.client.state.ClientGameState;
-import redlynx.pong.client.state.PongGameBot;
+import redlynx.pong.client.PongGameBot;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.util.PongUtil;
 import java.awt.Color;

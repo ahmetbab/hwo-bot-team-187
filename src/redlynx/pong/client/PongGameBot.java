@@ -1,4 +1,4 @@
-package redlynx.pong.client.state;
+package redlynx.pong.client;
 
 import java.util.ArrayList;
 import java.util.Queue;
@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import redlynx.pong.client.collisionmodel.LinearModel;
 import redlynx.pong.client.collisionmodel.PongModel;
 import redlynx.pong.client.network.MessageLimiter;
+import redlynx.pong.client.state.*;
 import redlynx.pong.util.SoftVariable;
 import redlynx.pong.client.BaseBot;
 import redlynx.pong.client.network.Communicator;

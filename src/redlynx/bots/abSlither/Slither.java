@@ -1,12 +1,11 @@
 package redlynx.bots.abSlither;
 
 import redlynx.bots.magmus.MagmusState;
-import redlynx.gametree.AlphaBeta;
 import redlynx.pong.client.Pong;
 import redlynx.pong.client.collisionmodel.LinearModel;
 import redlynx.pong.client.collisionmodel.PongModel;
 import redlynx.pong.client.state.ClientGameState;
-import redlynx.pong.client.state.PongGameBot;
+import redlynx.pong.client.PongGameBot;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector2;

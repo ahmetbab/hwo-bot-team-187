@@ -3,6 +3,7 @@ package redlynx.pong.client.state;
 import java.awt.Color;
 import java.util.ArrayList;
 
+import redlynx.pong.client.PongGameBot;
 import redlynx.pong.ui.GameStateAccessorInterface;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.ui.UIString;

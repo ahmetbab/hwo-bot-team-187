@@ -1,6 +1,7 @@
 package redlynx.pong.client.state;
 
 
+import redlynx.pong.client.PongGameBot;
 import redlynx.pong.util.Vector2;
 
 public class ClientGameState {

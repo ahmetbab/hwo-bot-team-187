@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import redlynx.pong.client.Pong;
 import redlynx.pong.client.state.ClientGameState;
-import redlynx.pong.client.state.PongGameBot;
+import redlynx.pong.client.PongGameBot;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector2;
@@ -58,12 +58,14 @@ public class Magmus extends PongGameBot {
             }
 
 
+            /*
             if(defending) {
                 System.out.println("############## " + target.z);
             }
             else {
                 System.out.println("-------------- " + target.z);
             }
+            */
 
             double targetPos = target.x;
             double paddleTarget = target.y;
