@@ -19,7 +19,8 @@ public class Magmus extends PongGameBot {
 	public static void main(String[] args) {
 		Pong.init(args, new Magmus());
 	}
-	
+
+    private MagmusEvaluator evaluator = new MagmusEvaluator();
     private MagmusState myState = new MagmusState();
     private final ArrayList<UILine> lines = new ArrayList<UILine>();
     private boolean shoutPlan = true;
@@ -45,7 +46,7 @@ public class Magmus extends PongGameBot {
             double maxReach = reach.y;
 
             // this is the expected y value when colliding against our paddle.
-            Vector3 target = MagmusEvaluator.offensiveEval(this, newStatus, PlayerSide.RIGHT, ballWorkMemory, ballTemp, minReach, maxReach);
+            Vector3 target = evaluator.offensiveEval(this, newStatus, PlayerSide.RIGHT, ballWorkMemory, ballTemp, minReach, maxReach);
             boolean defending = false;
 
             // when no winning move available
@@ -54,7 +55,7 @@ public class Magmus extends PongGameBot {
                 ballWorkMemory.copy(lastKnownStatus.ball, true);
                 ballWorkMemory.setVelocity(getBallVelocity());
                 timeLeft = PongUtil.simulate(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
-                target = MagmusEvaluator.defensiveEval(this, lastKnownStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory);
+                target = evaluator.defensiveEval(this, lastKnownStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory);
             }
 
 
@@ -97,7 +98,7 @@ public class Magmus extends PongGameBot {
             double maxReach = reach.y + 0.1;
 
             // this is the current worst case. should try to cover that?
-            Vector3 target = MagmusEvaluator.offensiveEval(this, newStatus, PlayerSide.LEFT, ballWorkMemory, ballTemp, minReach, maxReach);
+            Vector3 target = evaluator.offensiveEval(this, newStatus, PlayerSide.LEFT, ballWorkMemory, ballTemp, minReach, maxReach);
             double paddleTarget = target.y;
 
             // draw stuff on the hud.

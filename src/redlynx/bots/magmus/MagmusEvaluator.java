@@ -8,10 +8,10 @@ import redlynx.pong.util.Vector3;
 public class MagmusEvaluator {
 
 
-    private static ClientGameState.Ball ballMemory = new ClientGameState.Ball();
-    private static ClientGameState.Ball ballMemory2 = new ClientGameState.Ball();
+    private ClientGameState.Ball ballMemory = new ClientGameState.Ball();
+    private ClientGameState.Ball ballMemory2 = new ClientGameState.Ball();
 
-    public static Vector3 offensiveEval(PongGameBot bot, ClientGameState state, PongGameBot.PlayerSide catcher, ClientGameState.Ball collidingBallState, ClientGameState.Ball tmpBall, double minVal, double maxVal) {
+    public Vector3 offensiveEval(PongGameBot bot, ClientGameState state, PongGameBot.PlayerSide catcher, ClientGameState.Ball collidingBallState, ClientGameState.Ball tmpBall, double minVal, double maxVal) {
         double targetPos = collidingBallState.y - state.conf.paddleHeight * 0.5;
         double botValue = -10000;
         double topValue = -10000;
@@ -74,7 +74,7 @@ public class MagmusEvaluator {
 
 
     // defensive eval tries to minimize opponents offensive eval.
-    public static Vector3 defensiveEval(PongGameBot bot, ClientGameState state, PongGameBot.PlayerSide catcher, double minVal, double maxVal, ClientGameState.Ball tmpBall) {
+    public Vector3 defensiveEval(PongGameBot bot, ClientGameState state, PongGameBot.PlayerSide catcher, double minVal, double maxVal, ClientGameState.Ball tmpBall) {
 
         double targetPos = tmpBall.y - state.conf.paddleHeight * 0.5;
         double paddleMaxPos = state.conf.maxHeight - state.conf.paddleHeight;
