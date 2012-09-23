@@ -101,6 +101,19 @@ public class Magmus extends PongGameBot {
             Vector3 target = evaluator.offensiveEval(this, newStatus, PlayerSide.LEFT, ballWorkMemory, ballTemp, minReach, maxReach);
             double paddleTarget = target.y;
 
+            // if no return is possible according to simulation. Then the least impossible return should be anticipated..
+            if(target.z < -1000) {
+                double deltaPaddle = (ballWorkMemory.y - newStatus.right.y);
+                if(deltaPaddle > 0) {
+                    // paddle is below ball. anticipate a high return.
+                    paddleTarget = +1;
+                }
+                else {
+                    // paddle above ball. anticipate a low return.
+                    paddleTarget = -1;
+                }
+            }
+
             // draw stuff on the hud.
             visualiseModel(lastKnownStatus.conf.maxWidth, lastKnownStatus.getPedal(PlayerSide.RIGHT).y, minReach, maxReach);
             visualisePlan(paddleTarget, Color.red);
