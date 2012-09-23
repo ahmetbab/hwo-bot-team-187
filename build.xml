@@ -69,8 +69,8 @@
   
   <property name="compiler.args.fun" value="${compiler.args}"/>
   
-  <property name="fun.output.dir" value="${module.fun.basedir}/out/production/Fun"/>
-  <property name="fun.testoutput.dir" value="${module.fun.basedir}/out/test/Fun"/>
+  <property name="fun.output.dir" value="${module.fun.basedir}/out/production/pongbot"/>
+  <property name="fun.testoutput.dir" value="${module.fun.basedir}/out/test/pongbot"/>
   
   <path id="fun.module.bootclasspath">
     <!-- Paths to be included in compilation bootclasspath -->
