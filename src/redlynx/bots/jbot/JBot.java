@@ -130,11 +130,14 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 		double totalWeight = 0;
 		double totalY = 0;
 		double minTime = 1000000;
+		Vector2 deflected = new Vector2();
+		double speed = col.dir.length()*1.05;
 		for (int i = 0; i < ph; i++) {
 			double scaledPaddleHitPosition = (i -(ph/2))/(ph/2.0);
 			
-			Vector2 deflected = collisionModel.guess(scaledPaddleHitPosition, col.dir.x, col.dir.y);
-					
+			Vector2 def = collisionModel.guess(scaledPaddleHitPosition, col.dir.x, col.dir.y);
+			deflected.copy(def);
+			deflected.scaled(speed);
 		
 			
 			double time = Math.abs(screenWidth/deflected.x);
@@ -161,7 +164,7 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 		
 		double y = best.y;
 		
-		double safeTime = minTime*0.90 - analyser.getTickIntervalEstimate()*5/1000.0;
+		double safeTime = minTime*0.70 - analyser.getTickIntervalEstimate()*5/1000.0;
 		if (safeTime < 0)
 			safeTime = 0;
 		
@@ -193,15 +196,18 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 		
 		Vector2 hit = new Vector2();
 		
-		double maxScore = 0;
+		double maxScore = -10000000;
 		
 		
 		double angle = collisionModel.getAngle( hitVector.x, hitVector.y);
+		Vector2 deflected = new Vector2();
+		double speed = hitVector.length()*1.05;
 		for (int i = startPixel; i < endPixel; i+=4) {
 			double scaledPaddleHitPosition = (i -(ph/2))/(ph/2.0);
 			
-			Vector2 deflected = collisionModel.guess(scaledPaddleHitPosition, hitVector.x, hitVector.y, angle);
-					
+			Vector2 def = collisionModel.guess(scaledPaddleHitPosition, hitVector.x, hitVector.y, angle);
+			deflected.copy(def);
+			deflected.scaled(speed);
 		
 			
 			double time = Math.abs(screenWidth/deflected.x);
@@ -260,12 +266,14 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 				return max_eval+(timeToBlock-timeForHit);
 			}
 		}
-		
+		Vector2 deflected = new Vector2();
+		double speed = hitVector.length();
 		for (int i = startPixel; i < endPixel; i++) {
 			double scaledPaddleHitPosition = (i -(ph/2))/(ph/2.0);
 			
-			Vector2 deflected = collisionModel.guess(scaledPaddleHitPosition, hitVector.x, hitVector.y);
-					
+			Vector2 def = collisionModel.guess(scaledPaddleHitPosition, hitVector.x, hitVector.y);
+			deflected.copy(def);
+			deflected.scaled(speed);
 		
 			
 			double time = Math.abs(screenWidth/deflected.x);
@@ -283,7 +291,7 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 			double timeToBlock = myDistance / maxPaddleSpeed;
 			
 			if (timeToBlock > time ) {
-				minScore = -max_eval-(timeToBlock-timeForHit);
+				minScore = -2*max_eval-(timeToBlock-timeForHit);
 				
 			}
 			else {
@@ -315,6 +323,8 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 		int screenWidth = status.conf.screenArea.x-2*status.conf.paddleDimension.x-2*status.conf.ballRadius;
 		double maxPaddleSpeed = paddleVelocity.estimate;
 
+		
+		
 		Vector2 hit = new Vector2();
 		Vector2 hitVector = new Vector2();
 		hit.x = status.conf.screenArea.x-status.conf.paddleDimension.x-status.conf.ballRadius;
@@ -324,7 +334,12 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 		Vector2 targetVector = new Vector2();
 		Vector2 targetCollision = new Vector2();
 		
-		int startPixel = Math.min(status.conf.paddleDimension.y/10, 5); 
+		//double minReach = myPaddleY-maxPaddleSpeed*col.time;
+		//double maxReach = myPaddleY+maxPaddleSpeed*col.time;
+		
+		
+		//TODO limit check range to possible values
+		int startPixel = Math.min(status.conf.paddleDimension.y/10, 5)-2; 
 		int endPixel  = status.conf.paddleDimension.y-startPixel;
 		
 		
@@ -333,12 +348,20 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 		
 		double maxScore = -100000000000000.0;
 	
+		double prev = 0;
+		double prev2 = 0;
+		double prev3 = 0;
+		double prev4 = 0;
 		
+		Vector2 deflected = new Vector2();
+		
+		double speed = col.dir.length()*1.05;
 		for (int i = startPixel; i < endPixel; i++) {
 			double scaledPaddleHitPosition = (i -(ph/2))/(ph/2.0);
 			
-			Vector2 deflected = collisionModel.guess(scaledPaddleHitPosition, col.dir.x, col.dir.y);
-					
+			Vector2 def = collisionModel.guess(scaledPaddleHitPosition, col.dir.x, col.dir.y);
+			deflected.copy(def);
+			deflected.scaled(speed);
 		
 			
 			double time = Math.abs(screenWidth/deflected.x);
@@ -361,19 +384,27 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 				debug.copy(hit);	
 				attackers.add(debug);
 			}
-			double value = evalMinMax(hit.y, hitVector, time, myPaddleY, opponentPaddleY);
+			
+			//TODO estimate opponent paddle position
+			double value = evalMinMax(hit.y, hitVector, time, col.pos.y+scaledPaddleHitPosition*status.conf.paddleDimension.y/2, opponentPaddleY);
+			
+			double value2 = (value+prev+prev2+prev3+prev4)/5;
+			prev4 = prev3;
+			prev3 = prev2;
+			prev2 = prev;
+			prev = value;
 			
 			//System.out.println("value "+value);
-			if (value > maxScore) {
-				maxScore = value;
+			if (value2 > maxScore) {
+				maxScore = value2;
 		
-				//System.out.println("maxScore updated");
+				//System.out.println("maxScore updated: "+maxScore);
 		
 			//if (time - timeToBlock  < minTime) {
-				bestDeflectionIx = i;
+				bestDeflectionIx = i-2;
 				minTime = (time-timeToBlock);
-				targeting.aimedTarget.copy(hit);
-				targeting.deflectionVector.copy(deflectedVectors.get(deflectedVectors.size()-1));
+				targeting.aimedTarget.copy(attackers.get(attackers.size()>=3?attackers.size()-3:0));
+				targeting.deflectionVector.copy(deflectedVectors.get(deflectedVectors.size()>=3?deflectedVectors.size()-3:0));
 				
 			}
 			
@@ -404,7 +435,7 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 			//moveTo(analyser.getNextHomeCollision().pos.y, analyser.getNextHomeCollision().time);
 			moveTo(y, analyser.getNextHomeCollision().time);
 		}
-		System.out.println("time "+((System.nanoTime()-timer)/1000000.0));
+		//System.out.println("time "+((System.nanoTime()-timer)/1000000.0));
 	}
 	
 	private void moveDir(float dir) {
@@ -451,16 +482,18 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 		//System.out.println("dist "+Math.abs(dist)+" "+analyser.getTickIntervalEstimate()/1000.0f*0.1*maxPaddleSpeed);
 		double tickIntervalInSeconds = analyser.getTickIntervalEstimate()/1000.0f;
 		double absDist = Math.abs(dist);
-		double lagEstimate = tickIntervalInSeconds/2;
-		if (lagEstimate > inTime)
-			inTime -= lagEstimate;
+		
+		//double lagEstimate = tickIntervalInSeconds/2+0.010;
+		//if (lagEstimate > inTime)
+		//	inTime -= lagEstimate;
 		
 		
-		if (absDist < tickIntervalInSeconds/2*0.1*maxPaddleSpeed && absDist < status.conf.paddleDimension.y/2) {
-			moveDir(0);
+		//if (absDist < tickIntervalInSeconds/2*0.1*maxPaddleSpeed && absDist < status.conf.paddleDimension.y/2) {
+		//	moveDir(0);
 			
-		}
-		else if (absDist > 5*tickIntervalInSeconds*maxPaddleSpeed) {
+		//}
+		//else 
+		if (absDist > 5*tickIntervalInSeconds*maxPaddleSpeed) {
 			if (paddlePos < y)
 				moveDir(1);
 			else

@@ -168,8 +168,8 @@ public class GameState implements GameStateAccessorInterface {
 					double speedLeft = ballspeed - dist.length();
 					ball.x = col.x+speedLeft*ballVel.x;
 					ball.y = col.y+speedLeft*ballVel.y;
-					ball.dx = ballVel.x*ballspeed*1.01/ball.conf.speed;
-					ball.dy = ballVel.y*ballspeed*1.01/ball.conf.speed;
+					ball.dx = ballVel.x*ballspeed*1.05/ball.conf.speed;
+					ball.dy = ballVel.y*ballspeed*1.05/ball.conf.speed;
 				}
 			}
 			
@@ -200,8 +200,8 @@ public class GameState implements GameStateAccessorInterface {
 					double speedLeft = ballspeed - dist.length();
 					ball.x = col.x+speedLeft*ballVel.x;
 					ball.y = col.y+speedLeft*ballVel.y;
-					ball.dx = ballVel.x*ballspeed*1.01/ball.conf.speed;
-					ball.dy = ballVel.y*ballspeed*1.01/ball.conf.speed;
+					ball.dx = ballVel.x*ballspeed*1.05/ball.conf.speed;
+					ball.dy = ballVel.y*ballspeed*1.05/ball.conf.speed;
 				}
 			}
 		}
