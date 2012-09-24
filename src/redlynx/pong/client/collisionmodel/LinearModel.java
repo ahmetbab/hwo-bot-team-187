@@ -11,9 +11,18 @@ public class LinearModel implements PongModel {
     }
 
     @Override
+    public double getAngle(double vx_in, double vy_in) {
+    	double inLength = Math.sqrt(vx_in * vx_in + vy_in * vy_in);
+        return Math.asin(Math.abs(vx_in / inLength));
+    }
+    @Override
     public Vector2 guess(double pos, double vx_in, double vy_in) {
-        double inLength = Math.sqrt(vx_in * vx_in + vy_in * vy_in);
-        double angle = Math.asin(Math.abs(vx_in / inLength));
+    	return guess(pos, vx_in, vy_in, getAngle(vx_in, vy_in));
+    }
+    
+    @Override
+    public Vector2 guess(double pos, double vx_in, double vy_in, double angle) {
+        
         double outAngle;
 
         if(vy_in > 0) {

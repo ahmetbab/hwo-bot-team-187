@@ -72,16 +72,33 @@ public class StateAnalyzer {
 	public static int foldToScreen(Vector2 p, int radius, Vector2i screenDim) {
 		
 		int folds = 0;
-		 while (p.y < radius || p.y >= screenDim.y-radius) {
-			 if (p.y < radius) {
+		
+		if (p.y < radius) {
+			 do {
 				 p.y = flip(p, 0, radius, screenDim).y;
 				 folds++;
-			 }
-			 if (p.y >= screenDim.y-radius) {
-				 p.y = flip(p, 1, radius, screenDim).y;
-				 folds++;
-			 }
-		 }
+				 if (p.y >= screenDim.y-radius) {
+					 p.y = flip(p, 1, radius, screenDim).y;
+					 folds++;
+				 }
+				 else {
+					 break;
+				 }
+			 }while(p.y < radius);
+		}
+		else if (p.y >= screenDim.y-radius) {
+			do {
+				p.y = flip(p, 1, radius, screenDim).y;
+				folds++;
+				if (p.y < radius) {
+					 p.y = flip(p, 0, radius, screenDim).y;
+					 folds++;
+				 }
+				else
+					break;
+			}while (p.y >= screenDim.y-radius);
+				
+		} 
 		 return folds;
 	}
 	

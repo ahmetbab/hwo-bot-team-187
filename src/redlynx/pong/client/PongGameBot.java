@@ -133,6 +133,7 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
 
     @Override
    	public void gameStateUpdate(GameStatusSnapShot snap) {
+       //long timer = System.nanoTime();
        ClientGameState gameStatus = new ClientGameState(snap);       
 
         paddleVelocity.update(gameStatus.getPedal(mySide).y, gameStatus.time);
@@ -175,9 +176,14 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
         // to avoid any confusion later..
         onGameStateUpdate(lastKnownStatus);
 
+       
+        //System.out.println("time to process "+((System.nanoTime()-timer)/1000000.0));
+        
         if (visualizer != null) {
         	visualizer.render();
         }
+
+       
 
     }
 

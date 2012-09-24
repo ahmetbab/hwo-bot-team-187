@@ -161,7 +161,11 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 		
 		double y = best.y;
 		
-		double borderSafeZone = status.conf.paddleDimension.y/2+ paddleVelocity.estimate*minTime;
+		double safeTime = minTime*0.90 - analyser.getTickIntervalEstimate()*5/1000.0;
+		if (safeTime < 0)
+			safeTime = 0;
+		
+		double borderSafeZone = status.conf.paddleDimension.y/2+ paddleVelocity.estimate*safeTime;
 		if (borderSafeZone > status.conf.screenArea.y /2)
 			borderSafeZone = status.conf.screenArea.y /2;
 		if (y < borderSafeZone) 
@@ -174,7 +178,7 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 	
 	private static final double max_eval = 100000000000.0; //certain win
 
-	
+	//Vector2 hit = new Vector2();
 	private double evalMax(double y, Vector2 hitVector, double paddleLeftY, double paddleRightY) {
 		GameStatusSnapShot status = analyser.history.getStatus(0);
 		int ph = status.conf.paddleDimension.y;
@@ -192,11 +196,11 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 		double maxScore = 0;
 		
 		
-		
-		for (int i = startPixel; i < endPixel; i++) {
+		double angle = collisionModel.getAngle( hitVector.x, hitVector.y);
+		for (int i = startPixel; i < endPixel; i+=4) {
 			double scaledPaddleHitPosition = (i -(ph/2))/(ph/2.0);
 			
-			Vector2 deflected = collisionModel.guess(scaledPaddleHitPosition, hitVector.x, hitVector.y);
+			Vector2 deflected = collisionModel.guess(scaledPaddleHitPosition, hitVector.x, hitVector.y, angle);
 					
 		
 			
@@ -359,11 +363,11 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 			}
 			double value = evalMinMax(hit.y, hitVector, time, myPaddleY, opponentPaddleY);
 			
-			System.out.println("value "+value);
+			//System.out.println("value "+value);
 			if (value > maxScore) {
 				maxScore = value;
 		
-				System.out.println("maxScore updated");
+				//System.out.println("maxScore updated");
 		
 			//if (time - timeToBlock  < minTime) {
 				bestDeflectionIx = i;
@@ -384,6 +388,7 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 	
 	
 	private void act() {
+		long timer = System.nanoTime();
 		GameStatusSnapShot status = analyser.history.getStatus(0);
 		deflectedVectors.clear();
 		attackers.clear();
@@ -399,6 +404,7 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 			//moveTo(analyser.getNextHomeCollision().pos.y, analyser.getNextHomeCollision().time);
 			moveTo(y, analyser.getNextHomeCollision().time);
 		}
+		System.out.println("time "+((System.nanoTime()-timer)/1000000.0));
 	}
 	
 	private void moveDir(float dir) {
