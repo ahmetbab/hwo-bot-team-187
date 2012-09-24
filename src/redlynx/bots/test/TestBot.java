@@ -40,7 +40,7 @@ public class TestBot extends PongGameBot {
             // find out impact velocity and position.
             tmpBall.copy(lastKnownStatus.ball, true);
             lines.clear();
-            timeLeft = PongUtil.simulate(tmpBall, lastKnownStatus.conf, lines, Color.green);
+            timeLeft = PongUtil.simulateOld(tmpBall, lastKnownStatus.conf, lines, Color.green);
 
             // this is the expected y value when colliding against our paddle.
             tmpBall.y -= lastKnownStatus.conf.paddleHeight * 0.5;
@@ -57,12 +57,12 @@ public class TestBot extends PongGameBot {
             tmpBall.copy(lastKnownStatus.ball, true);
 
             lines.clear();
-            timeLeft = PongUtil.simulate(tmpBall, lastKnownStatus.conf, lines, Color.red);
+            timeLeft = PongUtil.simulateOld(tmpBall, lastKnownStatus.conf, lines, Color.red);
 
             tmpBall.vx *= -1;
             tmpBall.tick(0.05f);
 
-            timeLeft += PongUtil.simulate(tmpBall, lastKnownStatus.conf, lines, Color.green);
+            timeLeft += PongUtil.simulateOld(tmpBall, lastKnownStatus.conf, lines, Color.green);
             tmpBall.y -= lastKnownStatus.conf.paddleHeight * 0.5;
 
             // now we are done.

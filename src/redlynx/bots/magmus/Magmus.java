@@ -1,5 +1,8 @@
 package redlynx.bots.magmus;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 
 import redlynx.pong.client.Pong;
@@ -16,7 +19,23 @@ import java.awt.Color;
 
 public class Magmus extends PongGameBot {
 
-	public static void main(String[] args) {
+    private boolean logged = true;
+
+    public Magmus() {
+        PrintStream logging = null;
+        try {
+            File logFile = new File("data.txt");
+            if(!logFile.exists())
+                logFile.createNewFile();
+            logging = new PrintStream(logFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        this.logging = logging;
+    }
+
+    public static void main(String[] args) {
 		Pong.init(args, new Magmus());
 	}
 
@@ -29,6 +48,14 @@ public class Magmus extends PongGameBot {
     private int numWins = 0;
     private int numGames = 0;
 
+    // collecting statistics.
+    private boolean inVelocityReversed = true;
+    private final Vector2 dataCollectVelocityIn = new Vector2();
+    private final Vector2 dataCollectVelocityOut = new Vector2();
+    private double dataCollectCollisionPoint;
+    private final PrintStream logging;
+
+
     @Override
     public void onGameStateUpdate(ClientGameState newStatus) {
 
@@ -39,25 +66,50 @@ public class Magmus extends PongGameBot {
             // find out impact velocity and position.
             ballWorkMemory.copy(newStatus.ball, true);
             ballWorkMemory.setVelocity(getBallVelocity());
-            timeLeft = PongUtil.simulate(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
+            timeLeft = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
 
             Vector2 reach = getPaddlePossibleReturns(newStatus, ballWorkMemory, PlayerSide.LEFT, timeLeft);
             double minReach = reach.x;
             double maxReach = reach.y;
 
             // this is the expected y value when colliding against our paddle.
-            Vector3 target = evaluator.offensiveEval(this, newStatus, PlayerSide.RIGHT, ballWorkMemory, ballTemp, minReach, maxReach);
+            Vector3 target = evaluator.offensiveEval(this, newStatus, PlayerSide.RIGHT, ballWorkMemory, ballTemp, minReach, maxReach, true, lines, Color.green);
             boolean defending = false;
 
             // when no winning move available
             if(target.z < 100) {
+
+                /*
                 defending = true;
                 ballWorkMemory.copy(newStatus.ball, true);
                 ballWorkMemory.setVelocity(getBallVelocity());
-                timeLeft = PongUtil.simulate(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
-                target = evaluator.defensiveEval(this, lastKnownStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory);
+                timeLeft = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
+
+                long timer = System.nanoTime();
+                target = evaluator.defensiveEval(this, lastKnownStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory, 0);
+                long timer2 = System.nanoTime();
+
+                double dt = (timer2 - timer) / 1000000.0;
+                System.out.println("Def took: " + dt + " ms" + ", value: " + target.z);
+                */
+
             }
 
+
+            {
+                if(getHistory().isReliable()) {
+                    // data collecting.
+                    inVelocityReversed = false;
+                    logged = false;
+                    dataCollectCollisionPoint = target.y;
+                    dataCollectVelocityIn.x = newStatus.ball.vx;
+                    dataCollectVelocityIn.y = newStatus.ball.vy;
+                }
+                else if(getHistory().getLastCollisionPoint() != null && newStatus.ball.x < getHistory().getLastCollisionPoint().x && !inVelocityReversed) {
+                    dataCollectVelocityIn.y *= -1;
+                    inVelocityReversed = true;
+                }
+            }
 
             /*
             if(defending) {
@@ -86,11 +138,30 @@ public class Magmus extends PongGameBot {
             }
         }
         else {
+
+
+            {
+                // data collecting.
+                if(getHistory().isReliable() && !logged) {
+                    logged = true;
+                    dataCollectVelocityOut.x = newStatus.ball.vx;
+                    dataCollectVelocityOut.y = newStatus.ball.vy;
+
+                    if(getHistory() != null && getHistory().getLastCollisionPoint() != null && getHistory().getLastCollisionPoint().x > lastKnownStatus.conf.paddleWidth + lastKnownStatus.conf.ballRadius + 5) {
+                        dataCollectVelocityOut.y *= -1;
+                    }
+
+                    // TODO: Model could learn here.
+                    // logging.println("" + dataCollectCollisionPoint + " " + dataCollectVelocityIn.x + " " + dataCollectVelocityIn.y + " " + dataCollectVelocityOut.x + " " + dataCollectVelocityOut.y);
+                }
+            }
+
+
             // simulate twice, once there, and then back.
             ballWorkMemory.copy(newStatus.ball, true);
             ballWorkMemory.setVelocity(getBallVelocity());
 
-            timeLeft = PongUtil.simulate(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
+            timeLeft = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
             Vector2 reach = getPaddlePossibleReturns(newStatus, ballWorkMemory, PlayerSide.RIGHT, timeLeft);
 
             // add an extra ten percent, just to be sure.
@@ -98,7 +169,7 @@ public class Magmus extends PongGameBot {
             double maxReach = reach.y + 0.1;
 
             // this is the current worst case. should try to cover that?
-            Vector3 target = evaluator.offensiveEval(this, newStatus, PlayerSide.LEFT, ballWorkMemory, ballTemp, minReach, maxReach);
+            Vector3 target = evaluator.offensiveEval(this, newStatus, PlayerSide.LEFT, ballWorkMemory, ballTemp, minReach, maxReach, false, lines, Color.red);
             double paddleTarget = target.y;
 
             // if no return is possible according to simulation. Then the least impossible return should be anticipated..
@@ -120,7 +191,7 @@ public class Magmus extends PongGameBot {
             visualisePlan(0, Color.green);
 
             ballCollideToPaddle(paddleTarget, ballWorkMemory);
-            double timeLeftAfter = PongUtil.simulate(ballWorkMemory, lastKnownStatus.conf, lines, Color.red);
+            double timeLeftAfter = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, lines, Color.red);
             timeLeft += timeLeftAfter;
 
             // now we are done.
@@ -137,7 +208,7 @@ public class Magmus extends PongGameBot {
     private void visualisePlan(double paddleTarget, Color color) {
         ballTemp.copy(ballWorkMemory, true);
         ballCollideToPaddle(paddleTarget, ballTemp);
-        PongUtil.simulate(ballTemp, lastKnownStatus.conf, lines, color);
+        PongUtil.simulateNew(ballTemp, lastKnownStatus.conf, lines, color);
     }
 
     private void visualiseModel(double x, double y, double minReach, double maxReach) {

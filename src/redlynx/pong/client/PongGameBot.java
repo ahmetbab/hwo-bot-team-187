@@ -138,6 +138,7 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
         paddleVelocity.update(gameStatus.getPedal(mySide).y, gameStatus.time);
         history.update(gameStatus.ball.getPosition());
         double step_dt = (gameStatus.time - lastKnownStatus.time) / 1000.0;
+
         if(history.isReliable() && step_dt != 0) {
             lastKnownStatus.update(gameStatus, true);
             lastKnownStatus.copy(gameStatus, true);

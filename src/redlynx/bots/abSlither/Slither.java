@@ -42,7 +42,7 @@ public class Slither extends PongGameBot {
             // find out impact velocity and position.
             myDirectionBall.copy(lastKnownStatus.ball, true);
             myDirectionBall.setVelocity(getBallVelocity());
-            timeLeft = PongUtil.simulate(myDirectionBall, lastKnownStatus.conf, lines, Color.green);
+            timeLeft = PongUtil.simulateOld(myDirectionBall, lastKnownStatus.conf, lines, Color.green);
 
             // this is the expected y value when colliding against our paddle.
             Vector2 target = evaluate(newStatus, PlayerSide.RIGHT, myDirectionBall, tmpBall, timeLeft);
@@ -73,7 +73,7 @@ public class Slither extends PongGameBot {
             myDirectionBall.setVelocity(getBallVelocity());
 
             // this is the current worst case. should try to cover that?
-            timeLeft = PongUtil.simulate(myDirectionBall, lastKnownStatus.conf, lines, Color.green);
+            timeLeft = PongUtil.simulateOld(myDirectionBall, lastKnownStatus.conf, lines, Color.green);
             Vector2 target = evaluate(newStatus, PlayerSide.LEFT, myDirectionBall, tmpBall, timeLeft);
             double paddleTarget = target.y;
 
@@ -87,7 +87,7 @@ public class Slither extends PongGameBot {
             visualisePlan(0, Color.green);
 
             ballCollideToPaddle(paddleTarget, myDirectionBall);
-            double timeLeftAfter = PongUtil.simulate(myDirectionBall, lastKnownStatus.conf, lines, Color.red);
+            double timeLeftAfter = PongUtil.simulateOld(myDirectionBall, lastKnownStatus.conf, lines, Color.red);
             timeLeft += timeLeftAfter;
 
             // now we are done.
@@ -105,7 +105,7 @@ public class Slither extends PongGameBot {
     private void visualisePlan(double paddleTarget, Color color) {
         tmpBall.copy(myDirectionBall, true);
         ballCollideToPaddle(paddleTarget, tmpBall);
-        PongUtil.simulate(tmpBall, lastKnownStatus.conf, lines, color);
+        PongUtil.simulateOld(tmpBall, lastKnownStatus.conf, lines, color);
     }
 
     private void visualiseModel(double x, double y, double minReach, double maxReach) {

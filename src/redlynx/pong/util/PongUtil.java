@@ -9,10 +9,56 @@ import java.util.ArrayList;
 public class PongUtil {
 
     public static double simulate(ClientGameState.Ball ball, ClientGameState.Conf conf) {
-        return simulate(ball, conf, null, null);
+        return simulateNew(ball, conf, null, null);
     }
 
-    public static double simulate(ClientGameState.Ball ball, ClientGameState.Conf conf, ArrayList<UILine> lines, Color color) {
+    public static double simulateNew(ClientGameState.Ball ball, ClientGameState.Conf conf, ArrayList<UILine> lines, Color color) {
+        double vy = ball.vy;
+        double vx = ball.vx;
+        double x = ball.x;
+        double y = ball.y;
+
+        if(vx * vx < 0.00001f)
+            return 1000000;
+
+        double xLength = 0;
+        double end_x = 0;
+        if(vx > 0) {
+            double maxBallPosX = conf.maxWidth - conf.paddleWidth - conf.ballRadius;
+            xLength = maxBallPosX - x;
+            end_x = maxBallPosX;
+        }
+        else {
+            xLength = x - conf.paddleWidth - conf.ballRadius;
+            end_x = conf.paddleWidth + conf.ballRadius;
+        }
+
+        double dy = vy / Math.abs(vx);
+        double time = xLength / Math.abs(vx);
+        y += dy * xLength;
+
+        double maxBallY = conf.maxHeight - conf.ballRadius;
+        while(y < conf.ballRadius || y > maxBallY) {
+            vy *= -1;
+            if(y < conf.ballRadius) {
+                y = 2 * conf.ballRadius - y;
+            }
+            else {
+                y = 2 * maxBallY - y;
+            }
+        }
+
+        ball.vx = vx;
+        ball.vy = vy;
+        ball.y = y;
+        ball.x = end_x;
+
+        Visualisation.drawSquare(lines, color, ball.x, ball.y);
+
+        return time;
+    }
+
+    public static double simulateOld(ClientGameState.Ball ball, ClientGameState.Conf conf, ArrayList<UILine> lines, Color color) {
         double vy = ball.vy;
         double vx = ball.vx;
         double x = ball.x;
