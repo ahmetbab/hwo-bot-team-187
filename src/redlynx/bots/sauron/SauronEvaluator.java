@@ -1,4 +1,4 @@
-package redlynx.bots.Sauron;
+package redlynx.bots.sauron;
 
 import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.client.PongGameBot;

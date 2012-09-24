@@ -1,4 +1,4 @@
-package redlynx.bots.Sauron;
+package redlynx.bots.sauron;
 
 public class SauronState {
 

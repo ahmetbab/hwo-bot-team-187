@@ -1,4 +1,4 @@
-package redlynx.bots.Sauron;
+package redlynx.bots.sauron;
 
 import redlynx.pong.client.collisionmodel.PongModel;
 import redlynx.pong.util.Vector2;
