@@ -18,7 +18,11 @@ public class SauronModel implements PongModel {
         out.y = +vy_in + pos * Math.sqrt(vx_in * vx_in + vy_in * vy_in) * 0.3;
         return out;
     }
-
+    public double getAngle(double vx_in, double vy_in) {return 0;}
+    public Vector2 guess(double pos, double vx_in, double vy_in, double angle) {
+    	return guess(pos, vx_in, vy_in);
+    }
+    
     @Override
     public double modelError() {
         return 10000000;
