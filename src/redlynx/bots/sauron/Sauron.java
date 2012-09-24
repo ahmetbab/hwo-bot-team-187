@@ -16,6 +16,11 @@ import java.awt.Color;
 
 public class Sauron extends PongGameBot {
 
+    public Sauron() {
+        super();
+        myModel = new SauronModel();
+    }
+
 	public static void main(String[] args) {
 		Pong.init(args, new Sauron());
 	}
