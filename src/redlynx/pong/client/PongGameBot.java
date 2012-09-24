@@ -24,7 +24,7 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
     private final PaddleVelocityStorage paddleVelocity = new PaddleVelocityStorage();
     private final SoftVariable ballVelocity = new SoftVariable(50);
     private final MessageLimiter messageLimiter = new MessageLimiter();
-    public final PongModel myModel = new LinearModel();
+    public PongModel myModel = new LinearModel();
 
     public final ClientGameState.Ball ballWorkMemory = new ClientGameState.Ball();
     public final ClientGameState.Ball ballTemp = new ClientGameState.Ball();

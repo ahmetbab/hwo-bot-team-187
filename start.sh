@@ -11,7 +11,7 @@ function run
 	else
 		echo "Starting bot with name $1"
 		echo "Connecting to $2:$3"
-		java -cp out/production/pongbot/ redlynx/bots/magmus/Magmus $1 $2 $3 &
+		java -cp out/production/pongbot/ redlynx/bots/sauron/Sauron $1 $2 $3 &
 		echo $! > .pids
 	fi
 }
