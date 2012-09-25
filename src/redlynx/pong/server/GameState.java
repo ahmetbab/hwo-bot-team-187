@@ -93,8 +93,7 @@ public class GameState implements GameStateAccessorInterface {
 		deflectionMode = 0;
 		deflectionValue[0] = 10;
 		deflectionValue[1] = 20;
-		model = new LinearModel();
-		
+		model = new LinearServerModel();
 	}
 	
 	public void resetGame() {

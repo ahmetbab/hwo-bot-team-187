@@ -9,7 +9,6 @@ import redlynx.pong.client.collisionmodel.PongModel;
 import redlynx.pong.client.network.MessageLimiter;
 import redlynx.pong.client.state.*;
 import redlynx.pong.util.SoftVariable;
-import redlynx.pong.client.BaseBot;
 import redlynx.pong.client.network.Communicator;
 import redlynx.pong.client.network.PongMessageParser;
 import redlynx.pong.ui.GameStateAccessorInterface;
@@ -24,7 +23,7 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
     private final PaddleVelocityStorage paddleVelocity = new PaddleVelocityStorage();
     private final SoftVariable ballVelocity = new SoftVariable(50);
     private final MessageLimiter messageLimiter = new MessageLimiter();
-    public PongModel myModel = new LinearModel();
+    public PongModel myModel = new LinearModel(this);
 
     public final ClientGameState.Ball ballWorkMemory = new ClientGameState.Ball();
     public final ClientGameState.Ball ballTemp = new ClientGameState.Ball();
@@ -173,8 +172,12 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
 
         extrapolatedTime = 0;
 
-        // to avoid any confusion later..
+
+        long startTime = System.nanoTime();
         onGameStateUpdate(lastKnownStatus);
+        long time = System.nanoTime() - startTime;
+
+        System.out.println(getDefaultName() + ", decision making took " + (time / 1000000.0f) + "ms");
 
        
         //System.out.println("time to process "+((System.nanoTime()-timer)/1000000.0));
@@ -263,7 +266,7 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
 
     public void ballCollideToPaddle(double paddleRelativePos, ClientGameState.Ball ball) {
         Vector2 ballOut = myModel.guess(paddleRelativePos, ball.vx, ball.vy);
-        ballOut.normalize().scaled(getBallVelocity());
+        ballOut.normalize().scaled(getBallVelocity() + 15);
         ball.vx = ballOut.x;
         ball.vy = ballOut.y;
         ball.tick(0.02f);

@@ -21,15 +21,12 @@ public class TestBot extends PongGameBot {
     private TestBotState myState;
     private final ClientGameState.Ball tmpBall = new ClientGameState.Ball();
     private final ArrayList<UILine> lines = new ArrayList<UILine>();
-    private final PongModel myModel = new LinearModel();
+    private final PongModel myModel = new LinearModel(this);
 
     private double timeLeft = 10000; // this tells us how many seconds we have left until we lose.
 
     public TestBot() {
     }
-    
-    
-    
     
 
     @Override

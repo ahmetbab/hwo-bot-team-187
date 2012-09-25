@@ -3,6 +3,7 @@ package redlynx.bots;
 import redlynx.bots.abSlither.Slither;
 import redlynx.bots.jbot.JBot;
 import redlynx.bots.magmus.Magmus;
+import redlynx.bots.sauron.Sauron;
 import redlynx.bots.test.TestBot;
 import redlynx.pong.client.BaseBot;
 import redlynx.pong.client.Pong;
@@ -11,8 +12,8 @@ public class PongMatcher {
 
     // takes no arguments.
     public static void main(String[] args) {
-        BaseBot bot1 = new Magmus();
-        BaseBot bot2 = new Slither();
+        BaseBot bot1 = new Sauron();
+        BaseBot bot2 = new Magmus();
 
         createMatch(bot1, bot2);
     }

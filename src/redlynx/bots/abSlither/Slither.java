@@ -26,7 +26,7 @@ public class Slither extends PongGameBot {
     private final ClientGameState.Ball tmpBall = new ClientGameState.Ball();
 
     private final ArrayList<UILine> lines = new ArrayList<UILine>();
-    private final PongModel myModel = new LinearModel();
+    private final PongModel myModel = new LinearModel(this);
 
     double timeLeft = 10000;
     private int numWins = 0;

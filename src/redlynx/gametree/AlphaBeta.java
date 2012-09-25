@@ -3,12 +3,13 @@ package redlynx.gametree;
 import redlynx.pong.client.collisionmodel.LinearModel;
 import redlynx.pong.client.collisionmodel.PongModel;
 import redlynx.pong.client.state.ClientGameState;
+import redlynx.pong.server.LinearServerModel;
 import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector2;
 
 public class AlphaBeta {
 
-    private static PongModel model = new LinearModel();
+    private static PongModel model = new LinearServerModel();
 
     public static class AlphaBetaState {
         public double left_y = 0;

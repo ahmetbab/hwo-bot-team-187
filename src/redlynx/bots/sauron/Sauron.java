@@ -18,7 +18,7 @@ public class Sauron extends PongGameBot {
 
     public Sauron() {
         super();
-        myModel = new SauronModel();
+        myModel = new SauronModel(this);
     }
 
 	public static void main(String[] args) {

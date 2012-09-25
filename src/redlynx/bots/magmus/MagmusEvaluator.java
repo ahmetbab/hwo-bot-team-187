@@ -32,8 +32,8 @@ public class MagmusEvaluator {
         double bestDefPaddle = 0;
 
         {
-            for(int i=2; i<=18; ++i) {
-                double tmpTarget = (i - 10) / 10.0;
+            for(int i=5; i<=45; ++i) {
+                double tmpTarget = (i - 25) / 25.0;
                 double evaluatedPaddlePos = targetPos - tmpTarget * state.conf.paddleHeight * 0.5;
 
                 // if return not physically possible, don't evaluate it.
@@ -121,8 +121,8 @@ public class MagmusEvaluator {
         double minTarget = 0;
         double minTargetPos = targetPos;
 
-        for(int i=2; i<=18; ++i) {
-            double tmpTarget = (i - 10) / 10.0;
+        for(int i=5; i<=45; ++i) {
+            double tmpTarget = (i - 25) / 25.0;
             double evaluatedPaddlePos = targetPos - tmpTarget * state.conf.paddleHeight * 0.5;
 
             // if return not physically possible, don't evaluate it.

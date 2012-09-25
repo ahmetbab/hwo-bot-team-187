@@ -13,6 +13,7 @@ import redlynx.pong.client.network.Communicator;
 import redlynx.pong.client.network.PongMessageParser;
 import redlynx.pong.client.state.GameStatusSnapShot;
 import redlynx.pong.client.state.PaddleVelocityStorage;
+import redlynx.pong.server.LinearServerModel;
 import redlynx.pong.ui.GameStateAccessorInterface;
 import redlynx.pong.ui.PongVisualizer;
 import redlynx.pong.ui.UILine;
@@ -26,7 +27,7 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 		Pong.init(args, new JBot());
 	}
 	
-    private final PongModel collisionModel = new LinearModel();
+    private final PongModel collisionModel = new LinearServerModel();
 
 	private double prevCommand;
 	private long lastCommandTimeMillis;
@@ -205,7 +206,7 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 		for (int i = startPixel; i < endPixel; i+=4) {
 			double scaledPaddleHitPosition = (i -(ph/2))/(ph/2.0);
 			
-			Vector2 def = collisionModel.guess(scaledPaddleHitPosition, hitVector.x, hitVector.y, angle);
+			Vector2 def = collisionModel.guessGivenAngle(scaledPaddleHitPosition, hitVector.x, hitVector.y, angle);
 			deflected.copy(def);
 			deflected.scaled(speed);
 		
