@@ -396,7 +396,7 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 			prev = value;
 			
 			//System.out.println("value "+value);
-			if (value2 > maxScore) {
+			if ( value2 > maxScore) {
 				maxScore = value2;
 		
 				//System.out.println("maxScore updated: "+maxScore);
@@ -404,8 +404,10 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 			//if (time - timeToBlock  < minTime) {
 				bestDeflectionIx = i-2;
 				minTime = (time-timeToBlock);
-				targeting.aimedTarget.copy(attackers.get(attackers.size()>=3?attackers.size()-3:0));
-				targeting.deflectionVector.copy(deflectedVectors.get(deflectedVectors.size()>=3?deflectedVectors.size()-3:0));
+				if (visualizer != null) {
+					targeting.aimedTarget.copy(attackers.get(attackers.size()>=3?attackers.size()-3:0));
+					targeting.deflectionVector.copy(deflectedVectors.get(deflectedVectors.size()>=3?deflectedVectors.size()-3:0));
+				}
 				
 			}
 			
