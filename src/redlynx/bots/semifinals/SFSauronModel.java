@@ -20,7 +20,7 @@ public class SFSauronModel implements PongModel {
     @Override
     public Vector2 guess(double pos, double vx_in, double vy_in) {
         out.x = -vx_in;
-        out.y = +vy_in + pos * host.getBallVelocity() * (0.25 + Math.abs(vy_in / vx_in) * 0.15);
+        out.y = +vy_in + pos * host.getBallVelocity() * (0.30 + Math.abs(vy_in / vx_in) * 0.05);
         return out;
     }
 
