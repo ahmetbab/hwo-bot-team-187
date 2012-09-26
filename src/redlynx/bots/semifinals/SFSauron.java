@@ -49,6 +49,18 @@ public class SFSauron extends PongGameBot {
             double minReach = reach.x;
             double maxReach = reach.y;
 
+            {
+                // hack.. if angle is high, don't try to hit the ball with the wrong end of the paddle..
+                double value = ballWorkMemory.vy / (Math.abs(ballWorkMemory.vx) + 0.000001);
+                double amount = Math.min(0.5, value * value * 0.3);
+                if(value < 0.0 && minReach < -1+amount) {
+                    minReach = -1+amount;
+                }
+                else if(value > 0.0 && maxReach > 1-amount) {
+                    maxReach = +1-amount;
+                }
+            }
+
             // this is the expected y value when colliding against our paddle.
             Vector3 target = evaluator.offensiveEval(this, newStatus, PlayerSide.RIGHT, ballWorkMemory, ballTemp, minReach, maxReach);
 
@@ -59,16 +71,6 @@ public class SFSauron extends PongGameBot {
                 timeLeft = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
                 target = evaluator.defensiveEval(this, lastKnownStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory);
             }
-
-
-            /*
-            if(defending) {
-                System.out.println("############## " + target.z);
-            }
-            else {
-                System.out.println("-------------- " + target.z);
-            }
-            */
 
             double targetPos = target.x;
             double paddleTarget = target.y;

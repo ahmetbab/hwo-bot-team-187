@@ -213,7 +213,7 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
         history.reset();
         lastKnownStatus.reset();
         extrapolatedStatus.reset();
-        ballVelocity.reset(50);
+        ballVelocity.reset(100);
         onGameOver(won);
     }
 
