@@ -14,12 +14,17 @@ public class PaddleVelocityStorage {
     public double estimate = 0;
 
     public PaddleVelocityStorage() {
-    	this(50);
+    	this(100);
     }
     public PaddleVelocityStorage(double defaultMaxSpeedGuess) {
     	estimate = defaultMaxSpeedGuess;
+    	//System.out.println("paddle speed estimate reset: "+estimate);
     }
-    
+    public void reset(double maxspeed) {
+    	estimate = maxspeed;
+    	paddleSpeed = 0;
+    	history.clear();
+    }
     public void update(double speed) {
         this.paddleSpeed = speed;
         history.clear();
@@ -46,6 +51,7 @@ public class PaddleVelocityStorage {
             
             int historyWeight = 5;
             estimate =  (estimate*historyWeight+ sample)/(historyWeight+1); // fast adaptation to varying paddle move speeds.
+            //System.out.println("paddle speed estimate; "+estimate+" dy "+dy+" s "+sample+" dt "+dt);
         }
     }
 
