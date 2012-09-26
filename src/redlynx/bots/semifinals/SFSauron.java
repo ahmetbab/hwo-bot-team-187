@@ -51,11 +51,9 @@ public class SFSauron extends PongGameBot {
 
             // this is the expected y value when colliding against our paddle.
             Vector3 target = evaluator.offensiveEval(this, newStatus, PlayerSide.RIGHT, ballWorkMemory, ballTemp, minReach, maxReach);
-            boolean defending = false;
 
             // when no winning move available
             if(target.z < 100) {
-                defending = true;
                 ballWorkMemory.copy(newStatus.ball, true);
                 ballWorkMemory.setVelocity(getBallVelocity());
                 timeLeft = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
@@ -84,7 +82,7 @@ public class SFSauron extends PongGameBot {
             if(myState.catching()) {
                 double myPos = lastKnownStatus.getPedal(getMySide()).y;
                 double distance = (targetPos - myPos);
-                if(needToReact(targetPos)) {
+                if(needToReact(targetPos) || reallyShouldUpdateRegardless()) {
                     changeCourse(distance);
                 }
             }
