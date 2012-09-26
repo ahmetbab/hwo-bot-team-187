@@ -178,9 +178,12 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
         long time = System.nanoTime() - startTime;
         float decisionTime = (time / 1000000.0f);
 
+        /*
+        // For testing. Decisions must be computed fast.
         if(decisionTime > 2) {
             System.out.println(getDefaultName() + ", decision making took " + decisionTime + "ms");
         }
+        */
 
         if (visualizer != null) {
         	visualizer.render();
