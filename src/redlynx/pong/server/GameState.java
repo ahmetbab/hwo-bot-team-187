@@ -91,7 +91,7 @@ public class GameState implements GameStateAccessorInterface {
 				//System.out.println(this.toString());
 				
 				JSONObject stateMessage  = new JSONObject();
-				stateMessage.put("msgType", "missileLauched");
+				stateMessage.put("msgType", "missileLaunched");
 				JSONObject data = new JSONObject();
 				data.put("launchTime", System.currentTimeMillis());
 				JSONObject jpos = new JSONObject();
