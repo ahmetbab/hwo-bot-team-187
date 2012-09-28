@@ -14,6 +14,7 @@ public class PongServer {
 	boolean gameRunning;
 	boolean paused;
 	int messageInterval;
+	int missileInterval = 100;
 	
 	String message;
 	ServerPlayer[] players;
@@ -39,7 +40,18 @@ public class PongServer {
 		if (!Double.isInfinite(dir) && !Double.isNaN(dir))
 			gameState.changeDir(id, dir);
 	}
-
+	public void launchMissile(int id, long missileId) {
+		
+		System.out.println("missile launched!!! "+ missileId);
+		
+		boolean canLaunch = players[id].launchMissile(missileId);
+		if (canLaunch) {
+			System.out.println("can!!missile launched!!! "+ missileId);
+			gameState.launchMissile(id);
+		}
+	}
+	
+	
 	void connectPlayers()
 	{
 		
@@ -167,6 +179,7 @@ public class PongServer {
 				gameState.setPlayers(players[0].getName(), players[1].getName());
 				startGame();
 				int ticksSinceMessage = 0;
+				int ticksSinceMissile = 0;
 				while(gameRunning) {
 					if (!paused) {
 						gameState.tickGame();
@@ -178,6 +191,15 @@ public class PongServer {
 						else {
 							ticksSinceMessage++;
 						}
+						if (ticksSinceMissile >= missileInterval) {
+							players[0].addMissile();
+							players[1].addMissile();
+							ticksSinceMissile = 0;
+						}
+						else {
+							ticksSinceMissile++;
+						}
+						
 						if (gameState.hasEnded()) {
 							endGame(gameState.getWinner());
 							//TODO keep track of winners
@@ -251,4 +273,5 @@ public class PongServer {
 	public void setInputLag(int value) {
 		lagSimulator.setInputLag(value);
 	}
+	
 }

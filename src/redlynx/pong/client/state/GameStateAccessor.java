@@ -88,4 +88,9 @@ public class GameStateAccessor implements GameStateAccessorInterface {
 	public ArrayList<UIString> getExtraStrings() {
 		return null;
 	}
+	@Override
+	public ArrayList<Vector2> getMissilePositions() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

@@ -96,6 +96,17 @@ public class PongVisualizer extends JPanel
             int r = model.getBallRadius();
             g.drawRect((int)(cornerx+ballPos.x-r), (int)(cornery+ballPos.y-r), 2*r, 2*r);
         }
+        
+        ArrayList<Vector2> missiles = model.getMissilePositions();
+        if (missiles != null) {
+        	g.setColor(Color.red);
+        	for (int i = 0; i < missiles.size(); i++) {
+        		Vector2 pos  = missiles.get(i);
+        		g.drawLine((int)(cornerx + pos.x - 5), (int)(cornery + pos.y - 5), (int)(cornerx + pos.x + 5), (int)(cornery + pos.y + 5));
+        		g.drawLine((int)(cornerx + pos.x - 5), (int)(cornery + pos.y + 5), (int)(cornerx + pos.x + 5), (int)(cornery + pos.y - 5));
+        	}
+        
+        }
 
         ArrayList<UILine> extraUILines = model.getExtraLines();
         if (extraUILines != null) {

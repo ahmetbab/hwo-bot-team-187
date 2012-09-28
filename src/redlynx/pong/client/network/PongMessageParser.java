@@ -5,6 +5,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import redlynx.pong.client.state.GameStatusSnapShot;
+import redlynx.pong.client.state.MissileState;
+import redlynx.pong.util.Vector2;
 
 public class PongMessageParser {
 
@@ -12,6 +14,8 @@ public class PongMessageParser {
 		public void gameStart(String player1, String player2);
 		public void gameOver(String winner);
 		public void gameStateUpdate(GameStatusSnapShot status);
+		public void missileReady(long missileId);
+		public void missileLaunched(MissileState missile);
 	} 
 	
     //private final PongGameBot bot;
@@ -65,6 +69,39 @@ public class PongMessageParser {
             // ignore bad data.
         }
     }
+    
+    private void onMissileReady(long missileId) {
+    	listener.missileReady(missileId);
+    }
+    private void onMissileLaunched(JSONObject missileState) {
+
+        
+        try {
+            
+        	Vector2 pos = new Vector2();
+        	Vector2 vel = new Vector2();
+        	
+        	
+
+            JSONObject jpos = missileState.getJSONObject("pos");
+            pos.x = jpos.getDouble("x");
+            pos.y = jpos.getDouble("y");
+
+            jpos = missileState.getJSONObject("speed");
+            vel.x = jpos.getDouble("x");
+            vel.y = jpos.getDouble("y");
+            long time = missileState.getLong("launchTime");
+            String code = missileState.getString("code");
+            
+            MissileState status = new MissileState(pos, vel, time, code);
+            listener.missileLaunched(status);
+        }
+        catch (JSONException e) {
+            // ignore bad data.
+        }
+    }
+    
+    
 
     public void onReceivedJSONString(String serverMessage) {
         try {
@@ -84,6 +121,13 @@ public class PongMessageParser {
             else if ("gameIsOver".equals(type)) {
                 onGameOver(json.getString("data"));
             }
+            else if ("missileReady".equals(type)) {
+            	onMissileReady(json.getLong("data"));
+            }
+            else if ("missileLaunched".equals(type)) {
+            	onMissileLaunched(json.getJSONObject("data"));
+            }
+
             else {
                 // unexpected message
                 System.out.println("Unexpected message: " + serverMessage);

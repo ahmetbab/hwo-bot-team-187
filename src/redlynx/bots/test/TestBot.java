@@ -1,15 +1,13 @@
 package redlynx.bots.test;
 
+import java.awt.Color;
 import java.util.ArrayList;
 
 import redlynx.pong.client.Pong;
-import redlynx.pong.client.collisionmodel.LinearModel;
-import redlynx.pong.client.collisionmodel.PongModel;
-import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.client.PongGameBot;
+import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.util.PongUtil;
-import java.awt.Color;
 
 public class TestBot extends PongGameBot {
 
@@ -21,7 +19,6 @@ public class TestBot extends PongGameBot {
     private TestBotState myState;
     private final ClientGameState.Ball tmpBall = new ClientGameState.Ball();
     private final ArrayList<UILine> lines = new ArrayList<UILine>();
-    private final PongModel myModel = new LinearModel(this);
 
     private double timeLeft = 10000; // this tells us how many seconds we have left until we lose.
 

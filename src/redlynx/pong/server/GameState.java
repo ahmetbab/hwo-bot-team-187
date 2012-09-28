@@ -5,8 +5,8 @@ import java.util.ArrayList;
 
 import org.json.JSONObject;
 
-import redlynx.pong.client.collisionmodel.LinearModel;
-import redlynx.pong.client.collisionmodel.PongModel;
+import redlynx.pong.collisionmodel.PongModel;
+import redlynx.pong.collisionmodel.SFSauronGeneralModel;
 import redlynx.pong.ui.GameStateAccessorInterface;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.ui.UIString;
@@ -21,6 +21,7 @@ public class GameState implements GameStateAccessorInterface {
 		public double y;
 		public double vel;
 		public String name;
+		public boolean newMissile;
 	}
 
 	public class BallConfig {
@@ -44,7 +45,7 @@ public class GameState implements GameStateAccessorInterface {
 	
 	public class PaddleConfig {
 		PaddleConfig() {
-			maxSpeed = 1;
+			maxSpeed = 3;
 			width = 10;
 			height = 50;
 		}
@@ -60,12 +61,57 @@ public class GameState implements GameStateAccessorInterface {
 	public int screenWidth;
 	public int screenHeight;
 	public int tickInterval;
+	public int missileStartPos;
+	public int missileSpeed;
+	
 	
 	private boolean gameEnded;
 	private int winner;
 	public int deflectionMode;
 	public int[] deflectionValue = new int[2];
 	PongModel model;
+	
+	private class Missile {
+		Vector2 pos;
+		Vector2 vel;
+		boolean newMissile;
+		public Missile(Vector2 pos, Vector2 vel) {
+			this.pos = pos;
+			this.vel = vel;
+			newMissile = true;
+		}
+		boolean isNew() {
+			return newMissile;
+		}
+		
+		
+		public String toJSONString(int playerId) {
+			try {
+				
+				//System.out.println(this.toString());
+				
+				JSONObject stateMessage  = new JSONObject();
+				stateMessage.put("msgType", "missileLauched");
+				JSONObject data = new JSONObject();
+				data.put("launchTime", System.currentTimeMillis());
+				JSONObject jpos = new JSONObject();
+				jpos.put("x", playerId==0?pos.x: screenWidth-pos.x);
+				jpos.put("y", pos.y);
+				data.put("pos", jpos);
+				JSONObject jvel = new JSONObject();
+				jvel.put("x", playerId==0?vel.x: screenWidth-vel.x);
+				jvel.put("y", vel.y);
+				data.put("speed", jvel);
+				data.put("code", "destroyer");
+				stateMessage.put("data", data);
+				return stateMessage.toString();
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+			return "";
+		}
+	}
+	ArrayList<Missile> missiles;
 	
 	public boolean hasEnded() {
 		return gameEnded;
@@ -78,13 +124,18 @@ public class GameState implements GameStateAccessorInterface {
 		paddle[1].name = player2;
 	}
 	
+	public void clearMissiles() {
+		missiles.clear();
+	}
+	
 	GameState() {
+		missiles = new ArrayList<Missile>();
 		for (int i = 0; i < 2; i++) {
 			paddle[i] = new Paddle();
 		}
 		screenWidth = 640;
 		screenHeight = 480;
-		tickInterval = 15;
+		tickInterval = 30;
 		ball.x = screenWidth /2;
 		ball.y = screenHeight / 2;
 		paddle[0].y = paddle[1].y = (screenHeight / 2);
@@ -93,12 +144,18 @@ public class GameState implements GameStateAccessorInterface {
 		deflectionMode = 0;
 		deflectionValue[0] = 10;
 		deflectionValue[1] = 20;
-		model = new LinearServerModel();
+		model = new SFSauronGeneralModel();
+		
+		missileStartPos = screenWidth/2;
+		missileSpeed = 5;
+		
 	}
 	
 	public void resetGame() {
+		missiles.clear();
 		paddle[0].y = paddle[1].y = (screenHeight / 2); //TODO parameter to randomize?
 		paddle[0].vel = paddle[1].vel = 0;
+		paddle[0].newMissile = paddle[1].newMissile = false;
 		ball.x = 10;
 		ball.y = 10 + (Math.random() * (screenHeight - 20));
 		ball.dx = Math.random() + 0.5;
@@ -108,7 +165,25 @@ public class GameState implements GameStateAccessorInterface {
 	}
 	
 	public synchronized void tickGame() {
+		
+		
+		
+		for (int i = 0; i < missiles.size(); i++) {
+			Missile m = missiles.get(i); 
+			m.newMissile = false;
+			m.pos.x += m.vel.x;
+			m.pos.y += m.vel.y;
+		}
+		
+		
 		for (int i = 0; i < paddle.length; i++) {
+			if (paddle[i].newMissile) {
+				missiles.add(new Missile(
+						new Vector2(i == 0 ? missileStartPos : screenWidth-missileStartPos, paddle[i].y+paddleConfig.height/2), 
+						new Vector2(i == 0 ? missileSpeed    : -missileSpeed, 0)));
+				paddle[i].newMissile = false;
+			}
+			
 			paddle[i].y += paddle[i].vel*paddleConfig.maxSpeed; //should this be done every tick or timed 
 			
 			if (paddle[i].y < 0) {
@@ -123,6 +198,32 @@ public class GameState implements GameStateAccessorInterface {
 			}
 			
 		}
+		
+		for (int i = missiles.size()-1; i >= 0; i--) {
+			Missile m = missiles.get(i);
+			if (m.pos.x < paddleConfig.width) {
+				if (m.pos.y >= paddle[0].y 
+					&& m.pos.y <= paddle[0].y+paddleConfig.height) {
+					endGame(1);
+				}
+			
+				if (m.pos.x < 0)
+					missiles.remove(i);
+			}
+			else if (m.pos.x > screenWidth-paddleConfig.width) {
+				if (m.pos.y >= paddle[1].y 
+					&& m.pos.y <= paddle[1].y+paddleConfig.height) {
+					endGame(0);
+				}
+				if (m.pos.x > screenWidth)
+					missiles.remove(i);
+			}
+			
+			
+		}
+		if (gameEnded) //missile killed a player already
+			return;
+		
 		//System.out.println("paddles: "+paddle[0].y+" : "+paddle[1].y);
 		
 		Vector2 oldPos = new Vector2(ball.x, ball.y);
@@ -154,6 +255,9 @@ public class GameState implements GameStateAccessorInterface {
 				else {
 					
 					double paddleCollision =(collisionY-(paddle[0].y+paddleConfig.height/2))/(paddleConfig.height/2.0);
+					
+					
+				
 					
 					Vector2 deflected = model.guess(paddleCollision, ballVel.x, ballVel.y);
 					
@@ -268,11 +372,26 @@ public class GameState implements GameStateAccessorInterface {
 		
 	}
 	
+	public synchronized void launchMissile(int id) {
+		paddle[id].newMissile = true;
+	}
+	 
+	
+	
 	public synchronized String toJSONString(int id) {
 		
 		try {
 			
 			//System.out.println(this.toString());
+			
+			String missilesString = "";
+			for (int i = 0; i < missiles.size(); i++) {
+				Missile m = missiles.get(i);
+				if (m.isNew())
+					missilesString += m.toJSONString(id);
+			}
+			
+			
 			
 			JSONObject stateMessage  = new JSONObject();
 			stateMessage.put("msgType", "gameIsOn");
@@ -302,7 +421,7 @@ public class GameState implements GameStateAccessorInterface {
 			
 			data.put("conf", conf);
 			stateMessage.put("data", data);
-			return stateMessage.toString();
+			return stateMessage.toString()+missilesString;
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -381,6 +500,14 @@ public class GameState implements GameStateAccessorInterface {
 	public int getBallRadius() {
 		return ball.conf.radius;
 	}
+	@Override 
+	public ArrayList<Vector2> getMissilePositions() {
+		ArrayList<Vector2> mpos = new ArrayList<Vector2>();
+		for (int i = 0; i < missiles.size(); i++) {
+			mpos.add(missiles.get(i).pos);
+		}
+		return mpos;
+	}
 	@Override
 	public Vector2 getBallPos() {
 		return new Vector2(ball.x, ball.y);
@@ -401,6 +528,7 @@ public class GameState implements GameStateAccessorInterface {
 	public ArrayList<UIString> getExtraStrings() {
 		return null;
 	}
+	
 	
 	
 	

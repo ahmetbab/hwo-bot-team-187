@@ -1,19 +1,25 @@
 package redlynx.pong.client;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import redlynx.pong.client.collisionmodel.LinearModel;
-import redlynx.pong.client.collisionmodel.PongModel;
-import redlynx.pong.client.network.MessageLimiter;
-import redlynx.pong.client.state.*;
-import redlynx.pong.util.SoftVariable;
 import redlynx.pong.client.network.Communicator;
+import redlynx.pong.client.network.MessageLimiter;
 import redlynx.pong.client.network.PongMessageParser;
+import redlynx.pong.client.state.ClientGameState;
+import redlynx.pong.client.state.GameStateAccessor;
+import redlynx.pong.client.state.GameStatusSnapShot;
+import redlynx.pong.client.state.History;
+import redlynx.pong.client.state.MissileState;
+import redlynx.pong.client.state.PaddleVelocityStorage;
+import redlynx.pong.collisionmodel.LinearModel;
+import redlynx.pong.collisionmodel.PongModel;
 import redlynx.pong.ui.GameStateAccessorInterface;
 import redlynx.pong.ui.PongVisualizer;
 import redlynx.pong.ui.UILine;
+import redlynx.pong.util.SoftVariable;
 import redlynx.pong.util.Vector2;
 
 public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMessageListener {
@@ -23,7 +29,7 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
     private final PaddleVelocityStorage paddleVelocity = new PaddleVelocityStorage();
     private final SoftVariable ballVelocity = new SoftVariable(50);
     private final MessageLimiter messageLimiter = new MessageLimiter();
-    public PongModel myModel = new LinearModel(this);
+    public PongModel myModel = new LinearModel();
 
     public final ClientGameState.Ball ballWorkMemory = new ClientGameState.Ball();
     public final ClientGameState.Ball ballTemp = new ClientGameState.Ball();
@@ -52,6 +58,7 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
     private PongVisualizer visualizer;
 
     private final Queue<String> serverMessageQueue;
+    private Queue<Long> missiles;
     private Communicator communicator;
     private final PongMessageParser handler;
     private String name;
@@ -84,6 +91,7 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
     public PongGameBot() {
     	//this.name = name;
         this.serverMessageQueue = new ConcurrentLinkedQueue<String>();
+        missiles = new ArrayDeque<Long>();
         this.handler = new PongMessageParser(this);
         accessor = new GameStateAccessor(this);
     }
@@ -126,13 +134,43 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
     	serverMessageQueue.add(msg);
     }
     
+    
     public void setVisualizer(PongVisualizer visualizer) {
     	this.visualizer = visualizer;
     }
+    
+   
+    @Override
+	public void missileReady(long missileId) {
+    	missiles.add(missileId);
+    }
+    public boolean hasMissiles() {
+    	return missiles.size() > 0;
+    }
+    public boolean fireMissile() {
+    	  if(messageLimiter.canSend() && hasMissiles()) {
+              getCommunicator().sendFireMissile(missiles.remove());
+              messageLimiter.send();
+              return true;
+          }
+          return false;
+    }
+    
+    @Override
+	public void missileLaunched(MissileState missile) {
+    	//TODO avoid missile, update game state to follow missiles
+    }
+    
 
     @Override
    	public void gameStateUpdate(GameStatusSnapShot snap) {
        //long timer = System.nanoTime();
+    	
+    	//TODO missile test, add proper logic
+    	if (hasMissiles())
+    		fireMissile();
+    	
+    	
        ClientGameState gameStatus = new ClientGameState(snap);       
 
         paddleVelocity.update(gameStatus.getPedal(mySide).y, gameStatus.time);
@@ -269,7 +307,7 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
     }
 
     public void ballCollideToPaddle(double paddleRelativePos, ClientGameState.Ball ball) {
-        Vector2 ballOut = myModel.guess(paddleRelativePos, ball.vx, ball.vy);
+		Vector2 ballOut = myModel.guess(paddleRelativePos, ball.vx, ball.vy);
         ballOut.normalize().scaled(getBallVelocity() + 15);
         ball.vx = ballOut.x;
         ball.vy = ballOut.y;

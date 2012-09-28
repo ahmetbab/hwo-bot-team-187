@@ -1,4 +1,4 @@
-package redlynx.pong.client.collisionmodel;
+package redlynx.pong.collisionmodel;
 
 import redlynx.pong.util.Vector2;
 

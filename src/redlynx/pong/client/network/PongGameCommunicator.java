@@ -25,4 +25,11 @@ public class PongGameCommunicator implements Communicator {
         out.print("{\"msgType\":\"requestDuel\",\"data\":[\"" + name + "\",\""+ matchBot + "\"]}\n");
         out.flush();
     }
+
+	@Override
+	public void sendFireMissile(long id) {
+		out.print("{\"msgType\":\"launchMissile\",\"data\":" + id + "}\n");
+		out.flush();
+		
+	}
 }

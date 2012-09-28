@@ -13,4 +13,8 @@ public class NullCommunicator implements Communicator {
     @Override
     public void sendRequestMatch(String name, String matchBot) {
     }
+
+	@Override
+	public void sendFireMissile(long remove) {
+	}
 }

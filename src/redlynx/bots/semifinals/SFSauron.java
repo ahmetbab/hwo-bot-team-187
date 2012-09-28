@@ -1,5 +1,8 @@
 package redlynx.bots.semifinals;
 
+import java.awt.Color;
+import java.util.ArrayList;
+
 import redlynx.pong.client.Pong;
 import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
@@ -8,9 +11,6 @@ import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector2;
 import redlynx.pong.util.Vector2i;
 import redlynx.pong.util.Vector3;
-
-import java.awt.*;
-import java.util.ArrayList;
 
 
 public class SFSauron extends PongGameBot {

@@ -1,38 +1,37 @@
-package redlynx.bots.sauron;
+package redlynx.pong.collisionmodel;
 
-import redlynx.pong.client.PongGameBot;
-import redlynx.pong.collisionmodel.PongModel;
 import redlynx.pong.util.Vector2;
 
-public class SauronModel implements PongModel {
+public class SFSauronGeneralModel implements PongModel {
 
-    private double modelValue = 1.3;
     private final Vector2 out = new Vector2();
-    private final PongGameBot host;
+    
+  
 
-    public SauronModel(PongGameBot bot) {
-        this.host = bot;
+    public SFSauronGeneralModel() {
     }
 
     @Override
     public void learn(double pos, double vy_in, double vy_out) {
     }
-
     @Override
     public Vector2 guess(double pos, double vx_in, double vy_in) {
-        out.x = -vx_in;
-        out.y = +vy_in + pos * host.getBallVelocity() * 0.3;
-        return out;
+    	return guessGivenSpeed(pos, vx_in, vy_in, Math.sqrt(vx_in*vx_in + vy_in*vy_in));
     }
 
+    
+    @Override
     public double getAngle(double vx_in, double vy_in) {return 0;}
 
+    @Override
     public Vector2 guessGivenAngle(double pos, double vx_in, double vy_in, double angle) {
     	return guess(pos, vx_in, vy_in);
     }
     @Override
     public Vector2 guessGivenSpeed(double pos, double vx_in, double vy_in, double speed) {
-    	return guess(pos, vx_in, vx_in);
+        out.x = -vx_in;
+        out.y = +vy_in + pos * speed * (0.22 + Math.abs(vy_in / vx_in) * 0.10);
+        return out;
     }
     
     @Override

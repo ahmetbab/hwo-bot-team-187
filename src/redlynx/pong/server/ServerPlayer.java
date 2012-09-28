@@ -6,6 +6,8 @@ import java.io.PrintStream;
 import java.net.Socket;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashSet;
+import java.util.Random;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,7 +26,11 @@ public class ServerPlayer implements Runnable{
 	private String name;
 	private Deque<Long> messageLimiter;
 	private int messageLimitPerSecond = 10;
+	private static Random rand = new Random(); 
+	private HashSet<Long> missiles;
+	
 	ServerPlayer(int id, Socket con, PongServer server) throws IOException {
+		missiles = new HashSet<Long>();
 		connection = con;
 		joined = false;
 		this.id = id;
@@ -39,6 +45,31 @@ public class ServerPlayer implements Runnable{
 	}
 	public boolean hasJoined() {
 		return joined;
+	}
+	
+	public void addMissile() {
+		long missileId = rand.nextLong()%100000000000L;
+		while (missiles.contains(missileId)) {
+			missileId = rand.nextLong() %100000000000L;
+		}
+		missiles.add(missileId);
+		sendMissileReadyMessage(missileId);
+	}
+	
+	private void sendMissileReadyMessage(long missileId) {
+		try {
+			JSONObject json = new JSONObject();
+			json.put("msgType", "missileReady");
+			json.put("data", missileId);
+			sendMessageLagSimulated(json.toString());
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public boolean launchMissile(long missileId) {
+		return missiles.remove(missileId);
 	}
 	
 	public void sendMessage(String formattedMessage) {
@@ -117,6 +148,9 @@ public class ServerPlayer implements Runnable{
 			if (joined) {
 				if ("changeDir".equals(type)) {
 					server.changeDir(id, json.getDouble("data"));
+				}
+				else if ("launchMissile".equals(type)) {
+					server.launchMissile(id, json.getLong("data"));
 				}
 			}
 		} catch (JSONException e) {

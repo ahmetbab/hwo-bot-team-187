@@ -7,13 +7,13 @@ import java.util.Deque;
 
 import redlynx.pong.client.BaseBot;
 import redlynx.pong.client.Pong;
-import redlynx.pong.client.collisionmodel.LinearModel;
-import redlynx.pong.client.collisionmodel.PongModel;
 import redlynx.pong.client.network.Communicator;
 import redlynx.pong.client.network.PongMessageParser;
 import redlynx.pong.client.state.GameStatusSnapShot;
+import redlynx.pong.client.state.MissileState;
 import redlynx.pong.client.state.PaddleVelocityStorage;
-import redlynx.pong.server.LinearServerModel;
+import redlynx.pong.collisionmodel.LinearModel;
+import redlynx.pong.collisionmodel.PongModel;
 import redlynx.pong.ui.GameStateAccessorInterface;
 import redlynx.pong.ui.PongVisualizer;
 import redlynx.pong.ui.UILine;
@@ -27,7 +27,7 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 		Pong.init(args, new JBot());
 	}
 	
-    private final PongModel collisionModel = new LinearServerModel();
+    private final PongModel collisionModel = new LinearModel();
 
 	private double prevCommand;
 	private long lastCommandTimeMillis;
@@ -563,6 +563,18 @@ public class JBot implements BaseBot, PongMessageParser.ParsedMessageListener
 		
 		
 		return lines;
+	}
+
+	@Override
+	public void missileReady(long missileId) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void missileLaunched(MissileState missile) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

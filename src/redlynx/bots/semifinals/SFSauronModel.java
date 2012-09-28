@@ -1,7 +1,7 @@
 package redlynx.bots.semifinals;
 
 import redlynx.pong.client.PongGameBot;
-import redlynx.pong.client.collisionmodel.PongModel;
+import redlynx.pong.collisionmodel.PongModel;
 import redlynx.pong.util.Vector2;
 
 public class SFSauronModel implements PongModel {
@@ -30,6 +30,12 @@ public class SFSauronModel implements PongModel {
     @Override
     public Vector2 guessGivenAngle(double pos, double vx_in, double vy_in, double angle) {
     	return guess(pos, vx_in, vy_in);
+    }
+    @Override
+    public Vector2 guessGivenSpeed(double pos, double vx_in, double vy_in, double speed) {
+    	  out.x = -vx_in;
+          out.y = +vy_in + pos * speed * (0.22 + Math.abs(vy_in / vx_in) * 0.10);
+          return out;
     }
     
     @Override
