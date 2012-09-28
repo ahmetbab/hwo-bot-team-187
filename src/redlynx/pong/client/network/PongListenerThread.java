@@ -20,8 +20,7 @@ public class PongListenerThread extends Thread {
 
 
     public final void run() {
-
-        String msg = "";
+        StringBuilder msg = new StringBuilder();
         int depth = 0;
         while(true) {
             try {
@@ -29,24 +28,24 @@ public class PongListenerThread extends Thread {
                 if (c == 65535) //end of stream
                     break;
 
-                msg += c;
+                msg.append(c);
                 switch(c) {
                     case '{':
-                        depth++;
+                    	depth++;
                         break;
                     case '}':
                         depth--;
                         if (depth == 0) {
                             try {
-                            	listener.messageReceived(msg);
+                            	listener.messageReceived(msg.toString());
                             }
                             finally {
-                                msg = new String("");
+                                msg = new StringBuilder();
                             }
                         }
                         else if (depth < 0) {
                             System.err.println("Invalid server message");
-                            msg = "";
+                            msg = new StringBuilder();
                             depth = 0;
                         }
                 }

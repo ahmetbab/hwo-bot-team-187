@@ -159,7 +159,7 @@ public class ServerPlayer implements Runnable{
 	}
 	
 	public void run() {
-        String msg = "";
+        StringBuilder msg = new StringBuilder();
         int depth = 0;
         while(true) {
             try {
@@ -168,7 +168,7 @@ public class ServerPlayer implements Runnable{
             	if (c == 65535) {//end of stream
             		break;
             	}
-            	msg += c;
+            	msg.append(c);
             	switch(c) {
             	case '{':
             		depth++;
@@ -177,8 +177,8 @@ public class ServerPlayer implements Runnable{
             		depth--;
             		if (depth == 0) {
             			
-            			messageReceivedLagSimulated(msg);
-            			msg = "";
+            			messageReceivedLagSimulated(msg.toString());
+            			msg = new StringBuilder();
             			
             		}
             	}
