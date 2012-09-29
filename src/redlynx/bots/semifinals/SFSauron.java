@@ -27,7 +27,6 @@ public class SFSauron extends BaseBot {
     private SFSauronEvaluator evaluator = new SFSauronEvaluator();
     private SauronState myState = new SauronState();
     private final ArrayList<UILine> lines = new ArrayList<UILine>();
-    private boolean shoutPlan = true;
 
     double timeLeft = 10000;
     private int numWins = 0;
@@ -39,8 +38,10 @@ public class SFSauron extends BaseBot {
         lines.clear();
         double ball_direction = newStatus.ball.vx;
 
+        // TODO: REMEMBER TO DELETE THIS
         if(hasMissiles()) {
             fireMissile();
+            System.out.println(getDefaultName() + " firing missile! YEEHAW!");
         }
 
         if(getMySide().comingTowardsMe(ball_direction)) {
@@ -178,8 +179,13 @@ public class SFSauron extends BaseBot {
     }
 
     private void changeCourse(double distance) {
-        // ok seems we really have to change course.
         double idealVelocity = (distance / timeLeft / getPaddleMaxVelocity()); // this aims for the centre of current target
+
+        // don't slow down intentionally.
+        if(distance > lastKnownStatus.conf.paddleHeight * 0.5) {
+            idealVelocity = idealVelocity > 0 ? 1 : -1;
+        }
+
         if(idealVelocity * idealVelocity > 1.0) {
             if(idealVelocity > 0)
                 idealVelocity = +1;

@@ -33,6 +33,7 @@ public abstract class BaseBot implements PongMessageListener, PongMessageParser.
 
     public PongModel myModel = new LinearModel();
     public final ClientGameState.Ball ballWorkMemory = new ClientGameState.Ball();
+    private double gameTime = 0;
 
     public final ClientGameState.Ball ballTemp = new ClientGameState.Ball();
 
@@ -48,7 +49,7 @@ public abstract class BaseBot implements PongMessageListener, PongMessageParser.
         this.visualizer = visualizer;
     }
 
-    public void messageReceived(String msg) {
+    public synchronized void messageReceived(String msg) {
         messageParser.onReceivedJSONString(msg);
     }
 
@@ -70,9 +71,9 @@ public abstract class BaseBot implements PongMessageListener, PongMessageParser.
         public boolean active() {
             return t > 0;
         }
-        public double y;
-        public double t;
 
+        public double y; // y coordinate of impact
+        public double t; // time until impact
     }
 
     public static enum PlayerSide {
@@ -161,7 +162,8 @@ public abstract class BaseBot implements PongMessageListener, PongMessageParser.
    
     @Override
 	public void missileReady(long missileId) {
-    	missiles.add(missileId);
+        System.out.println("Obtained missile at gameTime: " + gameTime);
+        missiles.add(missileId);
     }
 
     public boolean hasMissiles() {
@@ -186,10 +188,11 @@ public abstract class BaseBot implements PongMessageListener, PongMessageParser.
             return;
 
         // find out how many seconds we have until missile hits.
-        double missileVelocityX = Math.abs(1000 * missile.vel.x / getLastKnownStatus().conf.tickInterval);
+        double missileVelocityX = Math.abs(1000.0 * missile.vel.x / getLastKnownStatus().conf.tickInterval);
         double positionX = missile.pos.x;
         double time = positionX / missileVelocityX;
         avoidables.add(new Avoidable(missile.pos.y, time));
+        System.out.println("missile time: " + time);
     }
     
 
@@ -283,7 +286,15 @@ public abstract class BaseBot implements PongMessageListener, PongMessageParser.
         ballVelocity.reset(150);
         paddleVelocity.reset(100);
         avoidables.clear();
+        gameTime = 0;
         missiles.clear();
+
+        if(lastKnownStatus.ball.x > 40 && lastKnownStatus.ball.x < lastKnownStatus.conf.maxWidth - 40) {
+            for(Avoidable avoidable : avoidables) {
+                System.out.println("Missile time left: " + avoidable.t);
+            }
+        }
+
         onGameOver(won);
     }
 
@@ -291,10 +302,6 @@ public abstract class BaseBot implements PongMessageListener, PongMessageParser.
     public abstract void onGameOver(boolean won);
     public abstract void onTick(double dt);
     public abstract String getDefaultName();
-
-    private synchronized void handleMessage(String serverMessage) {
-    	messageParser.onReceivedJSONString(serverMessage);
-    }
 
     public void start() {
         while(true) {
@@ -322,6 +329,7 @@ public abstract class BaseBot implements PongMessageListener, PongMessageParser.
             ballPositionHistory.storeCollision(extrapolatedStatus.ball.getPosition(), totalTime);
         }
 
+        gameTime += dt;
         totalTime += dt;
         extrapolatedTime += dt;
 
