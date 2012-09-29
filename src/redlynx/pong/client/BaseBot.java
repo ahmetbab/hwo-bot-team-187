@@ -280,6 +280,13 @@ public abstract class BaseBot implements PongMessageListener, PongMessageParser.
    
 
     public void gameOver(boolean won) {
+
+        if(lastKnownStatus.ball.x > 40 && lastKnownStatus.ball.x < lastKnownStatus.conf.maxWidth - 40) {
+            for(Avoidable avoidable : avoidables) {
+                System.out.println("Missile time left: " + avoidable.t);
+            }
+        }
+
         ballPositionHistory.reset();
         lastKnownStatus.reset();
         extrapolatedStatus.reset();
@@ -288,12 +295,6 @@ public abstract class BaseBot implements PongMessageListener, PongMessageParser.
         avoidables.clear();
         gameTime = 0;
         missiles.clear();
-
-        if(lastKnownStatus.ball.x > 40 && lastKnownStatus.ball.x < lastKnownStatus.conf.maxWidth - 40) {
-            for(Avoidable avoidable : avoidables) {
-                System.out.println("Missile time left: " + avoidable.t);
-            }
-        }
 
         onGameOver(won);
     }
