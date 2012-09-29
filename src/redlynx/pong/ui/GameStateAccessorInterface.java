@@ -23,8 +23,6 @@ public interface GameStateAccessorInterface {
     public Vector2i getAreaDimensions();
     public Vector2i getPedalDimensions();
     
-    public ArrayList<Vector2> getMissilePositions();
-    
     public ArrayList<UILine> getExtraLines();
     public ArrayList<UIString> getExtraStrings();
     

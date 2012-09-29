@@ -67,7 +67,7 @@ public class TestBot extends PongGameBot {
             }
         }
 
-        getHistory().drawLastCollision(lines);
+        getBallPositionHistory().drawLastCollision(lines);
         getPaddleVelocity().drawReachableArea(lines, newStatus.getPedal(getMySide()).y + newStatus.conf.paddleHeight * 0.5, timeLeft, newStatus.conf.paddleHeight);
     }
 

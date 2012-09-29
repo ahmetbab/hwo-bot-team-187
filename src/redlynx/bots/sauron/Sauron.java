@@ -135,7 +135,7 @@ public class Sauron extends PongGameBot {
             requestChangeSpeed((float) (0.999f * diff_y / Math.abs(diff_y))); //TODO check div by zero
         }
 
-        getHistory().drawLastCollision(lines);
+        getBallPositionHistory().drawLastCollision(lines);
         getPaddleVelocity().drawReachableArea(lines, newStatus.getPedal(getMySide()).y + newStatus.conf.paddleHeight * 0.5, timeLeft, newStatus.conf.paddleHeight);
     }
 

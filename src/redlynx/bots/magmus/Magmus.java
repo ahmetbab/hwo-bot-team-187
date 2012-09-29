@@ -97,7 +97,7 @@ public class Magmus extends PongGameBot {
 
 
             {
-                if(getHistory().isReliable()) {
+                if(getBallPositionHistory().isReliable()) {
                     // data collecting.
                     inVelocityReversed = false;
                     logged = false;
@@ -105,7 +105,7 @@ public class Magmus extends PongGameBot {
                     dataCollectVelocityIn.x = newStatus.ball.vx;
                     dataCollectVelocityIn.y = newStatus.ball.vy;
                 }
-                else if(getHistory().getLastCollisionPoint() != null && newStatus.ball.x < getHistory().getLastCollisionPoint().x && !inVelocityReversed) {
+                else if(getBallPositionHistory().getLastCollisionPoint() != null && newStatus.ball.x < getBallPositionHistory().getLastCollisionPoint().x && !inVelocityReversed) {
                     dataCollectVelocityIn.y *= -1;
                     inVelocityReversed = true;
                 }
@@ -142,12 +142,12 @@ public class Magmus extends PongGameBot {
 
             {
                 // data collecting.
-                if(getHistory().isReliable() && !logged) {
+                if(getBallPositionHistory().isReliable() && !logged) {
                     logged = true;
                     dataCollectVelocityOut.x = newStatus.ball.vx;
                     dataCollectVelocityOut.y = newStatus.ball.vy;
 
-                    if(getHistory() != null && getHistory().getLastCollisionPoint() != null && getHistory().getLastCollisionPoint().x > lastKnownStatus.conf.paddleWidth + lastKnownStatus.conf.ballRadius + 5) {
+                    if(getBallPositionHistory() != null && getBallPositionHistory().getLastCollisionPoint() != null && getBallPositionHistory().getLastCollisionPoint().x > lastKnownStatus.conf.paddleWidth + lastKnownStatus.conf.ballRadius + 5) {
                         dataCollectVelocityOut.y *= -1;
                     }
 
@@ -201,7 +201,7 @@ public class Magmus extends PongGameBot {
             requestChangeSpeed((float) (0.999f * diff_y / Math.abs(diff_y))); //TODO check div by zero
         }
 
-        getHistory().drawLastCollision(lines);
+        getBallPositionHistory().drawLastCollision(lines);
         getPaddleVelocity().drawReachableArea(lines, newStatus.getPedal(getMySide()).y + newStatus.conf.paddleHeight * 0.5, timeLeft, newStatus.conf.paddleHeight);
     }
 

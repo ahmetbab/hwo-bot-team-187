@@ -2,53 +2,79 @@ package redlynx.pong.client;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import redlynx.pong.client.network.Communicator;
 import redlynx.pong.client.network.MessageLimiter;
+import redlynx.pong.client.network.PongMessageListener;
 import redlynx.pong.client.network.PongMessageParser;
 import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.client.state.GameStateAccessor;
 import redlynx.pong.client.state.GameStatusSnapShot;
-import redlynx.pong.client.state.History;
+import redlynx.pong.client.state.BallPositionHistory;
 import redlynx.pong.client.state.MissileState;
 import redlynx.pong.client.state.PaddleVelocityStorage;
+import redlynx.pong.client.ui.LineVisualizer;
 import redlynx.pong.collisionmodel.LinearModel;
 import redlynx.pong.collisionmodel.PongModel;
 import redlynx.pong.ui.GameStateAccessorInterface;
 import redlynx.pong.ui.PongVisualizer;
-import redlynx.pong.ui.UILine;
 import redlynx.pong.util.SoftVariable;
 import redlynx.pong.util.Vector2;
 
-public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMessageListener {
+public abstract class PongGameBot implements PongMessageListener, PongMessageParser.Handler, LineVisualizer {
 
     private double totalTime = 0;
-    private final History history = new History();
+    private final ArrayList<Avoidable> avoidables = new ArrayList<Avoidable>();
+    private final BallPositionHistory ballPositionHistory = new BallPositionHistory();
     private final PaddleVelocityStorage paddleVelocity = new PaddleVelocityStorage();
     private final SoftVariable ballVelocity = new SoftVariable(50);
     private final MessageLimiter messageLimiter = new MessageLimiter();
-    public PongModel myModel = new LinearModel();
 
+    public PongModel myModel = new LinearModel();
     public final ClientGameState.Ball ballWorkMemory = new ClientGameState.Ball();
+
     public final ClientGameState.Ball ballTemp = new ClientGameState.Ball();
 
-    
-    public class MissileHistoryItem {
-    	public MissileHistoryItem(long localTime, MissileState state) {
-    		this.localTime = localTime;
-    		this.state = state;
-    	}
-    	public long localTime;
-    	public MissileState state;
+    public void setName(String name) {
+        this.name = name;
     }
-    
-    
-    
-    public ArrayList<MissileHistoryItem> missileHistory = new ArrayList<>(); 
-    
+
+    public void setCommunicator(Communicator communicator) {
+        this.communicator = communicator;
+    }
+
+    public void setVisualizer(PongVisualizer visualizer) {
+        this.visualizer = visualizer;
+    }
+
+    public void messageReceived(String msg) {
+        messageParser.onReceivedJSONString(msg);
+    }
+
+    public ArrayList<Avoidable> getAvoidables() {
+        return avoidables;
+    }
+
+    public static class Avoidable {
+
+        public Avoidable(double y, double t) {
+            this.y = y;
+            this.t = t;
+        }
+
+        public void tick(double dt) {
+            t -= dt;
+        }
+
+        public boolean active() {
+            return t > 0;
+        }
+        public double y;
+        public double t;
+
+    }
+
     public static enum PlayerSide {
         LEFT(-1),
         RIGHT(+1);
@@ -72,10 +98,9 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
 
     private PongVisualizer visualizer;
 
-    private final Queue<String> serverMessageQueue;
     private Queue<Long> missiles;
     private Communicator communicator;
-    private final PongMessageParser handler;
+    private final PongMessageParser messageParser;
     private String name;
     private PlayerSide mySide;
 
@@ -104,10 +129,8 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
     private GameStateAccessor accessor;
 
     public PongGameBot() {
-    	//this.name = name;
-        this.serverMessageQueue = new ConcurrentLinkedQueue<String>();
         missiles = new ArrayDeque<Long>();
-        this.handler = new PongMessageParser(this);
+        messageParser = new PongMessageParser(this);
         accessor = new GameStateAccessor(this);
     }
 
@@ -131,38 +154,20 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
     	return accessor;
     }
 
-    public void setName(String name) {
-    	this.name = name;
-    } 
-
-    public void setCommunicator(Communicator comm) {
-    	this.communicator = comm;
-    }
-
     // quite accurate approximation of the ball velocity
     public double getBallVelocity() {
         return ballVelocity.value();
     }
-
-    @Override
-    public void messageReceived(String msg) {
-    	//serverMessageQueue.add(msg);
-    	handleMessage(msg);
-    }
-    
-    
-    public void setVisualizer(PongVisualizer visualizer) {
-    	this.visualizer = visualizer;
-    }
-    
    
     @Override
 	public void missileReady(long missileId) {
     	missiles.add(missileId);
     }
+
     public boolean hasMissiles() {
     	return missiles.size() > 0;
     }
+
     public boolean fireMissile() {
     	  if(messageLimiter.canSend() && hasMissiles()) {
               getCommunicator().sendFireMissile(missiles.remove());
@@ -174,56 +179,49 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
     
     @Override
 	public void missileLaunched(MissileState missile) {
-    	MissileHistoryItem item = new MissileHistoryItem(System.currentTimeMillis(), missile);
-    	missileHistory.add(item);
+
+        // probably no point keeping track of missiles we have fired.
+        // NOTE: We assume here that we are always playing on the left side.
+        if(missile.vel.x > 0)
+            return;
+
+        // find out how many seconds we have until missile hits.
+        double missileVelocityX = (1000 * missile.vel.x / getLastKnownStatus().conf.tickInterval);
+        double positionX = missile.pos.x;
+        double time = positionX / missileVelocityX;
+        avoidables.add(new Avoidable(missile.pos.y, time));
     }
     
 
     @Override
    	public void gameStateUpdate(GameStatusSnapShot snap) {
-       //long timer = System.nanoTime();
-    	
+
         ClientGameState gameStatus = new ClientGameState(snap);       
-    	
-    	//TODO missile scene removal test, tick timer estimate is not accurate yet
-    	//encapsulate inside missile handler or something
+
+    	// TODO encapsulate inside missile handler or something
     	{
-	    	int tickInterval = gameStatus.conf.tickInterval;
-			long currentTime = System.currentTimeMillis();
-			
-			for (int i = missileHistory.size()-1; i >= 0 ; i--) {
-				MissileHistoryItem item = missileHistory.get(i);
-				long timeDiffMillis = currentTime - item.localTime;
-				double diffInTicks = timeDiffMillis / (double) tickInterval; //TODO tick time is not comparable to real time
-				Vector2 pos = new Vector2(item.state.pos.x, item.state.pos.y);
-				pos.x += item.state.vel.x*diffInTicks;
-				pos.y += item.state.vel.y*diffInTicks;
-				if (pos.x < 0 || pos.x >= gameStatus.conf.maxWidth || pos.y < 0 || pos.y >= gameStatus.conf.maxHeight) {
-					missileHistory.remove(i);//missile out of screen, remove it from scene
-				}
+            double dt = (gameStatus.time - lastKnownStatus.time) * 0.001;
+			for (int i=0; i<avoidables.size(); ++i) {
+                Avoidable avoidable = avoidables.get(i);
+                avoidable.tick(dt);
+                if(!avoidable.active())
+                    avoidables.remove(avoidable);
 			}
     	}
-    	
-    	
-    	//TODO missile fire test, add proper logic
-    	if (hasMissiles())
-    		fireMissile();
-    	
-    
 
         paddleVelocity.update(gameStatus.getPedal(mySide).y, gameStatus.time);
-        history.update(gameStatus.ball.getPosition());
+        ballPositionHistory.update(gameStatus.ball.getPosition());
         double step_dt = (gameStatus.time - lastKnownStatus.time) / 1000.0;
 
-        if(history.isReliable() && step_dt != 0) {
+        if(ballPositionHistory.isReliable() && step_dt != 0) {
             lastKnownStatus.update(gameStatus, true);
             lastKnownStatus.copy(gameStatus, true);
             extrapolatedStatus.copy(gameStatus, true);
             ballVelocity.update(gameStatus.ball.getVelocity().length());
         }
         else {
-            Vector2 collisionPoint = history.getLastCollisionPoint();
-            double collisionTime = history.getLastCollisionTime();
+            Vector2 collisionPoint = ballPositionHistory.getLastCollisionPoint();
+            double collisionTime = ballPositionHistory.getLastCollisionTime();
             double dt = totalTime - collisionTime;
 
             if(collisionPoint != null && dt > 0.3) {
@@ -254,19 +252,9 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
         long time = System.nanoTime() - startTime;
         float decisionTime = (time / 1000000.0f);
 
-        /*
-        // For testing. Decisions must be computed fast.
-        if(decisionTime > 2) {
-            System.out.println(getDefaultName() + ", decision making took " + decisionTime + "ms");
-        }
-        */
-
         if (visualizer != null) {
         	visualizer.render();
         }
-
-       
-
     }
 
     @Override
@@ -289,32 +277,27 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
    
 
     public void gameOver(boolean won) {
-        history.reset();
+        ballPositionHistory.reset();
         lastKnownStatus.reset();
         extrapolatedStatus.reset();
         ballVelocity.reset(150);
         paddleVelocity.reset(100);
-        onGameOver(won);
-        missileHistory.clear();
+        avoidables.clear();
         missiles.clear();
+        onGameOver(won);
     }
 
     public abstract void onGameStateUpdate(ClientGameState newStatus);
     public abstract void onGameOver(boolean won);
     public abstract void onTick(double dt);
     public abstract String getDefaultName();
-    public abstract ArrayList<UILine> getDrawLines();
 
     private synchronized void handleMessage(String serverMessage) {
-    	handler.onReceivedJSONString(serverMessage);
+    	messageParser.onReceivedJSONString(serverMessage);
     }
-    
-    @Override
+
     public void start() {
         while(true) {
-        	//while (!serverMessageQueue.isEmpty()) {
-        		//handler.onReceivedJSONString(serverMessageQueue.remove());
-        	//}
 
         	synchronized (this) {
         		long newTime = System.currentTimeMillis();
@@ -323,7 +306,8 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
 			}
             
             try {
-                Thread.sleep(16);//only tick max 60 times per second
+                //only tick max 100 times per second. (A bit extra never hurt anyone).
+                Thread.sleep(10);
             } catch (InterruptedException e) {
                 // if interrupted, exit program.
                 break;
@@ -335,7 +319,7 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
         double dt = time * 0.001;
 
         if(extrapolatedStatus.extrapolate(dt)) {
-            history.storeCollision(extrapolatedStatus.ball.getPosition(), totalTime);
+            ballPositionHistory.storeCollision(extrapolatedStatus.ball.getPosition(), totalTime);
         }
 
         totalTime += dt;
@@ -387,7 +371,7 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
         return extrapolatedStatus;
     }
 
-    public History getHistory() {
-        return history;
+    public BallPositionHistory getBallPositionHistory() {
+        return ballPositionHistory;
     }
 }

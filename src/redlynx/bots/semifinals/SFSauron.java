@@ -39,6 +39,10 @@ public class SFSauron extends PongGameBot {
         lines.clear();
         double ball_direction = newStatus.ball.vx;
 
+        if(hasMissiles()) {
+            fireMissile();
+        }
+
         if(getMySide().comingTowardsMe(ball_direction)) {
             // find out impact velocity and position.
             ballWorkMemory.copy(newStatus.ball, true);
@@ -134,7 +138,7 @@ public class SFSauron extends PongGameBot {
             requestChangeSpeed((float) (0.999f * diff_y / (Math.abs(diff_y) + 0.0000001)));
         }
 
-        getHistory().drawLastCollision(lines);
+        getBallPositionHistory().drawLastCollision(lines);
         getPaddleVelocity().drawReachableArea(lines, newStatus.getPedal(getMySide()).y + newStatus.conf.paddleHeight * 0.5, timeLeft, newStatus.conf.paddleHeight);
     }
 

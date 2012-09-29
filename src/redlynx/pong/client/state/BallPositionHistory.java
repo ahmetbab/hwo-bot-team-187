@@ -8,7 +8,7 @@ import java.awt.Color;
 
 import java.util.ArrayList;
 
-public class History {
+public class BallPositionHistory {
 
     private ArrayList<Vector2> history = new ArrayList<Vector2>();
     private int historyPointer = 0;
@@ -16,7 +16,7 @@ public class History {
     private Vector2 lastCollision = null;
     private double lastCollisionTime = 0;
 
-    public History() {
+    public BallPositionHistory() {
         reset();
     }
 

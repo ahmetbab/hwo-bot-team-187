@@ -28,7 +28,7 @@ public class Pong {
     private final Communicator devNull;
     private PongVisualizer visualizer;
     
-    public Pong(String name, String host, int port, BaseBot bot, boolean visualize, boolean manual, boolean match, String matchBot) throws IOException {
+    public Pong(String name, String host, int port, PongGameBot bot, boolean visualize, boolean manual, boolean match, String matchBot) throws IOException {
         connection = new Socket(host, port);
         netInput = connection.getInputStream();
         out = new PrintStream(connection.getOutputStream());
@@ -66,7 +66,7 @@ public class Pong {
         listenerThread.interrupt();
     }
 
-    public static void init(String[] args, BaseBot bot) {
+    public static void init(String[] args, PongGameBot bot) {
 
     	if (args.length < 3) {
     		System.err.println("Invalid arguments: USAGE: Pong name host port [-vis]");

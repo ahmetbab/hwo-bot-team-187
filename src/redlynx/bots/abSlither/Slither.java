@@ -97,7 +97,7 @@ public class Slither extends PongGameBot {
             requestChangeSpeed((float) (0.99f * diff_y / (Math.abs(diff_y) + 0.0000000000001)));
         }
 
-        getHistory().drawLastCollision(lines);
+        getBallPositionHistory().drawLastCollision(lines);
         getPaddleVelocity().drawReachableArea(lines, newStatus.getPedal(getMySide()).y + newStatus.conf.paddleHeight * 0.5, timeLeft, newStatus.conf.paddleHeight);
     }
 

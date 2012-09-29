@@ -10,7 +10,7 @@ import redlynx.pong.util.Vector2;
 
 public class PongMessageParser {
 
-	public interface ParsedMessageListener {
+	public interface Handler {
 		public void gameStart(String player1, String player2);
 		public void gameOver(String winner);
 		public void gameStateUpdate(GameStatusSnapShot status);
@@ -19,20 +19,20 @@ public class PongMessageParser {
 	} 
 	
     //private final PongGameBot bot;
-	private ParsedMessageListener listener;
+	private Handler handler;
 
-    public PongMessageParser(ParsedMessageListener listener) {
-        this.listener = listener;
+    public PongMessageParser(Handler handler) {
+        this.handler = handler;
     }
 
     private void onGameStart(JSONArray players) throws JSONException {
         if (players.length() == 2) {
-            	listener.gameStart(players.getString(0), players.getString(1));
+            	handler.gameStart(players.getString(0), players.getString(1));
         }
     }
 
     private void onGameOver(String winner) {
-    	listener.gameOver(winner);
+    	handler.gameOver(winner);
      }
 
     private void onGameUpdate(JSONObject gameState) {
@@ -63,7 +63,7 @@ public class PongMessageParser {
             status.conf.ballRadius = conf.getInt("ballRadius");
             status.conf.tickInterval = conf.getInt("tickInterval");
 
-            listener.gameStateUpdate(status);
+            handler.gameStateUpdate(status);
         }
         catch (JSONException e) {
             // ignore bad data.
@@ -71,17 +71,12 @@ public class PongMessageParser {
     }
     
     private void onMissileReady(long missileId) {
-    	listener.missileReady(missileId);
+    	handler.missileReady(missileId);
     }
     private void onMissileLaunched(JSONObject missileState) {
-
-        
         try {
-            
         	Vector2 pos = new Vector2();
         	Vector2 vel = new Vector2();
-        	
-        	
 
             JSONObject jpos = missileState.getJSONObject("pos");
             pos.x = jpos.getDouble("x");
@@ -94,7 +89,7 @@ public class PongMessageParser {
             String code = missileState.getString("code");
             
             MissileState status = new MissileState(pos, vel, time, code);
-            listener.missileLaunched(status);
+            handler.missileLaunched(status);
         }
         catch (JSONException e) {
             // ignore bad data.

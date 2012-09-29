@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.util.ArrayList;
 
 import redlynx.pong.client.PongGameBot;
-import redlynx.pong.client.PongGameBot.MissileHistoryItem;
 import redlynx.pong.ui.GameStateAccessorInterface;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.ui.UIString;
@@ -75,7 +74,7 @@ public class GameStateAccessor implements GameStateAccessorInterface {
     
     @Override
     public Vector2i getPedalDimensions() {
-    	return new Vector2i( status.conf.paddleWidth, status.conf.paddleHeight);
+    	return new Vector2i(status.conf.paddleWidth, status.conf.paddleHeight);
     }
     
     
@@ -86,25 +85,10 @@ public class GameStateAccessor implements GameStateAccessorInterface {
 	@Override
 	public ArrayList<UILine> getExtraLines() {
 		
-		ArrayList<UILine> lines = bot.getDrawLines(); 
-		
-		if (bot.missileHistory.size() > 0) {
-			int tickInterval = bot.lastKnownStatus.conf.tickInterval;
-			long currentTime = System.currentTimeMillis();
-			
-			for (int i = 0; i < bot.missileHistory.size(); i++) {
-				MissileHistoryItem item = bot.missileHistory.get(i);
-				long timeDiffMillis = currentTime - item.localTime;
-				double diffInTicks = timeDiffMillis / (double) tickInterval;
-				Vector2 pos = new Vector2(item.state.pos.x, item.state.pos.y);
-				pos.x += item.state.vel.x*diffInTicks;
-				pos.y += item.state.vel.y*diffInTicks;
-				
-				lines.add(new UILine(item.state.pos.x, item.state.pos.y,pos.x, pos.y, Color.red.darker()));
-						
-			}
-			
-		}
+		ArrayList<UILine> lines = bot.getDrawLines();
+		for(PongGameBot.Avoidable avoidable : bot.getAvoidables()) {
+            lines.add(new UILine(avoidable.t * 100, avoidable.y, avoidable.t * 200, avoidable.y, Color.pink));
+        }
 		
         return lines;
 	}
@@ -113,32 +97,5 @@ public class GameStateAccessor implements GameStateAccessorInterface {
 	public ArrayList<UIString> getExtraStrings() {
 		return null;
 	}
-	@Override
-	public ArrayList<Vector2> getMissilePositions() {
-		
-		ArrayList<Vector2> positions = new ArrayList<Vector2>();
-		if (renderState == 0) {
-			for (int i = 0; i < bot.missileHistory.size(); i++) {
-				MissileHistoryItem item = bot.missileHistory.get(i);
-				positions.add(item.state.pos);
-			}
-		}
-		else { //extrapolated
-			int tickInterval = bot.lastKnownStatus.conf.tickInterval;
-			long currentTime = System.currentTimeMillis();
-			
-			for (int i = 0; i < bot.missileHistory.size(); i++) {
-				MissileHistoryItem item = bot.missileHistory.get(i);
-				long timeDiffMillis = currentTime - item.localTime;
-				double diffInTicks = timeDiffMillis / (double) tickInterval;
-				Vector2 pos = new Vector2(item.state.pos.x, item.state.pos.y);
-				pos.x += item.state.vel.x*diffInTicks;
-				pos.y += item.state.vel.y*diffInTicks;
-				positions.add(pos);
-			}
-		}
-		
-		return positions;
-	
-	}
+
 }

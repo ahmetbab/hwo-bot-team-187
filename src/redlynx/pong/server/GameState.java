@@ -509,14 +509,7 @@ public class GameState implements GameStateAccessorInterface {
 	public int getBallRadius() {
 		return ball.conf.radius;
 	}
-	@Override 
-	public ArrayList<Vector2> getMissilePositions() {
-		ArrayList<Vector2> mpos = new ArrayList<Vector2>();
-		for (int i = 0; i < missiles.size(); i++) {
-			mpos.add(missiles.get(i).pos);
-		}
-		return mpos;
-	}
+
 	@Override
 	public Vector2 getBallPos() {
 		return new Vector2(ball.x, ball.y);
