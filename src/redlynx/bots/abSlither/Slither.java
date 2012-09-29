@@ -1,18 +1,18 @@
 package redlynx.bots.abSlither;
 
+import java.awt.Color;
+import java.util.ArrayList;
+
 import redlynx.bots.magmus.MagmusState;
 import redlynx.pong.client.Pong;
-import redlynx.pong.client.collisionmodel.LinearModel;
-import redlynx.pong.client.collisionmodel.PongModel;
-import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.client.PongGameBot;
+import redlynx.pong.client.state.ClientGameState;
+import redlynx.pong.collisionmodel.LinearModel;
+import redlynx.pong.collisionmodel.PongModel;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector2;
 import redlynx.pong.util.Vector2i;
-
-import java.awt.*;
-import java.util.ArrayList;
 
 public class Slither extends PongGameBot {
 
@@ -26,7 +26,7 @@ public class Slither extends PongGameBot {
     private final ClientGameState.Ball tmpBall = new ClientGameState.Ball();
 
     private final ArrayList<UILine> lines = new ArrayList<UILine>();
-    private final PongModel myModel = new LinearModel(this);
+    private final PongModel myModel = new LinearModel();
 
     double timeLeft = 10000;
     private int numWins = 0;
