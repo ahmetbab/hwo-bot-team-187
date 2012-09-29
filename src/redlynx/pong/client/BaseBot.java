@@ -186,7 +186,7 @@ public abstract class BaseBot implements PongMessageListener, PongMessageParser.
             return;
 
         // find out how many seconds we have until missile hits.
-        double missileVelocityX = (1000 * missile.vel.x / getLastKnownStatus().conf.tickInterval);
+        double missileVelocityX = Math.abs(1000 * missile.vel.x / getLastKnownStatus().conf.tickInterval);
         double positionX = missile.pos.x;
         double time = positionX / missileVelocityX;
         avoidables.add(new Avoidable(missile.pos.y, time));
