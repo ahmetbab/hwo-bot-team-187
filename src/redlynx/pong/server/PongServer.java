@@ -41,12 +41,8 @@ public class PongServer {
 			gameState.changeDir(id, dir);
 	}
 	public void launchMissile(int id, long missileId) {
-		
-		System.out.println("missile launched!!! "+ missileId);
-		
 		boolean canLaunch = players[id].launchMissile(missileId);
 		if (canLaunch) {
-			System.out.println("can!!missile launched!!! "+ missileId);
 			gameState.launchMissile(id);
 		}
 	}
