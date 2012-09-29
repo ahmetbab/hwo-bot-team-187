@@ -3,13 +3,13 @@ package redlynx.bots.test;
 import java.awt.Color;
 import java.util.ArrayList;
 
+import redlynx.pong.client.BaseBot;
 import redlynx.pong.client.Pong;
-import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.util.PongUtil;
 
-public class TestBot extends PongGameBot {
+public class TestBot extends BaseBot {
 
 	public static void main(String[] args) {
 		Pong.init(args, new TestBot());

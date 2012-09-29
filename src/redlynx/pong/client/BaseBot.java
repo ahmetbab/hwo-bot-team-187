@@ -22,7 +22,7 @@ import redlynx.pong.ui.PongVisualizer;
 import redlynx.pong.util.SoftVariable;
 import redlynx.pong.util.Vector2;
 
-public abstract class PongGameBot implements PongMessageListener, PongMessageParser.Handler, LineVisualizer {
+public abstract class BaseBot implements PongMessageListener, PongMessageParser.Handler, LineVisualizer {
 
     private double totalTime = 0;
     private final ArrayList<Avoidable> avoidables = new ArrayList<Avoidable>();
@@ -128,7 +128,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
 
     private GameStateAccessor accessor;
 
-    public PongGameBot() {
+    public BaseBot() {
         missiles = new ArrayDeque<Long>();
         messageParser = new PongMessageParser(this);
         accessor = new GameStateAccessor(this);

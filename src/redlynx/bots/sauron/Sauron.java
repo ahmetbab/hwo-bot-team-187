@@ -2,9 +2,9 @@ package redlynx.bots.sauron;
 
 import java.util.ArrayList;
 
+import redlynx.pong.client.BaseBot;
 import redlynx.pong.client.Pong;
 import redlynx.pong.client.state.ClientGameState;
-import redlynx.pong.client.PongGameBot;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector2;
@@ -14,7 +14,7 @@ import redlynx.pong.util.Vector3;
 import java.awt.Color;
 
 
-public class Sauron extends PongGameBot {
+public class Sauron extends BaseBot {
 
     public Sauron() {
         super();

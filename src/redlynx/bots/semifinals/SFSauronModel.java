@@ -1,15 +1,15 @@
 package redlynx.bots.semifinals;
 
-import redlynx.pong.client.PongGameBot;
+import redlynx.pong.client.BaseBot;
 import redlynx.pong.collisionmodel.PongModel;
 import redlynx.pong.util.Vector2;
 
 public class SFSauronModel implements PongModel {
 
     private final Vector2 out = new Vector2();
-    private final PongGameBot host;
+    private final BaseBot host;
 
-    public SFSauronModel(PongGameBot bot) {
+    public SFSauronModel(BaseBot bot) {
         this.host = bot;
     }
 

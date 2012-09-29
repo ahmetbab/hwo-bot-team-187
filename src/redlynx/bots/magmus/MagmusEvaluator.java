@@ -1,7 +1,7 @@
 package redlynx.bots.magmus;
 
 import redlynx.pong.client.state.ClientGameState;
-import redlynx.pong.client.PongGameBot;
+import redlynx.pong.client.BaseBot;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector3;
@@ -19,7 +19,7 @@ public class MagmusEvaluator {
     private ClientGameState.Ball ballMemory2 = new ClientGameState.Ball();
 
     // TODO: Value of paddle choice i should be the minimum value of (i-1, i, i+1) to account for error in the model.
-    public Vector3 offensiveEval(PongGameBot bot, ClientGameState state, PongGameBot.PlayerSide catcher, ClientGameState.Ball collidingBallState, ClientGameState.Ball tmpBall, double minVal, double maxVal, boolean makeDefEval, ArrayList<UILine> lines, Color color) {
+    public Vector3 offensiveEval(BaseBot bot, ClientGameState state, BaseBot.PlayerSide catcher, ClientGameState.Ball collidingBallState, ClientGameState.Ball tmpBall, double minVal, double maxVal, boolean makeDefEval, ArrayList<UILine> lines, Color color) {
         double targetPos = collidingBallState.y - state.conf.paddleHeight * 0.5;
         double botValue = -10000;
         double topValue = -10000;
@@ -111,7 +111,7 @@ public class MagmusEvaluator {
 
 
     // defensive eval tries to minimize opponents offensive eval.
-    public Vector3 defensiveEval(PongGameBot bot, ClientGameState state, PongGameBot.PlayerSide catcher, double minVal, double maxVal, ClientGameState.Ball tmpBall, int depth) {
+    public Vector3 defensiveEval(BaseBot bot, ClientGameState state, BaseBot.PlayerSide catcher, double minVal, double maxVal, ClientGameState.Ball tmpBall, int depth) {
 
         double targetPos = tmpBall.y - state.conf.paddleHeight * 0.5;
         double paddleMaxPos = state.conf.maxHeight - state.conf.paddleHeight;
@@ -142,7 +142,7 @@ public class MagmusEvaluator {
             double defenseTime = PongUtil.simulate(ballMemory, state.conf);
 
             // which returns are possible for the opponent?
-            // Vector2 possibleReturns = bot.getPaddlePossibleReturns(state, ballMemory, PongGameBot.PlayerSide.getOtherSide(catcher), defenseTime);
+            // Vector2 possibleReturns = bot.getPaddlePossibleReturns(state, ballMemory, BaseBot.PlayerSide.getOtherSide(catcher), defenseTime);
             double opponentReach = defenseTime * bot.getPaddleMaxVelocity() + state.conf.paddleHeight * 0.5;
             double opponentBot = state.getPedal(catcher).y - opponentReach + state.conf.paddleHeight * 0.5;
             double opponentTop = state.getPedal(catcher).y + opponentReach + state.conf.paddleHeight * 0.5;
@@ -163,12 +163,12 @@ public class MagmusEvaluator {
 
             Vector3 opponentBestMove;
             if(depth == 0) {
-                opponentBestMove = offensiveEval(bot, state, PongGameBot.PlayerSide.getOtherSide(catcher), ballMemory, ballMemory2, tmpBotValue, tmpTopValue, false, null, null);
+                opponentBestMove = offensiveEval(bot, state, BaseBot.PlayerSide.getOtherSide(catcher), ballMemory, ballMemory2, tmpBotValue, tmpTopValue, false, null, null);
             }
             else {
                 ClientGameState.Ball ball = new ClientGameState.Ball();
                 ball.copy(ballMemory, true);
-                opponentBestMove = defensiveEval(bot, state, PongGameBot.PlayerSide.getOtherSide(catcher), tmpBotValue, tmpTopValue, ball, depth - 1);
+                opponentBestMove = defensiveEval(bot, state, BaseBot.PlayerSide.getOtherSide(catcher), tmpBotValue, tmpTopValue, ball, depth - 1);
             }
 
             bot.ballCollideToPaddle(opponentBestMove.y, ballMemory);

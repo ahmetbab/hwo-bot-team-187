@@ -3,7 +3,7 @@ package redlynx.pong.client.state;
 import java.awt.Color;
 import java.util.ArrayList;
 
-import redlynx.pong.client.PongGameBot;
+import redlynx.pong.client.BaseBot;
 import redlynx.pong.ui.GameStateAccessorInterface;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.ui.UIString;
@@ -12,12 +12,12 @@ import redlynx.pong.util.Vector2i;
 
 public class GameStateAccessor implements GameStateAccessorInterface {
 
-    private final PongGameBot bot;
+    private final BaseBot bot;
     private ClientGameState status;
     private int renderState;
 
     
-    public GameStateAccessor(PongGameBot bot) {
+    public GameStateAccessor(BaseBot bot) {
         this.bot = bot;
         status = bot.getExtrapolatedStatus();
         renderState = 0;
@@ -86,7 +86,7 @@ public class GameStateAccessor implements GameStateAccessorInterface {
 	public ArrayList<UILine> getExtraLines() {
 		
 		ArrayList<UILine> lines = bot.getDrawLines();
-		for(PongGameBot.Avoidable avoidable : bot.getAvoidables()) {
+		for(BaseBot.Avoidable avoidable : bot.getAvoidables()) {
             lines.add(new UILine(avoidable.t * 100, avoidable.y, avoidable.t * 200, avoidable.y, Color.pink));
         }
 		

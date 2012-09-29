@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 import redlynx.bots.magmus.MagmusState;
 import redlynx.pong.client.Pong;
-import redlynx.pong.client.PongGameBot;
+import redlynx.pong.client.BaseBot;
 import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.collisionmodel.LinearModel;
 import redlynx.pong.collisionmodel.PongModel;
@@ -14,7 +14,7 @@ import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector2;
 import redlynx.pong.util.Vector2i;
 
-public class Slither extends PongGameBot {
+public class Slither extends BaseBot {
 
     public static void main(String[] args) {
         Pong.init(args, new Slither());
