@@ -131,7 +131,8 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
 
     @Override
     public void messageReceived(String msg) {
-    	serverMessageQueue.add(msg);
+    	//serverMessageQueue.add(msg);
+    	handleMessage(msg);
     }
     
     
@@ -265,19 +266,25 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
     public abstract String getDefaultName();
     public abstract ArrayList<UILine> getDrawLines();
 
+    private synchronized void handleMessage(String serverMessage) {
+    	handler.onReceivedJSONString(serverMessage);
+    }
+    
     @Override
     public void start() {
         while(true) {
-        	while (!serverMessageQueue.isEmpty()) {
-        		handler.onReceivedJSONString(serverMessageQueue.remove());
-        	}
+        	//while (!serverMessageQueue.isEmpty()) {
+        		//handler.onReceivedJSONString(serverMessageQueue.remove());
+        	//}
 
-            long newTime = System.currentTimeMillis();
-            tick(newTime - currentTime);
-            currentTime = newTime;
-
+        	synchronized (this) {
+        		long newTime = System.currentTimeMillis();
+                tick(newTime - currentTime);
+                currentTime = newTime;	
+			}
+            
             try {
-                Thread.sleep(1);
+                Thread.sleep(16);//only tick max 60 times per second
             } catch (InterruptedException e) {
                 // if interrupted, exit program.
                 break;
