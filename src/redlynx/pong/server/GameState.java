@@ -62,7 +62,7 @@ public class GameState implements GameStateAccessorInterface {
 	public int screenHeight;
 	public int tickInterval;
 	public int missileStartPos;
-	public int missileSpeed;
+	public double missileSpeed;
 	
 	
 	private boolean gameEnded;
@@ -87,9 +87,6 @@ public class GameState implements GameStateAccessorInterface {
 		
 		public String toJSONString(int playerId) {
 			try {
-				
-				//System.out.println(this.toString());
-				
 				JSONObject stateMessage  = new JSONObject();
 				stateMessage.put("msgType", "missileLaunched");
 				JSONObject data = new JSONObject();
@@ -99,7 +96,7 @@ public class GameState implements GameStateAccessorInterface {
 				jpos.put("y", pos.y);
 				data.put("pos", jpos);
 				JSONObject jvel = new JSONObject();
-				jvel.put("x", playerId==0?vel.x: screenWidth-vel.x);
+				jvel.put("x", playerId==0?vel.x: -vel.x);
 				jvel.put("y", vel.y);
 				data.put("speed", jvel);
 				data.put("code", "destroyer");
@@ -146,7 +143,7 @@ public class GameState implements GameStateAccessorInterface {
 		deflectionValue[1] = 20;
 		model = new SFSauronGeneralModel();
 		
-		missileStartPos = screenWidth/2;
+		missileStartPos = 50;
 		missileSpeed = 5;
 		
 	}
@@ -179,7 +176,7 @@ public class GameState implements GameStateAccessorInterface {
 		for (int i = 0; i < paddle.length; i++) {
 			if (paddle[i].newMissile) {
 				missiles.add(new Missile(
-						new Vector2(i == 0 ? missileStartPos : screenWidth-missileStartPos, paddle[i].y+paddleConfig.height/2), 
+						new Vector2(i == 0 ? missileStartPos*0.01*screenWidth : (1-missileStartPos*0.01)*screenWidth, paddle[i].y+paddleConfig.height/2), 
 						new Vector2(i == 0 ? missileSpeed    : -missileSpeed, 0)));
 				paddle[i].newMissile = false;
 			}
@@ -271,8 +268,11 @@ public class GameState implements GameStateAccessorInterface {
 					double speedLeft = ballspeed - dist.length();
 					ball.x = col.x+speedLeft*ballVel.x;
 					ball.y = col.y+speedLeft*ballVel.y;
-					ball.dx = ballVel.x*ballspeed*1.05/ball.conf.speed;
-					ball.dy = ballVel.y*ballspeed*1.05/ball.conf.speed;
+					
+					//ballspeed += 15 / (1000.0/tickInterval);
+					ballspeed *= 1.05;
+					ball.dx = ballVel.x*ballspeed/ball.conf.speed;
+					ball.dy = ballVel.y*ballspeed/ball.conf.speed;
 				}
 			}
 			
@@ -303,8 +303,10 @@ public class GameState implements GameStateAccessorInterface {
 					double speedLeft = ballspeed - dist.length();
 					ball.x = col.x+speedLeft*ballVel.x;
 					ball.y = col.y+speedLeft*ballVel.y;
-					ball.dx = ballVel.x*ballspeed*1.05/ball.conf.speed;
-					ball.dy = ballVel.y*ballspeed*1.05/ball.conf.speed;
+					//ballspeed += 15 / (1000.0/tickInterval);
+					ballspeed *= 1.05;
+					ball.dx = ballVel.x*ballspeed/ball.conf.speed;
+					ball.dy = ballVel.y*ballspeed/ball.conf.speed;
 				}
 			}
 		}
@@ -470,14 +472,21 @@ public class GameState implements GameStateAccessorInterface {
 		tickInterval = value;
 		
 	}
-	public void setDeflectionMode(int value) {
+	public synchronized void setDeflectionMode(int value) {
 		deflectionMode = value;
 		
 	}
-	public void setDeflectionValue(int id, int value) {
+	public synchronized void setDeflectionValue(int id, int value) {
 		deflectionValue[id] = value;
 	}
 	
+	public synchronized void setMissileSpeed(double speed) {
+		missileSpeed = speed;
+		
+	}
+	public synchronized void setMissileStartPosition(int value) {
+		missileStartPos = value;
+	}
 	
 	//accessor
 	
@@ -528,6 +537,7 @@ public class GameState implements GameStateAccessorInterface {
 	public ArrayList<UIString> getExtraStrings() {
 		return null;
 	}
+
 	
 	
 	

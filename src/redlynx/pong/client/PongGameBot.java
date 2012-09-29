@@ -2,6 +2,7 @@ package redlynx.pong.client;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -34,6 +35,20 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
     public final ClientGameState.Ball ballWorkMemory = new ClientGameState.Ball();
     public final ClientGameState.Ball ballTemp = new ClientGameState.Ball();
 
+    
+    public class MissileHistoryItem {
+    	public MissileHistoryItem(long localTime, MissileState state) {
+    		this.localTime = localTime;
+    		this.state = state;
+    	}
+    	public long localTime;
+    	public MissileState state;
+    }
+    
+    
+    
+    public ArrayList<MissileHistoryItem> missileHistory = new ArrayList<>(); 
+    
     public static enum PlayerSide {
         LEFT(-1),
         RIGHT(+1);
@@ -159,7 +174,8 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
     
     @Override
 	public void missileLaunched(MissileState missile) {
-    	//TODO avoid missile, update game state to follow missiles
+    	MissileHistoryItem item = new MissileHistoryItem(System.currentTimeMillis(), missile);
+    	missileHistory.add(item);
     }
     
 
@@ -167,12 +183,33 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
    	public void gameStateUpdate(GameStatusSnapShot snap) {
        //long timer = System.nanoTime();
     	
-    	//TODO missile test, add proper logic
+        ClientGameState gameStatus = new ClientGameState(snap);       
+    	
+    	//TODO missile scene removal test, tick timer estimate is not accurate yet
+    	//encapsulate inside missile handler or something
+    	{
+	    	int tickInterval = gameStatus.conf.tickInterval;
+			long currentTime = System.currentTimeMillis();
+			
+			for (int i = missileHistory.size()-1; i >= 0 ; i--) {
+				MissileHistoryItem item = missileHistory.get(i);
+				long timeDiffMillis = currentTime - item.localTime;
+				double diffInTicks = timeDiffMillis / (double) tickInterval; //TODO tick time is not comparable to real time
+				Vector2 pos = new Vector2(item.state.pos.x, item.state.pos.y);
+				pos.x += item.state.vel.x*diffInTicks;
+				pos.y += item.state.vel.y*diffInTicks;
+				if (pos.x < 0 || pos.x >= gameStatus.conf.maxWidth || pos.y < 0 || pos.y >= gameStatus.conf.maxHeight) {
+					missileHistory.remove(i);//missile out of screen, remove it from scene
+				}
+			}
+    	}
+    	
+    	
+    	//TODO missile fire test, add proper logic
     	if (hasMissiles())
     		fireMissile();
     	
-    	
-       ClientGameState gameStatus = new ClientGameState(snap);       
+    
 
         paddleVelocity.update(gameStatus.getPedal(mySide).y, gameStatus.time);
         history.update(gameStatus.ball.getPosition());
@@ -258,6 +295,8 @@ public abstract class PongGameBot implements BaseBot, PongMessageParser.ParsedMe
         ballVelocity.reset(150);
         paddleVelocity.reset(100);
         onGameOver(won);
+        missileHistory.clear();
+        missiles.clear();
     }
 
     public abstract void onGameStateUpdate(ClientGameState newStatus);

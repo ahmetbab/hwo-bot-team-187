@@ -37,9 +37,14 @@ public class PongServerFrame extends JFrame implements WindowListener, ValueChan
 	String paddleHeight = "Paddle Height";
 	String paddleWidth = "Paddle Width";
 	String paddleSpeed = "Paddle Speed";
-	String deflectionMode = "Deflection Mode";
-	String deflectionValue1 = "Deflection Value 1";
-	String deflectionValue2 = "Deflection Value 2";
+	//String deflectionMode = "Deflection Mode";
+	//String deflectionValue1 = "Deflection Value 1";
+	//String deflectionValue2 = "Deflection Value 2";
+	
+	String missileSpeed = "Missile Speed";
+	String missileStartPos = "Missile Start Pos";
+	String missileFreq = "Missile Frequency";
+	
 	
 	String screenX = "Screen X";
 	String screenY = "Screen Y";
@@ -140,6 +145,7 @@ public class PongServerFrame extends JFrame implements WindowListener, ValueChan
 		else if (paddleSpeed.equals(title)) {
 			model.setPaddleSpeed(value/10.0f);
 		}
+		/*
 		else if (deflectionMode.equals(title)) {
 			model.setDeflectionMode(value);
 		}
@@ -149,6 +155,17 @@ public class PongServerFrame extends JFrame implements WindowListener, ValueChan
 		else if (deflectionValue2.equals(title)) {
 			model.setDeflectionValue(1, value);
 		}
+		*/
+		else if (missileFreq.equals(title)) {
+			server.setMissileInterval(value);
+		}
+		else if (missileSpeed.equals(title)) {
+			model.setMissileSpeed( value / 10.0 );
+		}
+		else if (missileStartPos.equals(title)) {
+			model.setMissileStartPosition(value);
+		}
+		
 		else if (screenX.equals(title)) {
 			model.setScreenSize(value, model.screenHeight);
 		}
@@ -231,10 +248,14 @@ public class PongServerFrame extends JFrame implements WindowListener, ValueChan
 	    
 	    dataSliders = new SliderPanel[] {
 	    		new SliderPanel(paddleSpeed,1, 200, (int)(model.paddleConfig.maxSpeed*10), this),
-	    		new SliderPanel(deflectionMode, 0, 0, model.deflectionMode, this),
-	    	    new SliderPanel(deflectionValue1, 0, 100, model.deflectionValue[0], this),
-	    	    new SliderPanel(deflectionValue2, 0, 100, model.deflectionValue[1], this),
+	    		//new SliderPanel(deflectionMode, 0, 0, model.deflectionMode, this),
+	    	    //new SliderPanel(deflectionValue1, 0, 100, model.deflectionValue[0], this),
+	    	    //new SliderPanel(deflectionValue2, 0, 100, model.deflectionValue[1], this),
 	    	    
+	    		new SliderPanel(missileFreq, 10, 999, server.missileInterval, this),
+	    		new SliderPanel(missileStartPos, 5, 95, model.missileStartPos, this),
+	    		new SliderPanel(missileSpeed, 1, 200, (int)(model.missileSpeed*10), this),
+	    	    	    	    
 	    		new SliderPanel(paddleHeight, 1, 300, model.paddleConfig.height, this),
 	    	    new SliderPanel(paddleWidth, 1, 300, model.paddleConfig.width, this),
 	    	    new SliderPanel(ballRadius, 1, 50, model.ball.conf.radius, this),

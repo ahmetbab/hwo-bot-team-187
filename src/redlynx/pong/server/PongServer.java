@@ -14,7 +14,7 @@ public class PongServer {
 	boolean gameRunning;
 	boolean paused;
 	int messageInterval;
-	int missileInterval = 100;
+	public int missileInterval = 100;
 	
 	String message;
 	ServerPlayer[] players;
@@ -259,6 +259,9 @@ public class PongServer {
 	public void setMessageInterval(int value) {
 		messageInterval = value;
 		
+	}
+	public void setMissileInterval(int value) {
+		missileInterval = value;
 	}
 
 	public void setOutputLag(int value) {
