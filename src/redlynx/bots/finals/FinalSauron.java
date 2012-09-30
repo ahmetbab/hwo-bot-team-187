@@ -30,15 +30,38 @@ public class FinalSauron extends PongGameBot {
     private int numWins = 0;
     private int numGames = 0;
 
+    private void fireDefensiveMissiles(double timeLeft, ClientGameState.Ball ball) {
+        /*
+        if(hasMissiles()) {
+            fireMissile();
+        }
+        */
+    }
+
+    private void fireOffensiveMissiles(double timeLeft, ClientGameState.Ball ballWorkMemory) {
+
+        double ballMe = ballWorkMemory.y - lastKnownStatus.left.y;
+        double ballHim = ballWorkMemory.y - lastKnownStatus.right.y;
+        double paddleDistance = Math.abs(lastKnownStatus.left.y - lastKnownStatus.right.y);
+        double idealDistance = 1.6 * getPaddleMaxVelocity();
+        double error = paddleDistance - idealDistance;
+        error *= error;
+
+        if(ballHim * ballMe > 0 && Math.abs(ballHim) > Math.abs(ballMe)) {
+            // opponent must cross us before he can reach the ball destination.
+            if(error < lastKnownStatus.conf.paddleHeight * lastKnownStatus.conf.paddleHeight / 16.0) {
+                if(fireMissile()) {
+                    System.out.println("Firing offensive missile!");
+                }
+            }
+        }
+    }
+
     @Override
     public void onGameStateUpdate(ClientGameState newStatus) {
 
         lines.clear();
         double ball_direction = newStatus.ball.vx;
-
-        if(hasMissiles()) {
-            fireMissile();
-        }
 
         if(getMySide().comingTowardsMe(ball_direction)) {
             // find out impact velocity and position.
@@ -46,14 +69,16 @@ public class FinalSauron extends PongGameBot {
             ballWorkMemory.setVelocity(getBallVelocity());
             timeLeft = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
 
+            fireDefensiveMissiles(timeLeft, ballWorkMemory);
+
             Vector2 reach = getPaddlePossibleReturns(newStatus, ballWorkMemory, PlayerSide.LEFT, timeLeft);
             double minReach = reach.x;
             double maxReach = reach.y;
 
             {
                 // hack.. if angle is high, don't try to hit the ball with the wrong end of the paddle..
-                double value = ballWorkMemory.vy / (Math.abs(ballWorkMemory.vx) + 0.000001);
-                double amount = Math.min(0.5, value * value * 0.3);
+                double value = ballWorkMemory.vy * 0.1;
+                double amount = Math.min(0.5, value * value * 0.7);
                 if(value < 0.0 && minReach < -1+amount) {
                     minReach = -1+amount;
                 }
@@ -65,13 +90,20 @@ public class FinalSauron extends PongGameBot {
             // this is the expected y value when colliding against our paddle.
             Vector3 target = evaluator.offensiveEval(this, newStatus, PlayerSide.RIGHT, ballWorkMemory, ballTemp, minReach, maxReach);
 
-            // when no winning move available
+            // when no winning move available, use defense
             if(target.z < 100) {
                 ballWorkMemory.copy(newStatus.ball, true);
                 ballWorkMemory.setVelocity(getBallVelocity());
                 timeLeft = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
                 target = evaluator.defensiveEval(this, lastKnownStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory);
             }
+
+
+            // see if should make an offensive missile shot with current plan.
+            ballTemp.copy(ballWorkMemory, true);
+            ballCollideToPaddle(target.y, ballTemp);
+            double opponentTime = PongUtil.simulateNew(ballTemp, lastKnownStatus.conf, null, null) + timeLeft;
+            fireOffensiveMissiles(opponentTime, ballTemp);
 
             double targetPos = target.x;
             double paddleTarget = target.y;
@@ -97,6 +129,8 @@ public class FinalSauron extends PongGameBot {
 
             timeLeft = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
             Vector2 reach = getPaddlePossibleReturns(newStatus, ballWorkMemory, PlayerSide.RIGHT, timeLeft);
+
+            fireOffensiveMissiles(timeLeft, ballWorkMemory);
 
             // add an extra ten percent, just to be sure.
             double minReach = reach.x - 0.1;
@@ -204,18 +238,18 @@ public class FinalSauron extends PongGameBot {
                 for(Avoidable avoidable : getAvoidables()) {
                     double testVelocity = (i - 50) / 50.0;
                     double dPos = avoidable.t * getPaddleMaxVelocity() * testVelocity;
-                    double paddleTop = myPos + dPos + 15 + 0.5 * lastKnownStatus.conf.paddleHeight;
-                    double paddleBot = myPos + dPos - 15 - 0.5 * lastKnownStatus.conf.paddleHeight;
+                    double paddleTop = myPos + dPos + 30 + 0.5 * lastKnownStatus.conf.paddleHeight;
+                    double paddleBot = myPos + dPos - 30 - 0.5 * lastKnownStatus.conf.paddleHeight;
 
                     double inBot = avoidable.y - paddleBot;
                     double inTop = paddleTop - avoidable.y;
-                    double value = -Math.min(inBot, inTop);
 
-                    if(value < 0) {
-                        System.out.println("There exists a paddle velocity which is not allowed currently.");
+                    // double value = Math.min(inBot, inTop);
+                    if(inBot * inTop > 0) {
+                        velocityScores.add(-1.0);
+                    } else {
+                        velocityScores.add(+1.0);
                     }
-
-                    velocityScores.add(value);
                 }
             }
 
@@ -224,8 +258,7 @@ public class FinalSauron extends PongGameBot {
                 // all ok, current velocity is fine.
             }
             else {
-                System.out.println("Need to dodge missile!!");
-                for(int i=0; i<100; ++i) {
+                for(int i=1; i<100; ++i) {
                     int indexBot = index - i;
                     int indexTop = index + i;
 

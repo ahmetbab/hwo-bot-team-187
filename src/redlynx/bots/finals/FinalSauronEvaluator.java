@@ -99,6 +99,14 @@ public class FinalSauronEvaluator {
 
         // found a solid attack move! lets do that.
         double paddleTarget = (botValue > topValue) ? paddleTargetBot : paddleTargetTop;
+
+        // if near edges, take the only choices.
+        if(collidingBallState.y < 10) {
+            paddleTarget = -1;
+        } else if(collidingBallState.y > state.conf.maxHeight - 10) {
+            paddleTarget = +1;
+        }
+
         targetPos -= paddleTarget * state.conf.paddleHeight * 0.5;
 
         // bind target position inside play area (should not be necessary anymore, as the filtering is done before analyzing)
@@ -164,6 +172,15 @@ public class FinalSauronEvaluator {
                 minTarget = tmpTarget;
                 minTargetPos = targetPos - tmpTarget * state.conf.paddleHeight * 0.5;
             }
+        }
+
+        // if near edges, take the only choices.
+        if(tmpBall.y < 17) {
+            minTarget = +1;
+            minTargetPos = targetPos + state.conf.paddleHeight * 0.5;
+        } else if(tmpBall.y > state.conf.maxHeight - 17) {
+            minTarget = -1;
+            minTargetPos = targetPos - state.conf.paddleHeight * 0.5;
         }
 
         // if score < 0, opponent can make a winning move now.
