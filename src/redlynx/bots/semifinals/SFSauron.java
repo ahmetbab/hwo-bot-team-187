@@ -182,7 +182,7 @@ public class SFSauron extends PongGameBot {
         double idealVelocity = (distance / timeLeft / getPaddleMaxVelocity()); // this aims for the centre of current target
 
         // run until near target.
-        if(distance * distance > 250) {
+        if(distance * distance > 2500) {
             idealVelocity = distance > 0 ? +1 : -1;
         }
 
