@@ -186,11 +186,47 @@ public class SFSauron extends PongGameBot {
             idealVelocity = distance > 0 ? +1 : -1;
         }
 
+        // not going faster than allowed
         if(idealVelocity * idealVelocity > 1.0) {
             if(idealVelocity > 0)
                 idealVelocity = +1;
             else
                 idealVelocity = -1;
+        }
+
+        // avoid missiles
+        if(getAvoidables().size() > 0) {
+            double myPos = lastKnownStatus.left.y + 0.5 * lastKnownStatus.conf.paddleHeight;
+            double minAllowedVelocity = +1000;
+            double maxAllowedVelocity = -1000;
+
+            for(int i=0; i<100; ++i) {
+                for(Avoidable avoidable : getAvoidables()) {
+                    double testVelocity = (i - 50) / 50.0;
+                    double dPos = avoidable.t * getPaddleMaxVelocity() * testVelocity;
+                    boolean inTop = myPos + dPos + 15 + 0.5 * lastKnownStatus.conf.paddleHeight > avoidable.y;
+                    boolean inBot = myPos + dPos - 15 - 0.5 * lastKnownStatus.conf.paddleHeight < avoidable.y;
+
+                    if(inBot && inTop) {
+                        // not acceptable velocity.
+                    }
+                    else {
+                        if(testVelocity < minAllowedVelocity) {
+                            minAllowedVelocity = testVelocity;
+                        }
+                        if(testVelocity > maxAllowedVelocity) {
+                            maxAllowedVelocity = testVelocity;
+                        }
+                    }
+                }
+            }
+
+            if(idealVelocity > 0) {
+                idealVelocity = maxAllowedVelocity;
+            }
+            else {
+                idealVelocity = minAllowedVelocity;
+            }
         }
 
         if(idealVelocity != myState.velocity()) {
