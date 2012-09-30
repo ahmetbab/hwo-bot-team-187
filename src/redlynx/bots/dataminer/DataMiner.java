@@ -114,7 +114,7 @@ public class DataMiner extends BaseBot {
             if(target.z < 100) {
                 ballWorkMemory.copy(newStatus.ball, true);
                 ballWorkMemory.setVelocity(getBallVelocity());
-                timeLeft = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
+                timeLeft = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
                 target = evaluator.defensiveEval(this, lastKnownStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory);
             }
 
@@ -138,12 +138,17 @@ public class DataMiner extends BaseBot {
             //data collecting
             {
                 if(getBallPositionHistory().isReliable()) {
+                	
+                	ClientGameState.Ball  ballCollision = new ClientGameState.Ball();
+                	ballCollision.copy(newStatus.ball, true);
+                	ballCollision.setVelocity(getBallVelocity());
+                	double time = PongUtil.simulate(ballCollision, lastKnownStatus.conf);
                     // data collecting.
-                    inVelocityReversed = false;
+                    //inVelocityReversed = false;
                     logged = false;
                     dataCollectCollisionPoint = target.y;
-                    dataCollectVelocityIn.x = newStatus.ball.vx;
-                    dataCollectVelocityIn.y = newStatus.ball.vy;
+                    dataCollectVelocityIn.x = ballCollision.vx;
+                    dataCollectVelocityIn.y = ballCollision.vy;
                     
                     /*
                     if (newStatus.ball)
@@ -151,9 +156,8 @@ public class DataMiner extends BaseBot {
                     double nextCollisionY =
                     */ 
                 }
-                else if(getBallPositionHistory().getLastCollisionPoint() != null && newStatus.ball.x < getBallPositionHistory().getLastCollisionPoint().x && !inVelocityReversed) {
-                    dataCollectVelocityIn.y *= -1;
-                    inVelocityReversed = true;
+                else {
+                	 dataCollectCollisionPoint = target.y;
                 }
             }
             
@@ -214,7 +218,7 @@ public class DataMiner extends BaseBot {
             visualisePlan(0, Color.green);
 
             ballCollideToPaddle(paddleTarget, ballWorkMemory);
-            double timeLeftAfter = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.red);
+            double timeLeftAfter = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, lines, Color.red);
             timeLeft += timeLeftAfter;
 
             // now we are done.

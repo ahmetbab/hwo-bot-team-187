@@ -21,4 +21,9 @@ public class Visualisation {
             lines.add(new UILine(x + 5, y - 5, x - 5, y - 5, color));
         }
     }
+    public static void drawVector(ArrayList<UILine> lines, Color color, double x, double y, double vx,double vy) {
+        if(lines != null) {
+            lines.add(UILine.createFromDirection(new Vector2(x,y), new Vector2(vx,vy), 1, color));
+        }
+    }
 }
