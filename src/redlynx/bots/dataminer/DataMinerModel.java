@@ -13,8 +13,6 @@ import redlynx.pong.util.Vector2;
 public class DataMinerModel implements PongModel {
 
     private final Vector2 out = new Vector2();
-    private final PongGameBot host;
-
     
 	private static final int paddlePosAccuracy = 15;
 	private static final int narrowAngleAccuracy = 10;
@@ -25,15 +23,13 @@ public class DataMinerModel implements PongModel {
     
     float [][] deflectionData = new float[paddlePosAccuracy+1][ narrowAngleAccuracy+ wideAngleAccuracy+1]; 
     
-    public DataMinerModel(PongGameBot bot, PongModel referenceModel) {
-        this.host = bot;
+    public DataMinerModel(PongModel referenceModel) {
         this.model = referenceModel;
     }
     
     /**
      * 
-     * @param pos paddle hit position,discrete values  [0-99] which compared to [-1, 1] 
-     * @param angle discrete 
+     * @param pos paddle hit position,discrete values  [0-99] which compared to [-1, 1]
      */
     private void addData(int pos, int inK, float outK, float weight) {
     	
@@ -143,8 +139,9 @@ public class DataMinerModel implements PongModel {
     	//testAgainstModel(model);
     	
     }
-    void learnFromData(String file) {
-    	
+
+
+    public void learnFromData(String file) {
     	 try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
 			String line = null;
@@ -261,15 +258,6 @@ public class DataMinerModel implements PongModel {
     	float outK = (float) (tvy_out / Math.abs(vx_out));
     	
     	learnWithData(discretePos, discreteK, pInterpolate, kInterpolate, outK);
-    	
-    	//float outK = getData(discretePos, discreteK, kInterpolate);
-    	
-    	
-    	
-    	
-    	
-    	
-    	
     }
 
     @Override

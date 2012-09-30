@@ -21,27 +21,27 @@ import redlynx.pong.util.Vector3;
 
 public class DataMiner extends PongGameBot {
 
-	String defaultName;
+    private String defaultName;
+    private DataMinerModel dmModel;
 
-	public DataMiner() {
-		this("Data Miner");
-	}
-	DataMinerModel dmModel;
-    public DataMiner(String name) {
-    	super();
-    	defaultName = name;
-        dmModel = new DataMinerModel(this, new SFSauronGeneralModel());
-        dmModel.initialise();
-        myModel = dmModel;
-        
-       logging = System.out; //this will be overridden by a file print stream at setName
-       
-        
+    public DataMiner() {
+        this("Data Miner");
     }
 
-	public static void main(String[] args) {
-		Pong.init(args, new DataMiner());
-	}
+    public DataMiner(String name) {
+        super();
+        defaultName = name;
+
+        dmModel = new DataMinerModel(new SFSauronGeneralModel());
+        dmModel.initialise();
+        myModel = dmModel;
+
+        logging = System.out; //this will be overridden by a file print stream at setName
+    }
+
+    public static void main(String[] args) {
+        Pong.init(args, new DataMiner());
+    }
 
     private SFSauronEvaluator evaluator = new SFSauronEvaluator();
     private SauronState myState = new SauronState();
@@ -51,8 +51,8 @@ public class DataMiner extends PongGameBot {
     double timeLeft = 10000;
     private int numWins = 0;
     private int numGames = 0;
-    
-    
+
+
     // collecting statistics.
     private boolean inVelocityReversed = true;
     private final Vector2 dataCollectVelocityIn = new Vector2();
@@ -61,29 +61,27 @@ public class DataMiner extends PongGameBot {
     private double dataCollectCollisionPoint;
     private PrintStream logging;
     private boolean logged = true;
-    
+
     @Override
     public void setName(String name) {
         super.setName(name);
         try {
             File logFile = new File(name+".txt");
             logging = new PrintStream(new BufferedOutputStream(new FileOutputStream(logFile, true)));
-            
-           dmModel.learnFromData(name+".txt");
-            
+            dmModel.learnFromData(name+".txt");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    
+
 
     @Override
     public void onGameStateUpdate(ClientGameState newStatus) {
 
         lines.clear();
         double ball_direction = newStatus.ball.vx;
-        
+
         //System.out.println("k = "+(newStatus.ball.vy/newStatus.ball.vx));
 
         //if(hasMissiles()) {
@@ -139,38 +137,31 @@ public class DataMiner extends PongGameBot {
                     changeCourse(distance);
                 }
             }
-            
+
             //data collecting
             {
                 if(getBallPositionHistory().isReliable()) {
-                	
-                	ClientGameState.Ball  ballCollision = new ClientGameState.Ball();
-                	ballCollision.copy(newStatus.ball, true);
-                	ballCollision.setVelocity(getBallVelocity());
-                	double time = PongUtil.simulate(ballCollision, lastKnownStatus.conf);
-                    // data collecting.
-                    //inVelocityReversed = false;
+
+                    ClientGameState.Ball  ballCollision = new ClientGameState.Ball();
+                    ballCollision.copy(newStatus.ball, true);
+                    ballCollision.setVelocity(getBallVelocity());
+                    double time = PongUtil.simulate(ballCollision, lastKnownStatus.conf);
+
                     logged = false;
                     dataCollectCollisionPoint = target.y;
                     dataCollectVelocityIn.x = ballCollision.vx;
                     dataCollectVelocityIn.y = ballCollision.vy;
                     dataCollectHitPos.x = ballCollision.x;
                     dataCollectHitPos.y = ballCollision.y;
-                    
-                    /*
-                    if (newStatus.ball)
-                    double nextCollisionTime = 
-                    double nextCollisionY =
-                    */ 
                 }
                 else {
-                	 dataCollectCollisionPoint = target.y;
+                    dataCollectCollisionPoint = target.y;
                 }
             }
-            
+
         }
         else {
-        	
+
             {
                 // data collecting.
                 if(getBallPositionHistory().isReliable() && !logged) {
@@ -184,31 +175,31 @@ public class DataMiner extends PongGameBot {
                     double paddleCollisionPos = dataCollectHitPos.y-lastKnownStatus.conf.paddleHeight/2*(dataCollectCollisionPoint+1);
 
                     System.out.println("ball speed "+getBallVelocity());
-                    
+
                     //DO not accept too fast balls
                     if (getBallVelocity() < 500) {
-	                    
-                    	//Do not accept collision points that are too close to borders, too much error in calculations
-	                    if (paddleCollisionPos > lastKnownStatus.conf.paddleHeight/2 && 
-	                    	paddleCollisionPos < lastKnownStatus.conf.maxHeight- (lastKnownStatus.conf.paddleHeight*3)/2) {
-		                    
-		                    logging.println("" + dataCollectCollisionPoint + "\t" + dataCollectVelocityIn.x + "\t" + dataCollectVelocityIn.y + "\t" + dataCollectVelocityOut.x + "\t" + dataCollectVelocityOut.y);
-		
-		                    // TODO: Model could learn here.
-		                    myModel.learn(dataCollectCollisionPoint, 
-		                    		dataCollectVelocityIn.x,dataCollectVelocityIn.y, 
-		                    		dataCollectVelocityOut.x, dataCollectVelocityOut.y);
-	                    }
-	                    else {
-	                    	System.out.println("ignore border collision");
-	                    }
+
+                        //Do not accept collision points that are too close to borders, too much error in calculations
+                        if (paddleCollisionPos > lastKnownStatus.conf.paddleHeight/2 &&
+                                paddleCollisionPos < lastKnownStatus.conf.maxHeight- (lastKnownStatus.conf.paddleHeight*3)/2) {
+
+                            logging.println("" + dataCollectCollisionPoint + "\t" + dataCollectVelocityIn.x + "\t" + dataCollectVelocityIn.y + "\t" + dataCollectVelocityOut.x + "\t" + dataCollectVelocityOut.y);
+
+                            // TODO: Model could learn here.
+                            myModel.learn(dataCollectCollisionPoint,
+                                    dataCollectVelocityIn.x,dataCollectVelocityIn.y,
+                                    dataCollectVelocityOut.x, dataCollectVelocityOut.y);
+                        }
+                        else {
+                            System.out.println("ignore border collision");
+                        }
                     }
                     else {
-                    	System.out.println("Ignore too fast ball");
+                        System.out.println("Ignore too fast ball");
                     }
                 }
             }
-        	
+
             // simulate twice, once there, and then back.
             ballWorkMemory.copy(newStatus.ball, true);
             ballWorkMemory.setVelocity(getBallVelocity());
@@ -341,10 +332,10 @@ public class DataMiner extends PongGameBot {
 
     @Override
     public void onGameOver(boolean won) {
-    	
-    	//clear collision logging info
-    	logged = true;
-    	
+
+        //clear collision logging info
+        logged = true;
+
         myState.setToHandling();
         myState.setVelocity(0);
 

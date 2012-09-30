@@ -1,8 +1,10 @@
 package redlynx.bots.finals;
 
+import redlynx.bots.dataminer.DataMinerModel;
 import redlynx.pong.client.Pong;
 import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
+import redlynx.pong.collisionmodel.SFSauronGeneralModel;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.util.*;
 
@@ -12,9 +14,14 @@ import java.util.ArrayList;
 
 public class FinalSauron extends PongGameBot {
 
+    private final DataCollector dataCollector;
+
     public FinalSauron() {
         super();
-        myModel = new FinalSauronModel(this);
+
+        dataCollector = new DataCollector(new DataMinerModel(new SFSauronGeneralModel()));
+        myModel = dataCollector.getModel();
+        dataCollector.learnFromFile("pongdata.txt");
     }
 
 	public static void main(String[] args) {
@@ -24,7 +31,6 @@ public class FinalSauron extends PongGameBot {
     private FinalSauronEvaluator evaluator = new FinalSauronEvaluator();
     private SauronState myState = new SauronState();
     private final ArrayList<UILine> lines = new ArrayList<UILine>();
-    private boolean shoutPlan = true;
 
     double timeLeft = 10000;
     private int numWins = 0;
@@ -105,6 +111,13 @@ public class FinalSauron extends PongGameBot {
             double opponentTime = PongUtil.simulateNew(ballTemp, lastKnownStatus.conf, null, null) + timeLeft;
             fireOffensiveMissiles(opponentTime, ballTemp);
 
+            if(target.x < 0) {
+                target.x = 0;
+            }
+            if(target.x > lastKnownStatus.conf.maxHeight - lastKnownStatus.conf.paddleHeight) {
+                target.x = lastKnownStatus.conf.maxHeight - lastKnownStatus.conf.paddleHeight;
+            }
+
             double targetPos = target.x;
             double paddleTarget = target.y;
 
@@ -121,8 +134,34 @@ public class FinalSauron extends PongGameBot {
                     changeCourse(distance);
                 }
             }
+
+
+            //data collecting
+            {
+                if(getBallPositionHistory().isReliable()) {
+
+                    ClientGameState.Ball  ballCollision = new ClientGameState.Ball();
+                    ballCollision.copy(newStatus.ball, true);
+                    ballCollision.setVelocity(getBallVelocity());
+                    double time = PongUtil.simulate(ballCollision, lastKnownStatus.conf);
+                    dataCollector.prepareDataCollect(target, ballCollision);
+                }
+                else {
+                    dataCollector.setCollisionPoint(target.y);
+                }
+            }
         }
         else {
+
+
+            {
+                // data collecting.
+                if(getBallPositionHistory().isReliable() && !dataCollector.isLogged()) {
+                    dataCollector.updateModel(newStatus, this);
+                }
+            }
+
+
             // simulate twice, once there, and then back.
             ballWorkMemory.copy(newStatus.ball, true);
             ballWorkMemory.setVelocity(getBallVelocity());
@@ -320,6 +359,9 @@ public class FinalSauron extends PongGameBot {
 
     @Override
     public void onGameOver(boolean won) {
+
+        dataCollector.gameOver();
+
         myState.setToHandling();
         myState.setVelocity(0);
 
