@@ -3,7 +3,7 @@ package redlynx.pong.collisionmodel;
 import redlynx.pong.util.Vector2;
 
 public interface PongModel {
-    public void learn(double pos, double vy_in, double vy_out);
+    public void learn(double pos, double vx_in, double vy_in, double vx_out, double vy_out);
 
     public double getAngle(double vx_in, double vy_in);
     public Vector2 guess(double pos, double vx_in, double vy_in);

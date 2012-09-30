@@ -14,7 +14,7 @@ public class FinalSauronModel implements PongModel {
     }
 
     @Override
-    public void learn(double pos, double vy_in, double vy_out) {
+    public void learn(double pos, double vx_in, double vy_in, double vx_out, double vy_out) {
     }
 
     @Override
