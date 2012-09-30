@@ -48,6 +48,14 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
         this.visualizer = visualizer;
     }
 
+    public void messageReceived(String msg) {
+        handleMessage(msg);
+    }
+
+    private synchronized void handleMessage(String serverMessage) {
+        messageParser.onReceivedJSONString(serverMessage);
+    }
+
     public ArrayList<Avoidable> getAvoidables() {
         return avoidables;
     }
@@ -291,10 +299,6 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
     public abstract void onGameOver(boolean won);
     public abstract void onTick(double dt);
     public abstract String getDefaultName();
-
-    private synchronized void handleMessage(String serverMessage) {
-    	messageParser.onReceivedJSONString(serverMessage);
-    }
 
     public void start() {
         while(true) {
