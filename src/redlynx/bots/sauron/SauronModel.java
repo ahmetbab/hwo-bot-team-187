@@ -1,6 +1,6 @@
 package redlynx.bots.sauron;
 
-import redlynx.pong.client.BaseBot;
+import redlynx.pong.client.PongGameBot;
 import redlynx.pong.collisionmodel.PongModel;
 import redlynx.pong.util.Vector2;
 
@@ -8,9 +8,9 @@ public class SauronModel implements PongModel {
 
     private double modelValue = 1.3;
     private final Vector2 out = new Vector2();
-    private final BaseBot host;
+    private final PongGameBot host;
 
-    public SauronModel(BaseBot bot) {
+    public SauronModel(PongGameBot bot) {
         this.host = bot;
     }
 

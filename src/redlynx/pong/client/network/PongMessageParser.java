@@ -18,7 +18,7 @@ public class PongMessageParser {
 		public void missileLaunched(MissileState missile);
 	} 
 	
-    //private final BaseBot bot;
+    //private final PongGameBot bot;
 	private Handler handler;
 
     public PongMessageParser(Handler handler) {

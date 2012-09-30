@@ -1,7 +1,7 @@
 package redlynx.pong.client.state;
 
 
-import redlynx.pong.client.BaseBot;
+import redlynx.pong.client.PongGameBot;
 import redlynx.pong.util.Vector2;
 
 public class ClientGameState {
@@ -47,20 +47,20 @@ public class ClientGameState {
         conf.reset();
     }
 
-    public Player getPedal(BaseBot.PlayerSide side) {
-        if(side == BaseBot.PlayerSide.LEFT)
+    public Player getPedal(PongGameBot.PlayerSide side) {
+        if(side == PongGameBot.PlayerSide.LEFT)
             return left;
         return right;
     }
 
-    public boolean hits(BaseBot.PlayerSide pedalSide, Ball ball) {
+    public boolean hits(PongGameBot.PlayerSide pedalSide, Ball ball) {
 
         // if game has not started
         if(ball.y < 0)
             return false;
 
         Player pedal = getPedal(pedalSide);
-        if(pedalSide == BaseBot.PlayerSide.LEFT) {
+        if(pedalSide == PongGameBot.PlayerSide.LEFT) {
             if(ball.x < conf.paddleWidth) {
                 boolean notOverTop = ball.y - conf.ballRadius < pedal.y;
                 boolean notUnderBot = ball.y > pedal.y - conf.paddleHeight;

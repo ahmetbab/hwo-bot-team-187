@@ -1,11 +1,11 @@
-package redlynx.bots.sauron;
+package redlynx.bots.finals;
 
-import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.client.PongGameBot;
+import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector3;
 
-public class SauronEvaluator {
+public class FinalSauronEvaluator {
 
 
     private ClientGameState.Ball ballMemory = new ClientGameState.Ball();
@@ -20,20 +20,28 @@ public class SauronEvaluator {
         double paddleMaxPos = state.conf.maxHeight - state.conf.paddleHeight;
         double paddleMinPos = 0;
 
+        double[] botScores = new double[8];
+        double[] topScores = new double[8];
+
+        for(int i=0; i<=7; ++i) {
+            botScores[i] = -1000;
+            topScores[i] = -1000;
+        }
+
+        int pointer = 0;
+
         {
-            for(int i=10; i<90; ++i) {
+            for(int i=7; i<93; ++i) {
                 double tmpTarget = (i - 50) / 50.0;
                 double evaluatedPaddlePos = targetPos - tmpTarget * state.conf.paddleHeight * 0.5;
 
                 // if return not physically possible, don't evaluate it.
                 if(paddleMaxPos < evaluatedPaddlePos || paddleMinPos > evaluatedPaddlePos) {
-                    // System.out.println("out of bounds");
                     continue;
                 }
 
                 // if not enough time left to make the return, don't evaluate it.
                 if(tmpTarget < minVal || tmpTarget > maxVal) {
-                    // System.out.println("not enough time");
                     continue;
                 }
 
@@ -48,14 +56,41 @@ public class SauronEvaluator {
                 double tmpBotValue = +(opponentBot - tmpBall.y);
                 double tmpTopValue = -(opponentTop - tmpBall.y);
 
+                double botReach = +(opponentBot - tmpBall.y) / (state.conf.paddleHeight * 0.5);
+                double topReach = +(opponentTop - tmpBall.y) / (state.conf.paddleHeight * 0.5);
+
+                /*
+                botReach = Math.max(-1, botReach);
+                topReach = Math.min(+1, topReach);
+
+                double possibleReturns = topReach - botReach;
+                if(possibleReturns > 0 && possibleReturns < 0.3) {
+                    // TODO: check what happens deeper in the game tree.
+                    // NOTE: Should attribute opponents time from this round to my time for next, since it is forced.
+
+
+                }
+                */
+
+
+                botScores[pointer] = tmpBotValue;
+                topScores[pointer] = tmpTopValue;
+                pointer = ++pointer & 7;
+
+                // select minimum value from range.
+                for(int k=0; k<=7; ++k) {
+                    if(tmpBotValue > botScores[k]) tmpBotValue = botScores[k];
+                    if(tmpTopValue > topScores[k]) tmpTopValue = topScores[k];
+                }
+
                 if(tmpBotValue > botValue) {
                     botValue = tmpBotValue;
-                    paddleTargetBot = tmpTarget;
+                    paddleTargetBot = (i - 3 - 50) / 50.0;
                 }
 
                 if(tmpTopValue > topValue) {
                     topValue = tmpTopValue;
-                    paddleTargetTop = tmpTarget;
+                    paddleTargetTop = (i - 3 - 50) / 50.0;
                 }
             }
         }
@@ -66,7 +101,7 @@ public class SauronEvaluator {
         double paddleTarget = (botValue > topValue) ? paddleTargetBot : paddleTargetTop;
         targetPos -= paddleTarget * state.conf.paddleHeight * 0.5;
 
-        // bind target position inside play area
+        // bind target position inside play area (should not be necessary anymore, as the filtering is done before analyzing)
         targetPos = targetPos < paddleMinPos ? paddleMinPos : targetPos;
         targetPos = targetPos > paddleMaxPos ? paddleMaxPos : targetPos;
         return new Vector3(targetPos, paddleTarget, bestValue);
@@ -84,7 +119,15 @@ public class SauronEvaluator {
         double minTarget = 0;
         double minTargetPos = targetPos;
 
-        for(int i=5; i<=45; ++i) {
+        double[] scoresSlidingWindow = new double[8];
+
+        for(int i=0; i<=7; ++i) {
+            scoresSlidingWindow[i] = -1000;
+        }
+
+        int pointer = 0;
+
+        for(int i=3; i<=47; ++i) {
             double tmpTarget = (i - 25) / 25.0;
             double evaluatedPaddlePos = targetPos - tmpTarget * state.conf.paddleHeight * 0.5;
 
@@ -110,22 +153,10 @@ public class SauronEvaluator {
             double opponentBot = state.getPedal(catcher).y - opponentReach + state.conf.paddleHeight * 0.5;
             double opponentTop = state.getPedal(catcher).y + opponentReach + state.conf.paddleHeight * 0.5;
 
-            double tmpBotValue = +(opponentBot - ballMemory.y) / (state.conf.paddleHeight * 0.5);
-            double tmpTopValue = +(opponentTop - ballMemory.y) / (state.conf.paddleHeight * 0.5);
+            double botReach = +(opponentBot - ballMemory.y) / (state.conf.paddleHeight * 0.5);
+            double topReach = +(opponentTop - ballMemory.y) / (state.conf.paddleHeight * 0.5);
 
-            // TODO: Review the range checking code.
-
-            /*
-            if(tmpBotValue > +1.0) {
-                System.out.println("bot: " + ", reach: " + opponentReach + "ball: " + ballMemory.y + ", opponentTop: " + opponentBot + ", tmpTop: " + tmpBotValue);
-            }
-            if(tmpTopValue < -1.0) {
-                System.out.println("top: " + tmpTopValue + ", reach: " + opponentReach + "ball: " + ballMemory.y + ", opponentTop: " + opponentTop + ", tmpTop: " + tmpTopValue);
-            }
-            */
-
-            Vector3 opponentBestMove = offensiveEval(bot, state, PongGameBot.PlayerSide.getOtherSide(catcher), ballMemory, ballMemory2, tmpBotValue, tmpTopValue);
-
+            Vector3 opponentBestMove = offensiveEval(bot, state, PongGameBot.PlayerSide.getOtherSide(catcher), ballMemory, ballMemory2, botReach, topReach);
             double score = -opponentBestMove.z;
 
             if(score > minScore) {

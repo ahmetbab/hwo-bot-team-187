@@ -1,20 +1,20 @@
-package redlynx.bots.semifinals;
+package redlynx.bots.finals;
 
 import redlynx.pong.client.PongGameBot;
 import redlynx.pong.collisionmodel.PongModel;
 import redlynx.pong.util.Vector2;
 
-public class SFSauronModel implements PongModel {
+public class FinalSauronModel implements PongModel {
 
     private final Vector2 out = new Vector2();
     private final PongGameBot host;
 
-    public SFSauronModel(PongGameBot bot) {
+    public FinalSauronModel(PongGameBot bot) {
         this.host = bot;
     }
 
     @Override
-    public void learn(double pos, double vx_in, double vy_in, double vx_out, double vy_out) {
+    public void learn(double pos, double vy_in, double vy_out) {
     }
 
     @Override

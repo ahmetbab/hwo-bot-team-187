@@ -1,7 +1,4 @@
-package redlynx.bots.semifinals;
-
-import java.awt.Color;
-import java.util.ArrayList;
+package redlynx.bots.finals;
 
 import redlynx.pong.client.Pong;
 import redlynx.pong.client.PongGameBot;
@@ -12,19 +9,22 @@ import redlynx.pong.util.Vector2;
 import redlynx.pong.util.Vector2i;
 import redlynx.pong.util.Vector3;
 
+import java.awt.*;
+import java.util.ArrayList;
 
-public class SFSauron extends PongGameBot {
 
-    public SFSauron() {
+public class FinalSauron extends PongGameBot {
+
+    public FinalSauron() {
         super();
-        myModel = new SFSauronModel(this);
+        myModel = new FinalSauronModel(this);
     }
 
 	public static void main(String[] args) {
-		Pong.init(args, new SFSauron());
+		Pong.init(args, new FinalSauron());
 	}
 
-    private SFSauronEvaluator evaluator = new SFSauronEvaluator();
+    private FinalSauronEvaluator evaluator = new FinalSauronEvaluator();
     private SauronState myState = new SauronState();
     private final ArrayList<UILine> lines = new ArrayList<UILine>();
     private boolean shoutPlan = true;
@@ -289,7 +289,7 @@ public class SFSauron extends PongGameBot {
 
     @Override
     public String getDefaultName() {
-        return "SemiFinalsSauron";
+        return "FinalSauron";
     }
 
     @Override
