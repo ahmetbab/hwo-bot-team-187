@@ -238,8 +238,8 @@ public class FinalSauron extends PongGameBot {
                 for(Avoidable avoidable : getAvoidables()) {
                     double testVelocity = (i - 50) / 50.0;
                     double dPos = avoidable.t * getPaddleMaxVelocity() * testVelocity;
-                    double paddleTop = myPos + dPos + 15 + 0.5 * lastKnownStatus.conf.paddleHeight;
-                    double paddleBot = myPos + dPos - 15 - 0.5 * lastKnownStatus.conf.paddleHeight;
+                    double paddleTop = myPos + dPos + 30 + 0.5 * lastKnownStatus.conf.paddleHeight;
+                    double paddleBot = myPos + dPos - 30 - 0.5 * lastKnownStatus.conf.paddleHeight;
 
                     double inBot = avoidable.y - paddleBot;
                     double inTop = paddleTop - avoidable.y;
@@ -258,7 +258,7 @@ public class FinalSauron extends PongGameBot {
                 // all ok, current velocity is fine.
             }
             else {
-                for(int i=0; i<100; ++i) {
+                for(int i=1; i<100; ++i) {
                     int indexBot = index - i;
                     int indexTop = index + i;
 

@@ -166,6 +166,15 @@ public class SFSauronEvaluator {
             }
         }
 
+        // if near edges, take the only choices.
+        if(tmpBall.y < 17) {
+            minTarget = +1;
+            minTargetPos = targetPos + state.conf.paddleHeight * 0.5;
+        } else if(tmpBall.y > state.conf.maxHeight - 17) {
+            minTarget = -1;
+            minTargetPos = targetPos - state.conf.paddleHeight * 0.5;
+        }
+
         // if score < 0, opponent can make a winning move now.
         // otherwise we should be able to counter anything.
         return new Vector3(minTargetPos, minTarget, minScore);
