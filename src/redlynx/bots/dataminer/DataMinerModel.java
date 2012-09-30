@@ -170,6 +170,7 @@ public class DataMinerModel implements PongModel {
 				yout = Double.parseDouble(st.nextToken());
 				learn(pos, xin, yin, xout, yout);
 			}
+			reader.close();
 			
 		} catch (FileNotFoundException e) {
 			System.out.println("Data file not found");

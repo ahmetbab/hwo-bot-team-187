@@ -59,8 +59,9 @@ public class DataCollector {
             if (paddleCollisionPos > bot.lastKnownStatus.conf.paddleHeight / 2 &&
                     paddleCollisionPos < bot.lastKnownStatus.conf.maxHeight - (bot.lastKnownStatus.conf.paddleHeight * 3) / 2) {
 
+            	
                 logging.println("" + dataCollectCollisionPoint + "\t" + dataCollectVelocityIn.x + "\t" + dataCollectVelocityIn.y + "\t" + dataCollectVelocityOut.x + "\t" + dataCollectVelocityOut.y);
-
+                logging.flush();
                 model.learn(dataCollectCollisionPoint,
                         dataCollectVelocityIn.x, dataCollectVelocityIn.y,
                         dataCollectVelocityOut.x, dataCollectVelocityOut.y);
@@ -86,7 +87,7 @@ public class DataCollector {
         try {
             File logFile = new File(s);
             model.learnFromData(s);
-            logging = new PrintStream(new BufferedOutputStream(new FileOutputStream(logFile, true)));
+            logging =  new PrintStream(new BufferedOutputStream(new FileOutputStream(logFile, true)));
         } catch (IOException e) {
             e.printStackTrace();
         }
