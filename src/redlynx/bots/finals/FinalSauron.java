@@ -47,9 +47,9 @@ public class FinalSauron extends PongGameBot {
         double error = paddleDistance - idealDistance;
         error *= error;
 
-        if(ballHim * ballMe < 0) {
+        if(ballHim * ballMe > 0 && Math.abs(ballHim) > Math.abs(ballMe)) {
             // opponent must cross us before he can reach the ball destination.
-            if(error < lastKnownStatus.conf.paddleHeight * lastKnownStatus.conf.paddleHeight / 16) {
+            if(error < lastKnownStatus.conf.paddleHeight * lastKnownStatus.conf.paddleHeight / 16.0) {
                 System.out.println("Firing offensive missile!");
                 fireMissile();
             }
