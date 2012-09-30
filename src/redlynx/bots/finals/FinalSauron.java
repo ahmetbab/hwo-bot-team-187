@@ -197,35 +197,48 @@ public class FinalSauron extends PongGameBot {
         // avoid missiles
         if(getAvoidables().size() > 0) {
             double myPos = lastKnownStatus.left.y + 0.5 * lastKnownStatus.conf.paddleHeight;
-            double minAllowedVelocity = +1000;
-            double maxAllowedVelocity = -1000;
+            ArrayList<Double> allowedVelocities = new ArrayList<Double>(100);
 
             for(int i=0; i<100; ++i) {
                 for(Avoidable avoidable : getAvoidables()) {
                     double testVelocity = (i - 50) / 50.0;
                     double dPos = avoidable.t * getPaddleMaxVelocity() * testVelocity;
-                    boolean inTop = myPos + dPos + 15 + 0.5 * lastKnownStatus.conf.paddleHeight > avoidable.y;
-                    boolean inBot = myPos + dPos - 15 - 0.5 * lastKnownStatus.conf.paddleHeight < avoidable.y;
+                    double paddleTop = myPos + dPos + 15 + 0.5 * lastKnownStatus.conf.paddleHeight;
+                    double paddleBot = myPos + dPos - 15 - 0.5 * lastKnownStatus.conf.paddleHeight;
 
-                    if(inBot && inTop) {
-                        // not acceptable velocity.
-                    }
-                    else {
-                        if(testVelocity < minAllowedVelocity) {
-                            minAllowedVelocity = testVelocity;
-                        }
-                        if(testVelocity > maxAllowedVelocity) {
-                            maxAllowedVelocity = testVelocity;
-                        }
-                    }
+                    double inBot = avoidable.y - paddleBot;
+                    double inTop = paddleTop - avoidable.y;
+                    double value = -Math.min(inBot, inTop);
+                    allowedVelocities.add(value);
                 }
             }
 
-            if(idealVelocity > 0) {
-                idealVelocity = maxAllowedVelocity;
+            int index = (int) ((idealVelocity * 0.5 + 0.5) * 100);
+            if(allowedVelocities.get(index) > 0) {
+                // all ok, current velocity is fine.
             }
             else {
-                idealVelocity = minAllowedVelocity;
+                System.out.println("Need to dodge missile!!");
+                for(int i=0; i<100; ++i) {
+                    int indexBot = index - i;
+                    int indexTop = index + i;
+
+                    if(indexBot >= 0 && indexBot < allowedVelocities.size()) {
+                        if(allowedVelocities.get(indexBot) > 0) {
+                            System.out.println("Fixed paddle velocity.");
+                            idealVelocity = (indexBot - 50) / 50.0;
+                            break;
+                        }
+                    }
+
+                    if(indexTop >= 0 && indexTop < allowedVelocities.size()) {
+                        if(allowedVelocities.get(indexTop) > 0) {
+                            System.out.println("Fixed paddle velocity.");
+                            idealVelocity = (indexTop - 50) / 50.0;
+                            break;
+                        }
+                    }
+                }
             }
         }
 
