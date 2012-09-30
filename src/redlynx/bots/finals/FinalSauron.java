@@ -89,13 +89,18 @@ public class FinalSauron extends PongGameBot {
             // this is the expected y value when colliding against our paddle.
             Vector3 target = evaluator.offensiveEval(this, newStatus, PlayerSide.RIGHT, ballWorkMemory, ballTemp, minReach, maxReach);
 
-            // when no winning move available
+            // when no winning move available, use defense
             if(target.z < 100) {
                 ballWorkMemory.copy(newStatus.ball, true);
                 ballWorkMemory.setVelocity(getBallVelocity());
                 timeLeft = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
                 target = evaluator.defensiveEval(this, lastKnownStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory);
             }
+
+            // see if should make an offensive missile shot with current plan.
+            ballCollideToPaddle(target.y, ballWorkMemory);
+            double opponentTime = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, null, null) + timeLeft;
+            fireOffensiveMissiles(opponentTime, ballWorkMemory);
 
             double targetPos = target.x;
             double paddleTarget = target.y;
