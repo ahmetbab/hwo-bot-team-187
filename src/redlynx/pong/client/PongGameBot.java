@@ -48,10 +48,6 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
         this.visualizer = visualizer;
     }
 
-    public void messageReceived(String msg) {
-        messageParser.onReceivedJSONString(msg);
-    }
-
     public ArrayList<Avoidable> getAvoidables() {
         return avoidables;
     }
