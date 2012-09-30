@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
-import redlynx.pong.client.BaseBot;
 import redlynx.pong.client.Pong;
+import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.collisionmodel.SFSauronGeneralModel;
 import redlynx.pong.ui.UILine;
@@ -19,7 +19,7 @@ import redlynx.pong.util.Vector2i;
 import redlynx.pong.util.Vector3;
 
 
-public class DataMiner extends BaseBot {
+public class DataMiner extends PongGameBot {
 
 	String defaultName;
 

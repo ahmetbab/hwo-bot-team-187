@@ -1,13 +1,13 @@
 package redlynx.bots.dataminer;
 
-import redlynx.pong.client.BaseBot;
+import redlynx.pong.client.PongGameBot;
 import redlynx.pong.collisionmodel.PongModel;
 import redlynx.pong.util.Vector2;
 
 public class DataMinerModel implements PongModel {
 
     private final Vector2 out = new Vector2();
-    private final BaseBot host;
+    private final PongGameBot host;
 
     
 	private static final int paddlePosAccuracy = 10;
@@ -19,7 +19,7 @@ public class DataMinerModel implements PongModel {
     
     float [][] deflectionData = new float[paddlePosAccuracy+1][ narrowAngleAccuracy+ wideAngleAccuracy+1]; 
     
-    public DataMinerModel(BaseBot bot) {
+    public DataMinerModel(PongGameBot bot) {
         this.host = bot;
     }
     
