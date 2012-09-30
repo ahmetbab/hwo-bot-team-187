@@ -12,7 +12,6 @@ public class PongMatcher {
     public static void main(String[] args) {
         PongGameBot bot2 = new FinalSauron();
         PongGameBot bot1 = new SFSauron();
-
         createMatch(bot1, bot2);
     }
 
