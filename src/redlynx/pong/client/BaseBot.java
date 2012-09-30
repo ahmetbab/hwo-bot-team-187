@@ -345,7 +345,7 @@ public abstract class BaseBot implements PongMessageListener, PongMessageParser.
         return name;
     }
 
-    public void ballCollideToPaddle(double paddleRelativePos, ClientGameState.Ball ball) {
+	public void ballCollideToPaddle(double paddleRelativePos, ClientGameState.Ball ball) {
 		Vector2 ballOut = myModel.guess(paddleRelativePos, ball.vx, ball.vy);
         ballOut.normalize().scaled(getBallVelocity() + 15);
         ball.vx = ballOut.x;
