@@ -17,7 +17,7 @@ public class PongMatcher {
 
     private static void createMatch(final PongGameBot bot1, final PongGameBot bot2) {
 
-        final String[] args1 = {bot1.getDefaultName(), "boris.helloworldopen.fi", "9090","-match", bot2.getDefaultName()};
+        final String[] args1 = {bot1.getDefaultName(), "boris.helloworldopen.fi", "9090", "-vis", "-match", bot2.getDefaultName()};
         final String[] args2 = {bot2.getDefaultName(), "boris.helloworldopen.fi", "9090", "-vis", "-match", bot1.getDefaultName()};
 
 

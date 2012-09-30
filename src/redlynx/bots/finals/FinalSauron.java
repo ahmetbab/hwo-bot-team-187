@@ -50,8 +50,9 @@ public class FinalSauron extends PongGameBot {
         if(ballHim * ballMe > 0 && Math.abs(ballHim) > Math.abs(ballMe)) {
             // opponent must cross us before he can reach the ball destination.
             if(error < lastKnownStatus.conf.paddleHeight * lastKnownStatus.conf.paddleHeight / 16.0) {
-                System.out.println("Firing offensive missile!");
-                fireMissile();
+                if(fireMissile()) {
+                    System.out.println("Firing offensive missile!");
+                }
             }
         }
     }
@@ -76,8 +77,8 @@ public class FinalSauron extends PongGameBot {
 
             {
                 // hack.. if angle is high, don't try to hit the ball with the wrong end of the paddle..
-                double value = ballWorkMemory.vy / (Math.abs(ballWorkMemory.vx) + 0.000001);
-                double amount = Math.min(0.5, value * value * 0.3);
+                double value = ballWorkMemory.vy * 0.1;
+                double amount = Math.min(0.5, value * value * 0.7);
                 if(value < 0.0 && minReach < -1+amount) {
                     minReach = -1+amount;
                 }
@@ -97,10 +98,12 @@ public class FinalSauron extends PongGameBot {
                 target = evaluator.defensiveEval(this, lastKnownStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory);
             }
 
+
             // see if should make an offensive missile shot with current plan.
-            ballCollideToPaddle(target.y, ballWorkMemory);
-            double opponentTime = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, null, null) + timeLeft;
-            fireOffensiveMissiles(opponentTime, ballWorkMemory);
+            ballTemp.copy(ballWorkMemory, true);
+            ballCollideToPaddle(target.y, ballTemp);
+            double opponentTime = PongUtil.simulateNew(ballTemp, lastKnownStatus.conf, null, null) + timeLeft;
+            fireOffensiveMissiles(opponentTime, ballTemp);
 
             double targetPos = target.x;
             double paddleTarget = target.y;
@@ -240,13 +243,13 @@ public class FinalSauron extends PongGameBot {
 
                     double inBot = avoidable.y - paddleBot;
                     double inTop = paddleTop - avoidable.y;
-                    double value = -Math.min(inBot, inTop);
 
-                    if(value < 0) {
-                        System.out.println("There exists a paddle velocity which is not allowed currently.");
+                    // double value = Math.min(inBot, inTop);
+                    if(inBot * inTop > 0) {
+                        velocityScores.add(-1.0);
+                    } else {
+                        velocityScores.add(+1.0);
                     }
-
-                    velocityScores.add(value);
                 }
             }
 
@@ -255,7 +258,6 @@ public class FinalSauron extends PongGameBot {
                 // all ok, current velocity is fine.
             }
             else {
-                System.out.println("Need to dodge missile!!");
                 for(int i=0; i<100; ++i) {
                     int indexBot = index - i;
                     int indexTop = index + i;
