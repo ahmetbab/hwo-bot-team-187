@@ -32,7 +32,7 @@ public class DataMinerModel implements PongModel {
     
     /**
      * 
-     * @param pos paddle hit position,discrete values  [0-99] which compared to [-1, 1] 
+     * @param pos paddle hit position,discrete values  [0-paddlePosAccuracy] which compared to [-1, 1] 
      * @param angle discrete 
      */
     private void addData(int pos, int inK, float outK, float weight) {
@@ -42,10 +42,16 @@ public class DataMinerModel implements PongModel {
     	
     	float newValue = (1-weight)*deflectionData[pos][inK]+weight*outK;
     	if (weight != 1) {
-    		System.out.println("pos "+pos+" inK "+inK+" outK "+outK+" old "+deflectionData[pos][inK]+
-    				" error "+Math.abs(outK/deflectionData[pos][inK])+"("+(outK-deflectionData[pos][inK])+") w "+weight);
-    		if (Math.abs(newValue-deflectionData[pos][inK]) > 0.1)
-    			System.out.println("BIG ERROR!!!");
+    		//System.out.println("pos "+pos+" inK "+inK+" outK "+outK+" old "+deflectionData[pos][inK]+
+    		//		" error "+Math.abs(outK/deflectionData[pos][inK])+"("+(outK-deflectionData[pos][inK])+") w "+weight);
+    		if (Math.abs(newValue-deflectionData[pos][inK]) > 0.1) {
+    			
+    			System.out.println("BIG ERROR!!!" + (newValue-deflectionData[pos][inK]));
+    			
+    			System.out.println("pos "+pos+" inK "+inK+" outK "+outK+" old "+deflectionData[pos][inK]+
+    		    		" error "+Math.abs(outK/deflectionData[pos][inK])+"("+(outK-deflectionData[pos][inK])+") w "+weight);
+    			return;
+    		}
     	}
     	
     		
@@ -53,6 +59,15 @@ public class DataMinerModel implements PongModel {
     	deflectionData[pos][inK] = newValue;
     	
     }
+    
+    /**
+     *  Bilinear interpolated outK based on paddle hit position and inK 
+     * @param pos
+     * @param inK
+     * @param interpolateP
+     * @param interpolateK
+     * @return estimated outK
+     */
     private float getData(int pos, int inK, float interpolateP, float interpolateK) {
     	//int inKi = inK+1<narrowAngleAccuracy+wideAngleAccuracy?inK+1:inK;
     	//int posi = pos+1<paddlePosAccuracy?pos+1:pos;
