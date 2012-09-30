@@ -39,9 +39,9 @@ public class SFSauron extends PongGameBot {
         lines.clear();
         double ball_direction = newStatus.ball.vx;
 
-        if(hasMissiles()) {
-            fireMissile();
-        }
+        // if(hasMissiles()) {
+        //    fireMissile();
+        //}
 
         if(getMySide().comingTowardsMe(ball_direction)) {
             // find out impact velocity and position.

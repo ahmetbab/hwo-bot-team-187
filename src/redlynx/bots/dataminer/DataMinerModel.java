@@ -1,5 +1,11 @@
 package redlynx.bots.dataminer;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.util.StringTokenizer;
+
 import redlynx.pong.client.PongGameBot;
 import redlynx.pong.collisionmodel.PongModel;
 import redlynx.pong.util.Vector2;
@@ -10,17 +16,18 @@ public class DataMinerModel implements PongModel {
     private final PongGameBot host;
 
     
-	private static final int paddlePosAccuracy = 10;
-	private static final int narrowAngleAccuracy = 3;
-	private static final int wideAngleAccuracy = 3;
-			;
+	private static final int paddlePosAccuracy = 15;
+	private static final int narrowAngleAccuracy = 10;
+	private static final int wideAngleAccuracy = 10;
 	private static final int wideAngleRange = 3;
 	
+	private PongModel model;
     
     float [][] deflectionData = new float[paddlePosAccuracy+1][ narrowAngleAccuracy+ wideAngleAccuracy+1]; 
     
-    public DataMinerModel(PongGameBot bot) {
+    public DataMinerModel(PongGameBot bot, PongModel referenceModel) {
         this.host = bot;
+        this.model = referenceModel;
     }
     
     /**
@@ -30,11 +37,20 @@ public class DataMinerModel implements PongModel {
      */
     private void addData(int pos, int inK, float outK, float weight) {
     	
-    	if (weight != 1)
-    	System.out.println("pos "+pos+" inK "+inK+" outK "+outK+" old "+deflectionData[pos][inK]+
-    			" error "+Math.abs(outK/deflectionData[pos][inK])+"("+(outK-deflectionData[pos][inK])+") w "+weight);
+    	if (weight < 0.01)
+    		return;
     	
-    	deflectionData[pos][inK] = (1-weight)*deflectionData[pos][inK]+weight*outK;
+    	float newValue = (1-weight)*deflectionData[pos][inK]+weight*outK;
+    	if (weight != 1) {
+    		System.out.println("pos "+pos+" inK "+inK+" outK "+outK+" old "+deflectionData[pos][inK]+
+    				" error "+Math.abs(outK/deflectionData[pos][inK])+"("+(outK-deflectionData[pos][inK])+") w "+weight);
+    		if (Math.abs(newValue-deflectionData[pos][inK]) > 0.1)
+    			System.out.println("BIG ERROR!!!");
+    	}
+    	
+    		
+    	
+    	deflectionData[pos][inK] = newValue;
     	
     }
     private float getData(int pos, int inK, float interpolateP, float interpolateK) {
@@ -94,9 +110,12 @@ public class DataMinerModel implements PongModel {
     	}
     	System.out.println("Tests finished");
     }
+    public void initialise() {
+    	initialiseFromModel(model);
+    }
     public void initialiseFromModel(PongModel model) {
     	
-    	for (int paddlePos = 0; paddlePos < paddlePosAccuracy; paddlePos++) {
+    	for (int paddlePos = 0; paddlePos < paddlePosAccuracy+1; paddlePos++) {
     		double dpos = -1 +paddlePos*(2.0/paddlePosAccuracy);
     		double vx_in = 1;
     		for (int angle = 0; angle < narrowAngleAccuracy; angle++) {
@@ -121,9 +140,35 @@ public class DataMinerModel implements PongModel {
     		}
     	}
     	
-    	testAgainstModel(model);
+    	//testAgainstModel(model);
     	
     }
+    void learnFromData(String file) {
+    	
+    	 try {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+			String line = null;
+			while((line = reader.readLine()) != null) {
+				StringTokenizer st = new StringTokenizer(line, "\n\r\t");
+				double pos, xin,yin,xout,yout;
+				pos = Double.parseDouble(st.nextToken());
+				xin = Double.parseDouble(st.nextToken());
+				yin = Double.parseDouble(st.nextToken());
+				xout = Double.parseDouble(st.nextToken());
+				yout = Double.parseDouble(st.nextToken());
+				learn(pos, xin, yin, xout, yout);
+			}
+			
+		} catch (FileNotFoundException e) {
+			System.out.println("Data file not found");
+		}catch(Exception e) {
+			System.out.println("Malformed data");
+		}
+    	
+    		
+    	    	
+    }
+    
     void initialiseFromData() {
     	
     }

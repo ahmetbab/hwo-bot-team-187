@@ -26,11 +26,12 @@ public class DataMiner extends PongGameBot {
 	public DataMiner() {
 		this("Data Miner");
 	}
+	DataMinerModel dmModel;
     public DataMiner(String name) {
     	super();
     	defaultName = name;
-        DataMinerModel dmModel = new DataMinerModel(this);
-        dmModel.initialiseFromModel(new SFSauronGeneralModel());
+        dmModel = new DataMinerModel(this, new SFSauronGeneralModel());
+        dmModel.initialise();
         myModel = dmModel;
         
        logging = System.out; //this will be overridden by a file print stream at setName
@@ -55,6 +56,7 @@ public class DataMiner extends PongGameBot {
     // collecting statistics.
     private boolean inVelocityReversed = true;
     private final Vector2 dataCollectVelocityIn = new Vector2();
+    private final Vector2 dataCollectHitPos = new Vector2();
     private final Vector2 dataCollectVelocityOut = new Vector2();
     private double dataCollectCollisionPoint;
     private PrintStream logging;
@@ -66,6 +68,9 @@ public class DataMiner extends PongGameBot {
         try {
             File logFile = new File(name+".txt");
             logging = new PrintStream(new BufferedOutputStream(new FileOutputStream(logFile, true)));
+            
+           dmModel.learnFromData(name+".txt");
+            
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -149,6 +154,8 @@ public class DataMiner extends PongGameBot {
                     dataCollectCollisionPoint = target.y;
                     dataCollectVelocityIn.x = ballCollision.vx;
                     dataCollectVelocityIn.y = ballCollision.vy;
+                    dataCollectHitPos.x = ballCollision.x;
+                    dataCollectHitPos.y = ballCollision.y;
                     
                     /*
                     if (newStatus.ball)
@@ -174,13 +181,31 @@ public class DataMiner extends PongGameBot {
                     if(getBallPositionHistory() != null && getBallPositionHistory().getLastCollisionPoint() != null && getBallPositionHistory().getLastCollisionPoint().x > lastKnownStatus.conf.paddleWidth + lastKnownStatus.conf.ballRadius + 5) {
                         dataCollectVelocityOut.y *= -1;
                     }
+                    double paddleCollisionPos = dataCollectHitPos.y-lastKnownStatus.conf.paddleHeight/2*(dataCollectCollisionPoint+1);
 
-                    // TODO: Model could learn here.
-                    logging.println("" + dataCollectCollisionPoint + "\t" + dataCollectVelocityIn.x + "\t" + dataCollectVelocityIn.y + "\t" + dataCollectVelocityOut.x + "\t" + dataCollectVelocityOut.y);
+                    System.out.println("ball speed "+getBallVelocity());
                     
-                    myModel.learn(dataCollectCollisionPoint, 
-                    		dataCollectVelocityIn.x,dataCollectVelocityIn.y, 
-                    		dataCollectVelocityOut.x, dataCollectVelocityOut.y);
+                    //DO not accept too fast balls
+                    if (getBallVelocity() < 500) {
+	                    
+                    	//Do not accept collision points that are too close to borders, too much error in calculations
+	                    if (paddleCollisionPos > lastKnownStatus.conf.paddleHeight/2 && 
+	                    	paddleCollisionPos < lastKnownStatus.conf.maxHeight- (lastKnownStatus.conf.paddleHeight*3)/2) {
+		                    
+		                    logging.println("" + dataCollectCollisionPoint + "\t" + dataCollectVelocityIn.x + "\t" + dataCollectVelocityIn.y + "\t" + dataCollectVelocityOut.x + "\t" + dataCollectVelocityOut.y);
+		
+		                    // TODO: Model could learn here.
+		                    myModel.learn(dataCollectCollisionPoint, 
+		                    		dataCollectVelocityIn.x,dataCollectVelocityIn.y, 
+		                    		dataCollectVelocityOut.x, dataCollectVelocityOut.y);
+	                    }
+	                    else {
+	                    	System.out.println("ignore border collision");
+	                    }
+                    }
+                    else {
+                    	System.out.println("Ignore too fast ball");
+                    }
                 }
             }
         	
@@ -316,6 +341,10 @@ public class DataMiner extends PongGameBot {
 
     @Override
     public void onGameOver(boolean won) {
+    	
+    	//clear collision logging info
+    	logged = true;
+    	
         myState.setToHandling();
         myState.setVelocity(0);
 
