@@ -4,7 +4,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 
 import redlynx.pong.client.Pong;
-import redlynx.pong.client.BaseBot;
+import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.util.PongUtil;
@@ -13,7 +13,7 @@ import redlynx.pong.util.Vector2i;
 import redlynx.pong.util.Vector3;
 
 
-public class SFSauron extends BaseBot {
+public class SFSauron extends PongGameBot {
 
     public SFSauron() {
         super();
@@ -27,6 +27,7 @@ public class SFSauron extends BaseBot {
     private SFSauronEvaluator evaluator = new SFSauronEvaluator();
     private SauronState myState = new SauronState();
     private final ArrayList<UILine> lines = new ArrayList<UILine>();
+    private boolean shoutPlan = true;
 
     double timeLeft = 10000;
     private int numWins = 0;
@@ -38,10 +39,8 @@ public class SFSauron extends BaseBot {
         lines.clear();
         double ball_direction = newStatus.ball.vx;
 
-        // TODO: REMEMBER TO DELETE THIS
         if(hasMissiles()) {
             fireMissile();
-            System.out.println(getDefaultName() + " firing missile! YEEHAW!");
         }
 
         if(getMySide().comingTowardsMe(ball_direction)) {
@@ -179,11 +178,12 @@ public class SFSauron extends BaseBot {
     }
 
     private void changeCourse(double distance) {
+        // ok seems we really have to change course.
         double idealVelocity = (distance / timeLeft / getPaddleMaxVelocity()); // this aims for the centre of current target
 
-        // don't slow down intentionally.
-        if(distance > lastKnownStatus.conf.paddleHeight * 0.5) {
-            idealVelocity = idealVelocity > 0 ? 1 : -1;
+        // run until near target.
+        if(distance * distance > 250) {
+            idealVelocity = distance > 0 ? +1 : -1;
         }
 
         if(idealVelocity * idealVelocity > 1.0) {

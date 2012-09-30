@@ -1,6 +1,6 @@
 package redlynx.bots.semifinals;
 
-import redlynx.pong.client.BaseBot;
+import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector3;
@@ -11,7 +11,7 @@ public class SFSauronEvaluator {
     private ClientGameState.Ball ballMemory = new ClientGameState.Ball();
     private ClientGameState.Ball ballMemory2 = new ClientGameState.Ball();
 
-    public Vector3 offensiveEval(BaseBot bot, ClientGameState state, BaseBot.PlayerSide catcher, ClientGameState.Ball collidingBallState, ClientGameState.Ball tmpBall, double minVal, double maxVal) {
+    public Vector3 offensiveEval(PongGameBot bot, ClientGameState state, PongGameBot.PlayerSide catcher, ClientGameState.Ball collidingBallState, ClientGameState.Ball tmpBall, double minVal, double maxVal) {
         double targetPos = collidingBallState.y - state.conf.paddleHeight * 0.5;
         double botValue = -10000;
         double topValue = -10000;
@@ -109,7 +109,7 @@ public class SFSauronEvaluator {
 
 
     // defensive eval tries to minimize opponents offensive eval.
-    public Vector3 defensiveEval(BaseBot bot, ClientGameState state, BaseBot.PlayerSide catcher, double minVal, double maxVal, ClientGameState.Ball tmpBall) {
+    public Vector3 defensiveEval(PongGameBot bot, ClientGameState state, PongGameBot.PlayerSide catcher, double minVal, double maxVal, ClientGameState.Ball tmpBall) {
 
         double targetPos = tmpBall.y - state.conf.paddleHeight * 0.5;
         double paddleMaxPos = state.conf.maxHeight - state.conf.paddleHeight;
@@ -148,7 +148,7 @@ public class SFSauronEvaluator {
             double defenseTime = PongUtil.simulate(ballMemory, state.conf);
 
             // which returns are possible for the opponent?
-            // Vector2 possibleReturns = bot.getPaddlePossibleReturns(state, ballMemory, BaseBot.PlayerSide.getOtherSide(catcher), defenseTime);
+            // Vector2 possibleReturns = bot.getPaddlePossibleReturns(state, ballMemory, PongGameBot.PlayerSide.getOtherSide(catcher), defenseTime);
             double opponentReach = defenseTime * bot.getPaddleMaxVelocity() + state.conf.paddleHeight * 0.5;
             double opponentBot = state.getPedal(catcher).y - opponentReach + state.conf.paddleHeight * 0.5;
             double opponentTop = state.getPedal(catcher).y + opponentReach + state.conf.paddleHeight * 0.5;
@@ -156,7 +156,7 @@ public class SFSauronEvaluator {
             double botReach = +(opponentBot - ballMemory.y) / (state.conf.paddleHeight * 0.5);
             double topReach = +(opponentTop - ballMemory.y) / (state.conf.paddleHeight * 0.5);
 
-            Vector3 opponentBestMove = offensiveEval(bot, state, BaseBot.PlayerSide.getOtherSide(catcher), ballMemory, ballMemory2, botReach, topReach);
+            Vector3 opponentBestMove = offensiveEval(bot, state, PongGameBot.PlayerSide.getOtherSide(catcher), ballMemory, ballMemory2, botReach, topReach);
             double score = -opponentBestMove.z;
 
             if(score > minScore) {

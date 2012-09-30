@@ -37,11 +37,11 @@ public class PongUtil {
         double time = xLength / Math.abs(vx);
         y += dy * xLength;
 
-        double maxBallY = conf.maxHeight * 0.5 - conf.ballRadius;
-        while(y < conf.ballRadius * 0.5 || y > maxBallY) {
+        double maxBallY = conf.maxHeight - conf.ballRadius;
+        while(y < conf.ballRadius || y > maxBallY) {
             vy *= -1;
-            if(y < conf.ballRadius * 0.5) {
-                y = conf.ballRadius - y;
+            if(y < conf.ballRadius) {
+                y = 2 * conf.ballRadius - y;
             }
             else {
                 y = 2 * maxBallY - y;
