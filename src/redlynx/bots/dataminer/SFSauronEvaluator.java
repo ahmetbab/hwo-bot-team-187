@@ -127,8 +127,11 @@ public class SFSauronEvaluator {
 
         int pointer = 0;
 
-        for(int i=3; i<=47; ++i) {
-            double tmpTarget = (i - 25) / 25.0;
+        //for(int i=3; i<=47; ++i) {
+        //    double tmpTarget = (i - 25) / 25.0;
+        for(int i=7; i<93; ++i) {
+            double tmpTarget = (i - 50) / 50.0;
+              
             double evaluatedPaddlePos = targetPos - tmpTarget * state.conf.paddleHeight * 0.5;
 
             // if return not physically possible, don't evaluate it.
