@@ -186,10 +186,12 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
             return;
 
         // find out how many seconds we have until missile hits.
-        double missileVelocityX = (1000 * missile.vel.x / 20); // assumes 20ms physics step size.
+        double missileVelocityX = Math.abs(1000 * missile.vel.x / 20); // assumes 20ms physics step size.
         double positionX = missile.pos.x;
         double time = positionX / missileVelocityX;
         avoidables.add(new Avoidable(missile.pos.y, time));
+
+        System.out.println("Nuclear launch detected!");
     }
     
 
@@ -204,8 +206,10 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
 			for (int i=0; i<avoidables.size(); ++i) {
                 Avoidable avoidable = avoidables.get(i);
                 avoidable.tick(dt);
-                if(!avoidable.active())
+                if(!avoidable.active()) {
                     avoidables.remove(avoidable);
+                    --i;
+                }
 			}
     	}
 

@@ -4,10 +4,7 @@ import redlynx.pong.client.Pong;
 import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.ui.UILine;
-import redlynx.pong.util.PongUtil;
-import redlynx.pong.util.Vector2;
-import redlynx.pong.util.Vector2i;
-import redlynx.pong.util.Vector3;
+import redlynx.pong.util.*;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -140,6 +137,10 @@ public class FinalSauron extends PongGameBot {
 
         getBallPositionHistory().drawLastCollision(lines);
         getPaddleVelocity().drawReachableArea(lines, newStatus.getPedal(getMySide()).y + newStatus.conf.paddleHeight * 0.5, timeLeft, newStatus.conf.paddleHeight);
+
+        for(Avoidable avoidable : getAvoidables()) {
+            Visualisation.drawCross(lines, Color.pink, avoidable.t * 200, avoidable.y);
+        }
     }
 
     private void visualisePlan(double paddleTarget, Color color) {
@@ -178,11 +179,11 @@ public class FinalSauron extends PongGameBot {
     }
 
     private void changeCourse(double distance) {
-        // ok seems we really have to change course.
+
         double idealVelocity = (distance / timeLeft / getPaddleMaxVelocity()); // this aims for the centre of current target
 
         // run until near target.
-        if(distance * distance > 250) {
+        if(distance * distance > 2500) {
             idealVelocity = distance > 0 ? +1 : -1;
         }
 
@@ -197,7 +198,7 @@ public class FinalSauron extends PongGameBot {
         // avoid missiles
         if(getAvoidables().size() > 0) {
             double myPos = lastKnownStatus.left.y + 0.5 * lastKnownStatus.conf.paddleHeight;
-            ArrayList<Double> allowedVelocities = new ArrayList<Double>(100);
+            ArrayList<Double> velocityScores = new ArrayList<Double>(100);
 
             for(int i=0; i<100; ++i) {
                 for(Avoidable avoidable : getAvoidables()) {
@@ -209,12 +210,17 @@ public class FinalSauron extends PongGameBot {
                     double inBot = avoidable.y - paddleBot;
                     double inTop = paddleTop - avoidable.y;
                     double value = -Math.min(inBot, inTop);
-                    allowedVelocities.add(value);
+
+                    if(value < 0) {
+                        System.out.println("There exists a paddle velocity which is not allowed currently.");
+                    }
+
+                    velocityScores.add(value);
                 }
             }
 
-            int index = (int) ((idealVelocity * 0.5 + 0.5) * 100);
-            if(allowedVelocities.get(index) > 0) {
+            int index = (int) ((idealVelocity * 0.5 + 0.5) * 99);
+            if(velocityScores.get(index) > 0) {
                 // all ok, current velocity is fine.
             }
             else {
@@ -223,16 +229,16 @@ public class FinalSauron extends PongGameBot {
                     int indexBot = index - i;
                     int indexTop = index + i;
 
-                    if(indexBot >= 0 && indexBot < allowedVelocities.size()) {
-                        if(allowedVelocities.get(indexBot) > 0) {
+                    if(indexBot >= 0 && indexBot < velocityScores.size()) {
+                        if(velocityScores.get(indexBot) > 0) {
                             System.out.println("Fixed paddle velocity.");
                             idealVelocity = (indexBot - 50) / 50.0;
                             break;
                         }
                     }
 
-                    if(indexTop >= 0 && indexTop < allowedVelocities.size()) {
-                        if(allowedVelocities.get(indexTop) > 0) {
+                    if(indexTop >= 0 && indexTop < velocityScores.size()) {
+                        if(velocityScores.get(indexTop) > 0) {
                             System.out.println("Fixed paddle velocity.");
                             idealVelocity = (indexTop - 50) / 50.0;
                             break;
@@ -242,7 +248,7 @@ public class FinalSauron extends PongGameBot {
             }
         }
 
-        if(idealVelocity != myState.velocity()) {
+        if(idealVelocity != myState.velocity() || reallyShouldUpdateRegardless()) {
             requestChangeSpeed(idealVelocity);
         }
     }
