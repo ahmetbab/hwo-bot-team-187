@@ -30,21 +30,45 @@ public class FinalSauron extends PongGameBot {
     private int numWins = 0;
     private int numGames = 0;
 
+    private void fireDefensiveMissiles(double timeLeft, ClientGameState.Ball ball) {
+        /*
+        if(hasMissiles()) {
+            fireMissile();
+        }
+        */
+    }
+
+    private void fireOffensiveMissiles(double timeLeft, ClientGameState.Ball ballWorkMemory) {
+
+        double ballMe = ballWorkMemory.y - lastKnownStatus.left.y;
+        double ballHim = ballWorkMemory.y - lastKnownStatus.right.y;
+        double paddleDistance = Math.abs(lastKnownStatus.left.y - lastKnownStatus.right.y);
+        double idealDistance = 1.6 * getPaddleMaxVelocity();
+        double error = paddleDistance - idealDistance;
+        error *= error;
+
+        if(ballHim * ballMe < 0) {
+            // opponent must cross us before he can reach the ball destination.
+            if(error < lastKnownStatus.conf.paddleHeight * lastKnownStatus.conf.paddleHeight / 16) {
+                System.out.println("Firing offensive missile!");
+                fireMissile();
+            }
+        }
+    }
+
     @Override
     public void onGameStateUpdate(ClientGameState newStatus) {
 
         lines.clear();
         double ball_direction = newStatus.ball.vx;
 
-        if(hasMissiles()) {
-            fireMissile();
-        }
-
         if(getMySide().comingTowardsMe(ball_direction)) {
             // find out impact velocity and position.
             ballWorkMemory.copy(newStatus.ball, true);
             ballWorkMemory.setVelocity(getBallVelocity());
             timeLeft = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
+
+            fireDefensiveMissiles(timeLeft, ballWorkMemory);
 
             Vector2 reach = getPaddlePossibleReturns(newStatus, ballWorkMemory, PlayerSide.LEFT, timeLeft);
             double minReach = reach.x;
@@ -97,6 +121,8 @@ public class FinalSauron extends PongGameBot {
 
             timeLeft = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
             Vector2 reach = getPaddlePossibleReturns(newStatus, ballWorkMemory, PlayerSide.RIGHT, timeLeft);
+
+            fireOffensiveMissiles(timeLeft, ballWorkMemory);
 
             // add an extra ten percent, just to be sure.
             double minReach = reach.x - 0.1;
