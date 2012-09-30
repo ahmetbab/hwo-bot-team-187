@@ -66,11 +66,11 @@ public class DataCollector {
                         dataCollectVelocityOut.x, dataCollectVelocityOut.y);
             }
             else {
-                System.out.println("ignore border collision");
+                // ignore border collision
             }
         }
         else {
-            System.out.println("Ignore too fast ball");
+            // Ignore too fast ball
         }
     }
 
