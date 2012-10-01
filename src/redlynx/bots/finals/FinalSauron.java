@@ -115,7 +115,7 @@ public class FinalSauron extends PongGameBot {
             Vector3 target = evaluator.offensiveEval(this, newStatus, PlayerSide.RIGHT, ballWorkMemory, ballTemp, minReach, maxReach);
 
             // when no winning move available, use defense
-            if(target.z < 50) {
+            if(target.z < 100) {
                 ballWorkMemory.copy(newStatus.ball, true);
                 ballWorkMemory.setVelocity(getBallVelocity());
                 timeLeft = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
@@ -131,11 +131,13 @@ public class FinalSauron extends PongGameBot {
 
             Visualisation.visualizeOpponentReach(lines, this, opponentTime);
 
-            if(target.x < 0) {
-                target.x = 0;
+            double minVal = lastKnownStatus.conf.ballRadius * 2 - 1;
+            double maxVal = lastKnownStatus.conf.maxHeight - lastKnownStatus.conf.paddleHeight - 2 * lastKnownStatus.conf.ballRadius + 1;
+            if(target.x < minVal) {
+                target.x = minVal;
             }
-            if(target.x > lastKnownStatus.conf.maxHeight - lastKnownStatus.conf.paddleHeight) {
-                target.x = lastKnownStatus.conf.maxHeight - lastKnownStatus.conf.paddleHeight;
+            if(target.x > maxVal) {
+                target.x = maxVal;
             }
 
             double targetPos = target.x;
