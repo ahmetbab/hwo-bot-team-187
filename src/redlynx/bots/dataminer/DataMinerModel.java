@@ -1,9 +1,7 @@
 package redlynx.bots.dataminer;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.util.Scanner;
 import java.util.StringTokenizer;
 
 import redlynx.pong.client.PongGameBot;
@@ -14,9 +12,9 @@ public class DataMinerModel implements PongModel {
 
     private final Vector2 out = new Vector2();
     
-	private static final int paddlePosAccuracy = 15;
+	private static final int paddlePosAccuracy = 10;
 	private static final int narrowAngleAccuracy = 10;
-	private static final int wideAngleAccuracy = 10;
+	private static final int wideAngleAccuracy = 20;
 	private static final int wideAngleRange = 3;
 	
 	private PongModel model;
@@ -32,11 +30,8 @@ public class DataMinerModel implements PongModel {
      * @param pos paddle hit position,discrete values  [0-99] which compared to [-1, 1]
      */
     private void addData(int pos, int inK, float outK, float weight) {
-    	
-    	if (weight < 0.01)
-    		return;
-    	
-    	float newValue = (1-weight)*deflectionData[pos][inK]+weight*outK;
+
+        float newValue = (1-weight)*deflectionData[pos][inK]+weight*outK;
     	if (weight != 1) {
     		//System.out.println("pos "+pos+" inK "+inK+" outK "+outK+" old "+deflectionData[pos][inK]+
     		//		" error "+Math.abs(outK/deflectionData[pos][inK])+"("+(outK-deflectionData[pos][inK])+") w "+weight);
@@ -187,7 +182,7 @@ public class DataMinerModel implements PongModel {
 
     private void learnWithData(int pos, int k, float interpolateP, float interpolateK, float outK) {
     	
-    	float mainWeight = 0.3f;
+    	float mainWeight = 0.03f;
     	//getData(pos, inK, interpolateP, interpolateK)
     	int inKi = k+1;
     	int posi = pos+1;
@@ -346,9 +341,36 @@ public class DataMinerModel implements PongModel {
     public Vector2 guessGivenSpeed(double pos, double vx_in, double vy_in, double speed) {
     	 return guess(pos, vx_in, vy_in);
     }
-    
+
     @Override
     public double modelError() {
-        return 10000000;
+        File file = new File("pongdata.txt");
+
+        double sqrErrorSum = 0;
+        int numSamples = 1;
+
+        try {
+            FileInputStream fis = new FileInputStream(file);
+            Scanner scanner = new Scanner(fis);
+            while(scanner.hasNext()) {
+                double pos = scanner.nextDouble();
+                double inx = scanner.nextDouble();
+                double iny = scanner.nextDouble();
+                double outx = scanner.nextDouble();
+                double outy = scanner.nextDouble();
+
+                guessGivenSpeed(pos, inx, iny, Math.sqrt(inx*inx + iny*iny));
+
+                double expected = out.y / out.x;
+                double real = outy / outx;
+                double error = expected - real;
+                sqrErrorSum += error * error;
+                ++numSamples;
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("model eval failed.");
+        }
+
+        return sqrErrorSum / numSamples;
     }
 }

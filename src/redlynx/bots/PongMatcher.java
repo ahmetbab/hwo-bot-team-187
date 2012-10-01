@@ -20,7 +20,6 @@ public class PongMatcher {
         final String[] args1 = {bot1.getDefaultName(), "boris.helloworldopen.fi", "9090", "-vis", "-match", bot2.getDefaultName()};
         final String[] args2 = {bot2.getDefaultName(), "boris.helloworldopen.fi", "9090", "-vis", "-match", bot1.getDefaultName()};
 
-
         new Thread() {
             public void run() {
                 Pong.init(args1, bot1);

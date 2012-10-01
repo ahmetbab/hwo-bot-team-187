@@ -18,6 +18,12 @@ public class Vector2 {
         return Math.sqrt(x*x + y*y + 0.000000001);
     }
 
+    public void rotate(double rad) {
+        double xnew = x * Math.cos(rad) - y * Math.sin(rad);
+        y = x * Math.sin(rad) + y * Math.cos(rad);
+        x = xnew;
+    }
+
     public Vector2 normalize() {
         double l = length();
         x /= l;

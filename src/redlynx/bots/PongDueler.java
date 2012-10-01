@@ -1,5 +1,6 @@
 package redlynx.bots;
 
+import redlynx.bots.dataminer.DataMiner;
 import redlynx.bots.finals.FinalSauron;
 import redlynx.bots.semifinals.SFSauron;
 import redlynx.pong.client.Pong;
@@ -7,8 +8,9 @@ import redlynx.pong.client.PongGameBot;
 
 public class PongDueler {
     public static void main(String[] args) {
-        PongGameBot bot1 = new FinalSauron();
-        createMatch(bot1);
+        PongGameBot bot1 = new DataMiner("miner1");
+        bot1.setName("miner1");
+        // createMatch(bot1);
     }
 
     private static void createMatch(final PongGameBot bot1) {

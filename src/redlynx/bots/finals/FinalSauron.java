@@ -20,7 +20,11 @@ public class FinalSauron extends PongGameBot {
         super();
 
         dataCollector = new DataCollector(new DataMinerModel(new SFSauronGeneralModel()));
-        myModel = new FinalSauronModel(this); // dataCollector.getModel();
+
+        FinalSauronModel model = new FinalSauronModel(this);
+        myModel = model; // dataCollector.getModel();
+        model.tweak();
+
         dataCollector.learnFromFile("pongdata.txt");
     }
 
@@ -37,11 +41,7 @@ public class FinalSauron extends PongGameBot {
     private int numGames = 0;
 
     private void fireDefensiveMissiles(double timeLeft, ClientGameState.Ball ball) {
-        /*
-        if(hasMissiles()) {
-            fireMissile();
-        }
-        */
+        // should prevent opponent from being able to fire killshot missiles at us.
     }
 
     private void fireOffensiveMissiles(double timeLeft, ClientGameState.Ball ballWorkMemory) {
@@ -102,7 +102,7 @@ public class FinalSauron extends PongGameBot {
             {
                 // hack.. if angle is high, don't try to hit the ball with the wrong end of the paddle..
                 double value = ballWorkMemory.vy * 0.1;
-                double amount = Math.min(0.5, value * value * 0.7);
+                double amount = Math.min(0.5, value * value * 0.4);
                 if(value < 0.0 && minReach < -1+amount) {
                     minReach = -1+amount;
                 }

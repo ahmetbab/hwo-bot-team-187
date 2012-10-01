@@ -53,7 +53,23 @@ public class DataMiner extends PongGameBot {
     @Override
     public void setName(String name) {
         super.setName(name);
+        System.out.println("Avg SqrError in K: " + myModel.modelError());
         dataCollector.learnFromFile(name+".txt");
+        dataCollector.learnFromFile(name+".txt");
+        dataCollector.learnFromFile(name+".txt");
+        System.out.println("Avg SqrError in K: " + myModel.modelError());
+        dataCollector.learnFromFile(name+".txt");
+        dataCollector.learnFromFile(name+".txt");
+        dataCollector.learnFromFile(name+".txt");
+        System.out.println("Avg SqrError in K: " + myModel.modelError());
+        dataCollector.learnFromFile(name+".txt");
+        dataCollector.learnFromFile(name+".txt");
+        dataCollector.learnFromFile(name+".txt");
+        System.out.println("Avg SqrError in K: " + myModel.modelError());
+        dataCollector.learnFromFile(name+".txt");
+        dataCollector.learnFromFile(name+".txt");
+        dataCollector.learnFromFile(name+".txt");
+        System.out.println("Avg SqrError in K: " + myModel.modelError());
     }
 
 
