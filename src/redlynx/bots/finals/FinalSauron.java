@@ -57,7 +57,16 @@ public class FinalSauron extends PongGameBot {
             // opponent must cross us before he can reach the ball destination.
             if(error < lastKnownStatus.conf.paddleHeight * lastKnownStatus.conf.paddleHeight / 16.0) {
                 if(fireMissile()) {
-                    System.out.println("Firing offensive missile!");
+                    System.out.println("Firing slowdown missile!");
+                }
+            }
+        }
+
+        double timeError = timeLeft - 1.6;
+        if(timeError * timeError < 0.5) {
+            if(ballMe * ballMe < 25 * 25) {
+                if(fireMissile()) {
+                    System.out.println("Firing missile at ball destination!");
                 }
             }
         }
@@ -268,57 +277,7 @@ public class FinalSauron extends PongGameBot {
                 idealVelocity = -1;
         }
 
-        // avoid missiles
-        if(getAvoidables().size() > 0) {
-            double myPos = lastKnownStatus.left.y + 0.5 * lastKnownStatus.conf.paddleHeight;
-            ArrayList<Double> velocityScores = new ArrayList<Double>(100);
-
-            for(int i=0; i<100; ++i) {
-                for(Avoidable avoidable : getAvoidables()) {
-                    double testVelocity = (i - 50) / 50.0;
-                    double dPos = avoidable.t * getPaddleMaxVelocity() * testVelocity;
-                    double paddleTop = myPos + dPos + 30 + 0.5 * lastKnownStatus.conf.paddleHeight;
-                    double paddleBot = myPos + dPos - 30 - 0.5 * lastKnownStatus.conf.paddleHeight;
-
-                    double inBot = avoidable.y - paddleBot;
-                    double inTop = paddleTop - avoidable.y;
-
-                    // double value = Math.min(inBot, inTop);
-                    if(inBot * inTop > 0) {
-                        velocityScores.add(-1.0);
-                    } else {
-                        velocityScores.add(+1.0);
-                    }
-                }
-            }
-
-            int index = (int) ((idealVelocity * 0.5 + 0.5) * 99);
-            if(velocityScores.get(index) > 0) {
-                // all ok, current velocity is fine.
-            }
-            else {
-                for(int i=1; i<100; ++i) {
-                    int indexBot = index - i;
-                    int indexTop = index + i;
-
-                    if(indexBot >= 0 && indexBot < velocityScores.size()) {
-                        if(velocityScores.get(indexBot) > 0) {
-                            System.out.println("Fixed paddle velocity.");
-                            idealVelocity = (indexBot - 50) / 50.0;
-                            break;
-                        }
-                    }
-
-                    if(indexTop >= 0 && indexTop < velocityScores.size()) {
-                        if(velocityScores.get(indexTop) > 0) {
-                            System.out.println("Fixed paddle velocity.");
-                            idealVelocity = (indexTop - 50) / 50.0;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
+        idealVelocity = MissileDodger.dodge(this, idealVelocity);
 
         if(idealVelocity != myState.velocity() || reallyShouldUpdateRegardless()) {
             requestChangeSpeed(idealVelocity);
@@ -326,7 +285,6 @@ public class FinalSauron extends PongGameBot {
     }
 
     private boolean needToReact(double targetPos) {
-
         double myPos = lastKnownStatus.getPedal(getMySide()).y;
         double movingDistance = timeLeft * myState.velocity() * getPaddleMaxVelocity();
 
