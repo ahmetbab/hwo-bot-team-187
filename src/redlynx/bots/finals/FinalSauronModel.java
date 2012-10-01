@@ -1,22 +1,22 @@
 package redlynx.bots.finals;
 
-import redlynx.pong.client.PongGameBot;
-import redlynx.pong.collisionmodel.PongModel;
-import redlynx.pong.util.Vector2;
-
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.Locale;
 import java.util.Scanner;
+
+import redlynx.pong.client.PongGameBot;
+import redlynx.pong.collisionmodel.PongModel;
+import redlynx.pong.util.Vector2;
 
 public class FinalSauronModel implements PongModel {
 
     private final Vector2 out = new Vector2();
     private final PongGameBot host;
 
-
-    private double[] values = {0.419, 0.3234, 0.08, 0.1};
+   
+    private double[] values = {0.2349, 0.1049, 0.0, 0.1};
 
     /*
     private double constantWeight = 0.349;
@@ -75,6 +75,7 @@ public class FinalSauronModel implements PongModel {
     }
 
     public void tweak() {
+    	if (true) return;
         double error = modelError();
         boolean improved = true;
 
@@ -128,6 +129,7 @@ public class FinalSauronModel implements PongModel {
         try {
             FileInputStream fis = new FileInputStream(file);
             Scanner scanner = new Scanner(fis);
+            scanner.useLocale(Locale.US);
             while(scanner.hasNext()) {
                 double pos = scanner.nextDouble();
                 double inx = scanner.nextDouble();

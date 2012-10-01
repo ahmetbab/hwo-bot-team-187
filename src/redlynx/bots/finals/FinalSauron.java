@@ -25,7 +25,7 @@ public class FinalSauron extends PongGameBot {
         myModel = model; // dataCollector.getModel();
         model.tweak();
 
-        dataCollector.learnFromFile("pongdata.txt");
+        dataCollector.learnFromFile("pongdata.txt",1);
     }
 
 	public static void main(String[] args) {

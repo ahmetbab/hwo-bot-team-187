@@ -19,6 +19,8 @@ public class DataCollector {
     private PrintStream logging;
     private boolean logged = true;
 
+    private boolean learn = false;
+    
     public DataCollector(DataMinerModel model) {
         this.model = model;
         this.model.initialise();
@@ -62,9 +64,10 @@ public class DataCollector {
             	
                 logging.println("" + dataCollectCollisionPoint + "\t" + dataCollectVelocityIn.x + "\t" + dataCollectVelocityIn.y + "\t" + dataCollectVelocityOut.x + "\t" + dataCollectVelocityOut.y);
                 logging.flush();
-                model.learn(dataCollectCollisionPoint,
-                        dataCollectVelocityIn.x, dataCollectVelocityIn.y,
-                        dataCollectVelocityOut.x, dataCollectVelocityOut.y);
+                if (learn)
+                	model.learn(dataCollectCollisionPoint,
+                			dataCollectVelocityIn.x, dataCollectVelocityIn.y,
+                			dataCollectVelocityOut.x, dataCollectVelocityOut.y);
             }
             else {
                 // ignore border collision
@@ -83,13 +86,17 @@ public class DataCollector {
         logged = true;
     }
 
-    public void learnFromFile(String s) {
+    public void learnFromFile(String s, int times) {
         try {
             File logFile = new File(s);
-            model.learnFromData(s);
+            model.learnFromData(s, times);
             logging =  new PrintStream(new BufferedOutputStream(new FileOutputStream(logFile, true)));
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    public void optimizeModel(int passes) {
+    	model.optimizeModel(passes);
+    	
     }
 }

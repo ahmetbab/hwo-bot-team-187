@@ -22,7 +22,7 @@ public class DataMiner extends PongGameBot {
     private final DataCollector dataCollector;
 
     public DataMiner() {
-        this("Data Miner");
+        this("miner1");
     }
 
     public DataMiner(String name) {
@@ -54,22 +54,9 @@ public class DataMiner extends PongGameBot {
     public void setName(String name) {
         super.setName(name);
         System.out.println("Avg SqrError in K: " + myModel.modelError());
-        dataCollector.learnFromFile(name+".txt");
-        dataCollector.learnFromFile(name+".txt");
-        dataCollector.learnFromFile(name+".txt");
+        dataCollector.learnFromFile(name+".txt",1);
         System.out.println("Avg SqrError in K: " + myModel.modelError());
-        dataCollector.learnFromFile(name+".txt");
-        dataCollector.learnFromFile(name+".txt");
-        dataCollector.learnFromFile(name+".txt");
-        System.out.println("Avg SqrError in K: " + myModel.modelError());
-        dataCollector.learnFromFile(name+".txt");
-        dataCollector.learnFromFile(name+".txt");
-        dataCollector.learnFromFile(name+".txt");
-        System.out.println("Avg SqrError in K: " + myModel.modelError());
-        dataCollector.learnFromFile(name+".txt");
-        dataCollector.learnFromFile(name+".txt");
-        dataCollector.learnFromFile(name+".txt");
-        System.out.println("Avg SqrError in K: " + myModel.modelError());
+       // dataCollector.optimizeModel(3);
     }
 
 
