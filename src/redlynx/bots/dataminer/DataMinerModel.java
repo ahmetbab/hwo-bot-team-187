@@ -248,10 +248,15 @@ public class DataMinerModel implements PongModel {
     	if (discretePos < 0) {
     		discretePos = 0;
     		pInterpolate = 0;
+    		
+    		//out of paddle hit (big ball radius), cannot learn
+    		return;
     	}
     	else if (discretePos >= paddlePosAccuracy) {
     		discretePos = paddlePosAccuracy-1;
     		pInterpolate = 0;
+    		//out of paddle hit (big ball radius), cannot learn
+    		return;
     	}
     	
     	double k = Math.abs(tvy_in / vx_in);
@@ -268,6 +273,9 @@ public class DataMinerModel implements PongModel {
     		if (discreteK >= wideAngleAccuracy+narrowAngleAccuracy) {
     			discreteK = wideAngleAccuracy+narrowAngleAccuracy-1;
     			kInterpolate = 0;
+    			
+    			//too steep angle to learn
+    			return;
     		}
     	}
     	
