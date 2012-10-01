@@ -180,6 +180,8 @@ public class FinalSauron extends PongGameBot {
 
             fireOffensiveMissiles(timeLeft, ballWorkMemory);
 
+            Visualisation.visualizeOpponentReach(lines, this, timeLeft);
+
             // add an extra ten percent, just to be sure.
             double minReach = reach.x - 0.1;
             double maxReach = reach.y + 0.1;

@@ -26,6 +26,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
 
     private double totalTime = 0;
     private final ArrayList<Avoidable> avoidables = new ArrayList<Avoidable>();
+    private final ArrayList<Avoidable> offensiveMissiles = new ArrayList<Avoidable>();
     private final BallPositionHistory ballPositionHistory = new BallPositionHistory();
     private final PaddleVelocityStorage paddleVelocity = new PaddleVelocityStorage();
     private final SoftVariable ballVelocity = new SoftVariable(50);
@@ -57,6 +58,10 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
     }
 
     public ArrayList<Avoidable> getAvoidables() {
+        return avoidables;
+    }
+
+    public ArrayList<Avoidable> getOffensiveMissiles() {
         return avoidables;
     }
 
@@ -102,7 +107,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
 
     private PongVisualizer visualizer;
 
-    private Queue<Long> missiles;
+    private Queue<Long> availableMissiles;
     private Communicator communicator;
     private final PongMessageParser messageParser;
     private String name;
@@ -133,7 +138,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
     private GameStateAccessor accessor;
 
     public PongGameBot() {
-        missiles = new ArrayDeque<Long>();
+        availableMissiles = new ArrayDeque<Long>();
         messageParser = new PongMessageParser(this);
         accessor = new GameStateAccessor(this);
     }
@@ -165,16 +170,16 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
    
     @Override
 	public void missileReady(long missileId) {
-    	missiles.add(missileId);
+    	availableMissiles.add(missileId);
     }
 
     public boolean hasMissiles() {
-    	return missiles.size() > 0;
+    	return availableMissiles.size() > 0;
     }
 
     public boolean fireMissile() {
     	  if(messageLimiter.canSend() && hasMissiles()) {
-              getCommunicator().sendFireMissile(missiles.remove());
+              getCommunicator().sendFireMissile(availableMissiles.remove());
               messageLimiter.send();
               return true;
           }
@@ -186,16 +191,20 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
 
         // probably no point keeping track of missiles we have fired.
         // NOTE: We assume here that we are always playing on the left side.
-        if(missile.vel.x > 0)
-            return;
-
-        // find out how many seconds we have until missile hits.
-        double missileVelocityX = Math.abs(1000 * missile.vel.x / 20); // assumes 20ms physics step size.
-        double positionX = missile.pos.x;
-        double time = positionX / missileVelocityX;
-        avoidables.add(new Avoidable(missile.pos.y, time));
-
-        System.out.println("Nuclear launch detected!");
+        if(missile.vel.x > 0) {
+            double missileVelocityX = Math.abs(1000 * missile.vel.x / 20); // assumes 20ms physics step size.
+            double positionX = missile.pos.x;
+            double time = (lastKnownStatus.conf.maxWidth - positionX) / missileVelocityX;
+            offensiveMissiles.add(new Avoidable(missile.pos.y, time));
+        }
+        else {
+            // find out how many seconds we have until missile hits.
+            double missileVelocityX = Math.abs(1000 * missile.vel.x / 20); // assumes 20ms physics step size.
+            double positionX = missile.pos.x;
+            double time = positionX / missileVelocityX;
+            avoidables.add(new Avoidable(missile.pos.y, time));
+            System.out.println("Nuclear launch detected!");
+        }
     }
     
 
@@ -207,7 +216,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
     	// TODO encapsulate inside missile handler or something
     	{
             double dt = (gameStatus.time - lastKnownStatus.time) * 0.001;
-			for (int i=0; i<avoidables.size(); ++i) {
+			for (int i=0; i< avoidables.size(); ++i) {
                 Avoidable avoidable = avoidables.get(i);
                 avoidable.tick(dt);
                 if(!avoidable.active()) {
@@ -296,7 +305,8 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
         ballVelocity.reset(150);
         paddleVelocity.reset(100);
         avoidables.clear();
-        missiles.clear();
+        offensiveMissiles.clear();
+        availableMissiles.clear();
         onGameOver(won);
     }
 
