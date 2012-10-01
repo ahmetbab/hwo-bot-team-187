@@ -72,8 +72,8 @@ public class FinalSauron extends PongGameBot {
         }
 
         double timeError = timeLeft - 1.6;
-        if(timeError * timeError < 0.5) {
-            if(ballMe * ballMe < 25 * 25) {
+        if(timeError * timeError < 0.1) {
+            if(ballMe * ballMe < 15 * 15) {
                 if(fireMissile()) {
                     System.out.println("Firing missile at ball destination!");
                 }
