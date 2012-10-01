@@ -41,11 +41,9 @@ public class DataMinerModel implements PongModel {
     		//System.out.println("pos "+pos+" inK "+inK+" outK "+outK+" old "+deflectionData[pos][inK]+
     		//		" error "+Math.abs(outK/deflectionData[pos][inK])+"("+(outK-deflectionData[pos][inK])+") w "+weight);
     		if (Math.abs(newValue-deflectionData[pos][inK]) > 0.1) {
-    			
-    			System.out.println("BIG ERROR!!!" + (newValue-deflectionData[pos][inK]));
-    			
-    			System.out.println("pos "+pos+" inK "+inK+" outK "+outK+" old "+deflectionData[pos][inK]+
-    		    		" error "+Math.abs(outK/deflectionData[pos][inK])+"("+(outK-deflectionData[pos][inK])+") w "+weight);
+    			// System.out.println("BIG ERROR!!!" + (newValue-deflectionData[pos][inK]));
+    			// System.out.println("pos "+pos+" inK "+inK+" outK "+outK+" old "+deflectionData[pos][inK]+
+                // " error "+Math.abs(outK/deflectionData[pos][inK])+"("+(outK-deflectionData[pos][inK])+") w "+weight);
     			return;
     		}
     	}

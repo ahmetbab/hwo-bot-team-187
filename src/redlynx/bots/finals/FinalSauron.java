@@ -106,7 +106,7 @@ public class FinalSauron extends PongGameBot {
             Vector3 target = evaluator.offensiveEval(this, newStatus, PlayerSide.RIGHT, ballWorkMemory, ballTemp, minReach, maxReach);
 
             // when no winning move available, use defense
-            if(target.z < 100) {
+            if(target.z < 50) {
                 ballWorkMemory.copy(newStatus.ball, true);
                 ballWorkMemory.setVelocity(getBallVelocity());
                 timeLeft = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
@@ -119,6 +119,8 @@ public class FinalSauron extends PongGameBot {
             ballCollideToPaddle(target.y, ballTemp);
             double opponentTime = PongUtil.simulateNew(ballTemp, lastKnownStatus.conf, null, null) + timeLeft;
             fireOffensiveMissiles(opponentTime, ballTemp);
+
+            Visualisation.visualizeOpponentReach(lines, this, opponentTime);
 
             if(target.x < 0) {
                 target.x = 0;
@@ -219,11 +221,15 @@ public class FinalSauron extends PongGameBot {
             requestChangeSpeed((float) (0.999f * diff_y / (Math.abs(diff_y) + 0.0000001)));
         }
 
+        MissileDodger.dodge(lines, this, 0);
         getBallPositionHistory().drawLastCollision(lines);
         getPaddleVelocity().drawReachableArea(lines, newStatus.getPedal(getMySide()).y + newStatus.conf.paddleHeight * 0.5, timeLeft, newStatus.conf.paddleHeight);
 
         for(Avoidable avoidable : getAvoidables()) {
-            Visualisation.drawCross(lines, Color.pink, avoidable.t * 200, avoidable.y);
+            Visualisation.drawCross(lines, Color.pink, avoidable.t * 300, avoidable.y);
+        }
+        for(Avoidable avoidable : getOffensiveMissiles()) {
+            Visualisation.drawCross(lines, Color.green, lastKnownStatus.conf.maxWidth - avoidable.t * 300, avoidable.y);
         }
     }
 
@@ -279,7 +285,7 @@ public class FinalSauron extends PongGameBot {
                 idealVelocity = -1;
         }
 
-        idealVelocity = MissileDodger.dodge(this, idealVelocity);
+        idealVelocity = MissileDodger.dodge(lines, this, idealVelocity);
 
         if(idealVelocity != myState.velocity() || reallyShouldUpdateRegardless()) {
             requestChangeSpeed(idealVelocity);

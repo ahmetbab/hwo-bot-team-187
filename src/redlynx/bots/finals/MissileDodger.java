@@ -2,12 +2,15 @@ package redlynx.bots.finals;
 
 import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
+import redlynx.pong.ui.UILine;
+import redlynx.pong.util.Visualisation;
+import java.awt.Color;
 
 import java.util.ArrayList;
 
 public class MissileDodger {
 
-    public static double dodge(PongGameBot bot, double relativeVelocity) {
+    public static double dodge(ArrayList<UILine> lines, PongGameBot bot, double relativeVelocity) {
         ClientGameState.Conf conf = bot.lastKnownStatus.conf;
         ClientGameState.Player player = bot.lastKnownStatus.left;
 
@@ -23,12 +26,22 @@ public class MissileDodger {
                     double paddleTop = myPos + dPos + 30 + 0.5 * conf.paddleHeight;
                     double paddleBot = myPos + dPos - 30 - 0.5 * conf.paddleHeight;
 
+                    boolean possiblePosition = paddleBot > 0 && paddleTop < conf.maxHeight;
+
                     double inBot = avoidable.y - paddleBot;
                     double inTop = paddleTop - avoidable.y;
 
-                    if(inBot * inTop > 0) {
+                    if(inBot * inTop > 0 || !possiblePosition) {
                         velocityScores.set(i, -1.0);
                     }
+                }
+
+                double y = player.y + conf.paddleHeight * 0.5 + 50 * (i - 50) / 50.0;
+                if(velocityScores.get(i) > 0) {
+                    Visualisation.drawCross(lines, Color.green, 20, y);
+                }
+                else {
+                    Visualisation.drawCross(lines, Color.red, 20, y);
                 }
             }
 

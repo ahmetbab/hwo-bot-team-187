@@ -62,7 +62,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
     }
 
     public ArrayList<Avoidable> getOffensiveMissiles() {
-        return avoidables;
+        return offensiveMissiles;
     }
 
     public static class Avoidable {
@@ -195,6 +195,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
             double missileVelocityX = Math.abs(1000 * missile.vel.x / 20); // assumes 20ms physics step size.
             double positionX = missile.pos.x;
             double time = (lastKnownStatus.conf.maxWidth - positionX) / missileVelocityX;
+            System.out.println("my missile time: " + time);
             offensiveMissiles.add(new Avoidable(missile.pos.y, time));
         }
         else {
@@ -203,7 +204,9 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
             double positionX = missile.pos.x;
             double time = positionX / missileVelocityX;
             avoidables.add(new Avoidable(missile.pos.y, time));
-            System.out.println("Nuclear launch detected!");
+            System.out.println("Nuclear launch detected! " + time);
+
+            System.out.println(avoidables.size());
         }
     }
     
@@ -216,14 +219,25 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
     	// TODO encapsulate inside missile handler or something
     	{
             double dt = (gameStatus.time - lastKnownStatus.time) * 0.001;
-			for (int i=0; i< avoidables.size(); ++i) {
+			for (int i=0; i<avoidables.size(); ++i) {
                 Avoidable avoidable = avoidables.get(i);
                 avoidable.tick(dt);
                 if(!avoidable.active()) {
+                    System.out.println("removing avoidable");
                     avoidables.remove(avoidable);
                     --i;
                 }
 			}
+
+            for (int i=0; i<offensiveMissiles.size(); ++i) {
+                Avoidable avoidable = offensiveMissiles.get(i);
+                avoidable.tick(dt);
+                if(!avoidable.active()) {
+                    System.out.println("removing offensive missile");
+                    offensiveMissiles.remove(avoidable);
+                    --i;
+                }
+            }
     	}
 
         paddleVelocity.update(gameStatus.getPedal(mySide).y, gameStatus.time);

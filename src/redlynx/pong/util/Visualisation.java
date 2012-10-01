@@ -10,13 +10,12 @@ public class Visualisation {
 
     public static void visualizeOpponentReach(ArrayList<UILine> lines, PongGameBot bot, double timeLeft) {
         // visualise enemy reach (ignoring missiles)
-        double maxDeltaPos = timeLeft * bot.getPaddleMaxVelocity();
+        double maxDeltaPos = timeLeft * bot.getPaddleMaxVelocity() + 0.5 * bot.lastKnownStatus.conf.paddleHeight;
         double currentPos = bot.lastKnownStatus.right.y + 0.5 * bot.lastKnownStatus.conf.paddleHeight;
         Visualisation.drawVerticalLine(lines, bot.lastKnownStatus.conf.maxWidth - 10, currentPos + maxDeltaPos, currentPos - maxDeltaPos);
 
         // visualise enemy reach (taking current missiles into account)
         for(PongGameBot.Avoidable missile : bot.getOffensiveMissiles()) {
-            drawCross(lines, Color.green, bot.lastKnownStatus.conf.maxWidth - missile.t * 200, missile.y);
         }
 
         // visualise enemy reach (imagining that i fired a missile right now)
