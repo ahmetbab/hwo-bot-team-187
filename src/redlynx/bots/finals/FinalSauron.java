@@ -20,7 +20,7 @@ public class FinalSauron extends PongGameBot {
         super();
 
         dataCollector = new DataCollector(new DataMinerModel(new SFSauronGeneralModel()));
-        myModel = dataCollector.getModel();
+        myModel = new FinalSauronModel(this); // dataCollector.getModel();
         dataCollector.learnFromFile("pongdata.txt");
     }
 
@@ -56,8 +56,17 @@ public class FinalSauron extends PongGameBot {
         if(ballHim * ballMe > 0 && Math.abs(ballHim) > Math.abs(ballMe)) {
             // opponent must cross us before he can reach the ball destination.
             if(error < lastKnownStatus.conf.paddleHeight * lastKnownStatus.conf.paddleHeight / 16.0) {
-                if(fireMissile()) {
-                    System.out.println("Firing slowdown missile!");
+
+                double actualTimeLeft = timeLeft - getPaddleMaxVelocity() * 25;
+                double actualReach = actualTimeLeft * getPaddleMaxVelocity() + lastKnownStatus.conf.paddleHeight * 0.5;
+                double actualPos = lastKnownStatus.right.y + lastKnownStatus.conf.paddleHeight * 0.5;
+                double botReach = actualPos - actualReach;
+                double topReach = actualPos + actualReach;
+
+                if(ballWorkMemory.y < botReach + 10 || ballWorkMemory.y > topReach - 10) {
+                    if(fireMissile()) {
+                        System.out.println("Firing slowdown missile!");
+                    }
                 }
             }
         }
@@ -87,8 +96,8 @@ public class FinalSauron extends PongGameBot {
             fireDefensiveMissiles(timeLeft, ballWorkMemory);
 
             Vector2 reach = getPaddlePossibleReturns(newStatus, ballWorkMemory, PlayerSide.LEFT, timeLeft);
-            double minReach = reach.x;
-            double maxReach = reach.y;
+            double minReach = Math.max(-0.9, reach.x);
+            double maxReach = Math.min(+0.9, reach.y);
 
             {
                 // hack.. if angle is high, don't try to hit the ball with the wrong end of the paddle..
