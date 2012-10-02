@@ -5,6 +5,7 @@ import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.collisionmodel.PongModel;
 import redlynx.pong.ui.UILine;
+import redlynx.pong.ui.UIString;
 import redlynx.pong.util.*;
 
 import java.awt.*;
@@ -12,7 +13,6 @@ import java.util.ArrayList;
 
 
 public class FinalSauron extends PongGameBot {
-
 
     private final MissileCommand missileCommand = new MissileCommand(this);
     private final GameOverHandler gameOverHandler = new GameOverHandler(this);
@@ -34,9 +34,6 @@ public class FinalSauron extends PongGameBot {
     private FinalSauronEvaluator evaluator = new FinalSauronEvaluator();
     private SauronState myState = new SauronState();
     private final ArrayList<UILine> lines = new ArrayList<UILine>();
-
-    public int numWins = 0;
-    public int numGames = 0;
 
     @Override
     public void onGameStateUpdate(ClientGameState newStatus) {

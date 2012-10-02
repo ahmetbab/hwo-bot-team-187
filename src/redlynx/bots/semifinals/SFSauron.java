@@ -27,11 +27,8 @@ public class SFSauron extends PongGameBot {
     private SFSauronEvaluator evaluator = new SFSauronEvaluator();
     private SauronState myState = new SauronState();
     private final ArrayList<UILine> lines = new ArrayList<UILine>();
-    private boolean shoutPlan = true;
 
     double timeLeft = 10000;
-    private int numWins = 0;
-    private int numGames = 0;
 
     @Override
     public void onGameStateUpdate(ClientGameState newStatus) {
@@ -235,14 +232,6 @@ public class SFSauron extends PongGameBot {
     public void onGameOver(boolean won) {
         myState.setToHandling();
         myState.setVelocity(0);
-
-        ++numGames;
-        if(won) {
-            ++numWins;
-        }
-
-        System.out.println(getDefaultName() + " wins " + numWins + "/" + numGames + " (" + ((float)numWins / numGames) + ")");
-
         lastKnownStatus.reset();
         extrapolatedStatus.reset();
         extrapolatedTime = 0;

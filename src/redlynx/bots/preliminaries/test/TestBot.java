@@ -7,6 +7,7 @@ import redlynx.pong.client.Pong;
 import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.ui.UILine;
+import redlynx.pong.ui.UIString;
 import redlynx.pong.util.PongUtil;
 
 public class TestBot extends PongGameBot {

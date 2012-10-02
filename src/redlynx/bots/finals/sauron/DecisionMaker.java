@@ -31,10 +31,12 @@ public class DecisionMaker {
         double minReach = Math.max(-0.9, reach.x);
         double maxReach = Math.min(+0.9, reach.y);
 
+
+
         {
             // hack.. if angle is high, don't try to hit the ball with the wrong end of the paddle..
-            double value = finalSauron.getBallWorkMemory().vy * 0.1;
-            double amount = Math.min(0.5, value * value * 0.4);
+            double value = finalSauron.getBallWorkMemory().vy * 0.05;
+            double amount = Math.min(0.5, value * value);
             if (value < 0.0 && minReach < -1 + amount) {
                 minReach = -1 + amount;
             } else if (value > 0.0 && maxReach > 1 - amount) {

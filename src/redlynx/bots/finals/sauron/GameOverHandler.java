@@ -12,14 +12,6 @@ public class GameOverHandler {
         state.setToHandling();
 
         finalSauron.getMyState().setVelocity(0);
-        finalSauron.numGames++;
-
-        if (won) {
-            finalSauron.numWins++;
-        }
-
-        System.out.println(finalSauron.getDefaultName() + " wins " + finalSauron.numWins + "/" + finalSauron.numGames + " (" + ((float) finalSauron.numWins / finalSauron.numGames) + ")");
-
         finalSauron.getLastKnownStatus().reset();
         finalSauron.getExtrapolatedStatus().reset();
         finalSauron.setExtrapolatedTime(0);
