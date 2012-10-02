@@ -19,13 +19,13 @@ public class PongMatcher {
         String server = "boris.helloworldopen.fi";
         String local = "localhost";
 
-        /*
         final String[] args1 = {bot1.getDefaultName(), server, "9090", "-vis", "-match", bot2.getDefaultName()};
         final String[] args2 = {bot2.getDefaultName(), server, "9090", "-vis", "-match", bot1.getDefaultName()};
-        */
 
+        /*
         final String[] args1 = {bot1.getDefaultName(), local, "9090", "-vis"};
         final String[] args2 = {bot2.getDefaultName(), local, "9090", "-vis"};
+        */
 
         new Thread() {
             public void run() {

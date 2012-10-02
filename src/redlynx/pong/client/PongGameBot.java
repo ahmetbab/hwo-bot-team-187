@@ -306,6 +306,10 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
         for(Avoidable avoidable : getOffensiveMissiles()) {
             Visualisation.drawCross(lines, Color.green, lastKnownStatus.conf.maxWidth - avoidable.t * 300, avoidable.y);
         }
+
+        if(hasMissiles()) {
+            Visualisation.drawSquare(lines, Color.green, 100, 20);
+        }
         
         if (visualizer != null) {
         	visualizer.render();

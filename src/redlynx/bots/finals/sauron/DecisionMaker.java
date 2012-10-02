@@ -2,6 +2,7 @@ package redlynx.bots.finals.sauron;
 
 import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
+import redlynx.pong.ui.UILine;
 import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector2;
 import redlynx.pong.util.Vector3;
@@ -31,8 +32,6 @@ public class DecisionMaker {
         double minReach = Math.max(-0.9, reach.x);
         double maxReach = Math.min(+0.9, reach.y);
 
-
-
         {
             // hack.. if angle is high, don't try to hit the ball with the wrong end of the paddle..
             double value = finalSauron.getBallWorkMemory().vy * 0.05;
@@ -55,14 +54,23 @@ public class DecisionMaker {
             target = evaluator.defensiveEval(finalSauron, finalSauron.getLastKnownStatus(), PongGameBot.PlayerSide.RIGHT, minReach, maxReach, finalSauron.getBallWorkMemory());
         }
 
+        {
+            // time to target, time for missile. missile launcher reach.
+            double halfPaddle = 0.5 * newStatus.conf.paddleHeight;
+            double myPos = newStatus.left.y + halfPaddle;
+            double distanceToTarget = Math.abs(target.x - myPos);
+            double timeToTarget = distanceToTarget / finalSauron.getPaddleMaxVelocity();
+            double timeForMissile = (timeLeft - timeToTarget) * 0.5;
+            finalSauron.getLines().add(new UILine(12, myPos - halfPaddle - timeForMissile * finalSauron.getPaddleMaxVelocity(), 12, myPos + halfPaddle + timeForMissile * finalSauron.getPaddleMaxVelocity(), Color.magenta));
 
-        // see if should make an offensive missile shot with current plan.
-        tmpBall.copy(finalSauron.getBallWorkMemory(), true);
-        finalSauron.ballCollideToPaddle(target.y, tmpBall);
-        double opponentTime = PongUtil.simulateNew(tmpBall, finalSauron.getLastKnownStatus().conf, null, null) + timeLeft;
-        finalSauron.getMissileCommand().fireOffensiveMissiles(opponentTime, tmpBall);
+            // see if should make an offensive missile shot with current plan.
+            tmpBall.copy(finalSauron.getBallWorkMemory(), true);
+            finalSauron.ballCollideToPaddle(target.y, tmpBall);
+            double opponentTime = PongUtil.simulateNew(tmpBall, finalSauron.getLastKnownStatus().conf, null, null) + timeLeft;
+            finalSauron.getMissileCommand().fireOffensiveMissiles(opponentTime, tmpBall);
 
-        Visualisation.visualizeOpponentReach(finalSauron.getLines(), finalSauron, opponentTime);
+            Visualisation.visualizeOpponentReach(finalSauron.getLines(), finalSauron, opponentTime);
+        }
 
         double minVal = finalSauron.getLastKnownStatus().conf.ballRadius;
         double maxVal = finalSauron.getLastKnownStatus().conf.maxHeight - finalSauron.getLastKnownStatus().conf.paddleHeight - finalSauron.getLastKnownStatus().conf.ballRadius;
@@ -84,7 +92,7 @@ public class DecisionMaker {
 
         // check if we need to do something.
         if (finalSauron.getMyState().catching()) {
-            double myPos = finalSauron.getLastKnownStatus().getPedal(finalSauron.getMySide()).y;
+            double myPos = newStatus.left.y;
             double distance = (targetPos - myPos);
             if (finalSauron.needToReact(targetPos, timeLeft) || finalSauron.reallyShouldUpdateRegardless()) {
                 finalSauron.changeCourse(distance, timeLeft);
