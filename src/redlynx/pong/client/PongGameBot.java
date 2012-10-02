@@ -283,6 +283,8 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
         long time = System.nanoTime() - startTime;
         float decisionTime = (time / 1000000.0f);
 
+        //System.out.println("time ("+name+"): "+decisionTime);
+        
         if (visualizer != null) {
         	visualizer.render();
         }

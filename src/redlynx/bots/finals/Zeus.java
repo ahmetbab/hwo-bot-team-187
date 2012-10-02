@@ -164,7 +164,7 @@ public class Zeus extends PongGameBot {
             ballWorkMemory.copy(newStatus.ball, true);
             ballWorkMemory.setVelocity(getBallVelocity());
 
-            timeLeft = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
+            timeLeft = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
             Vector2 reach = getPaddlePossibleReturns(newStatus, ballWorkMemory, PlayerSide.RIGHT, timeLeft);
 
             // add an extra ten percent, just to be sure.

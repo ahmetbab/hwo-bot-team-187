@@ -30,8 +30,10 @@ public class ZeusEvaluator {
 
         int pointer = 0;
 
+        double paddleReach = state.conf.paddleHeight * 0.5+state.conf.ballRadius;
+        
         {
-            for(int i=7; i<93; ++i) {
+            for(int i=3; i<97; ++i) {
                 double tmpTarget = (i - 50) / 50.0;
                 double evaluatedPaddlePos = targetPos - tmpTarget * state.conf.paddleHeight * 0.5;
 
@@ -49,7 +51,7 @@ public class ZeusEvaluator {
                 bot.ballCollideToPaddle(tmpTarget, tmpBall);
 
                 double opponentTime = PongUtil.simulate(tmpBall, state.conf);
-                double opponentReach = opponentTime * bot.getPaddleMaxVelocity() + state.conf.paddleHeight * 0.5;
+                double opponentReach = opponentTime * bot.getPaddleMaxVelocity() + paddleReach;
                 double opponentBot = catcherPos- opponentReach + state.conf.paddleHeight * 0.5;
                 double opponentTop = catcherPos + opponentReach + state.conf.paddleHeight * 0.5;
 
@@ -75,22 +77,22 @@ public class ZeusEvaluator {
 
                 botScores[pointer] = tmpBotValue;
                 topScores[pointer] = tmpTopValue;
-                pointer = ++pointer & 7;
+                pointer = ++pointer & 3;
 
                 // select minimum value from range.
-                for(int k=0; k<=7; ++k) {
+                for(int k=0; k<=3; ++k) {
                     if(tmpBotValue > botScores[k]) tmpBotValue = botScores[k];
                     if(tmpTopValue > topScores[k]) tmpTopValue = topScores[k];
                 }
 
                 if(tmpBotValue > botValue) {
                     botValue = tmpBotValue;
-                    paddleTargetBot = (i - 3 - 50) / 50.0;
+                    paddleTargetBot = (i - 1 - 50) / 50.0;
                 }
 
                 if(tmpTopValue > topValue) {
                     topValue = tmpTopValue;
-                    paddleTargetTop = (i - 3 - 50) / 50.0;
+                    paddleTargetTop = (i - 1 - 50) / 50.0;
                 }
             }
         }

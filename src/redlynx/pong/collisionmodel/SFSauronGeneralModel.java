@@ -30,7 +30,8 @@ public class SFSauronGeneralModel implements PongModel {
     @Override
     public Vector2 guessGivenSpeed(double pos, double vx_in, double vy_in, double speed) {
         out.x = -vx_in;
-        out.y = +vy_in + pos * speed * (0.22 + Math.abs(vy_in / vx_in) * 0.10);
+        //out.y = +vy_in + pos * speed * (0.22 + Math.abs(vy_in / vx_in) * 0.10);
+        out.y = +vy_in + pos * speed * (0.253 + Math.abs(vy_in / vx_in) * 0.01); //better at smaller angles
         return out;
     }
     
