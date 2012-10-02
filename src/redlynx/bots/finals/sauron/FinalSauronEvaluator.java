@@ -31,7 +31,7 @@ public class FinalSauronEvaluator {
         int pointer = 0;
 
         {
-            for(int i=7; i<93; ++i) {
+            for(int i=0; i<100; ++i) {
                 double tmpTarget = (i - 50) / 50.0;
                 double evaluatedPaddlePos = targetPos - tmpTarget * state.conf.paddleHeight * 0.5;
 
@@ -156,6 +156,7 @@ public class FinalSauronEvaluator {
             double topReach = +(opponentTop - ballMemory.y) / (state.conf.paddleHeight * 0.5);
 
             Vector3 opponentBestMove = offensiveEval(bot, state, PongGameBot.PlayerSide.getOtherSide(catcher), ballMemory, ballMemory2, botReach, topReach);
+
             double score = -opponentBestMove.z;
 
             if(score > minScore) {

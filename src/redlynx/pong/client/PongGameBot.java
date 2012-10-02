@@ -65,6 +65,10 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
         return offensiveMissiles;
     }
 
+    public void setExtrapolatedTime(double extrapolatedTime) {
+        this.extrapolatedTime = extrapolatedTime;
+    }
+
     public static class Avoidable {
 
         public Avoidable(double y, double t) {
@@ -170,6 +174,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
    
     @Override
 	public void missileReady(long missileId) {
+        System.out.println("Got missile!");
     	availableMissiles.add(missileId);
     }
 
@@ -192,7 +197,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
         // probably no point keeping track of missiles we have fired.
         // NOTE: We assume here that we are always playing on the left side.
         if(missile.vel.x > 0) {
-            double missileVelocityX = Math.abs(1000 * missile.vel.x / 20); // assumes 20ms physics step size.
+            double missileVelocityX = Math.abs(1000 * missile.vel.x / lastKnownStatus.conf.tickInterval); // assumes 20ms physics step size.
             double positionX = missile.pos.x;
             double time = (lastKnownStatus.conf.maxWidth - positionX) / missileVelocityX;
             System.out.println("my missile time: " + time);
@@ -200,7 +205,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
         }
         else {
             // find out how many seconds we have until missile hits.
-            double missileVelocityX = Math.abs(1000 * missile.vel.x / 20); // assumes 20ms physics step size.
+            double missileVelocityX = Math.abs(1000 * missile.vel.x / lastKnownStatus.conf.tickInterval); // assumes 20ms physics step size.
             double positionX = missile.pos.x;
             double time = positionX / missileVelocityX;
             avoidables.add(new Avoidable(missile.pos.y, time));
@@ -214,7 +219,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
     @Override
    	public void gameStateUpdate(GameStatusSnapShot snap) {
 
-        ClientGameState gameStatus = new ClientGameState(snap);       
+        ClientGameState gameStatus = new ClientGameState(snap);
 
     	// TODO encapsulate inside missile handler or something
     	{
