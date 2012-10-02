@@ -347,7 +347,11 @@ public class DataMinerModel implements PongModel {
     @Override
     public Vector2 guess(double pos, double vx_in, double vy_in) {
     	
+    	double k = Math.abs(vy_in / vx_in);
+    	if (k < 0.2)
+    		return model.guess(pos, vx_in, vy_in);
     	double tpos;
+    	
     	double tvy_in;
     	if (vy_in < 0) {
     		tpos = -pos;
@@ -369,7 +373,8 @@ public class DataMinerModel implements PongModel {
     		discretePos = paddlePosAccuracy-1;
     	}
     	
-    	double k = Math.abs(tvy_in / vx_in);
+    	
+    	
     	int discreteK = 0;
     	float kInterpolate =0;
     	if (k < 1) {
@@ -385,7 +390,7 @@ public class DataMinerModel implements PongModel {
     			kInterpolate = 0;
     		}
     	}
-    	float outK = getDataBilinear(discretePos, discreteK, pInterpolate, kInterpolate);
+    	float outK = getDataBicubic(discretePos, discreteK, pInterpolate, kInterpolate);
     	if (vy_in >= 0)
     		outK = -outK;
     	if (vx_in > 0)
