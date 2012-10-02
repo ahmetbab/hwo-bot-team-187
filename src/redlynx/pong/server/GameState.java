@@ -8,15 +8,15 @@ import org.json.JSONObject;
 import redlynx.pong.collisionmodel.PongModel;
 import redlynx.pong.collisionmodel.SFSauronGeneralModel;
 import redlynx.pong.ui.GameStateAccessorInterface;
+import redlynx.pong.ui.PongVisualizer;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.ui.UIString;
 import redlynx.pong.util.Vector2;
 import redlynx.pong.util.Vector2i;
+import redlynx.pong.util.Visualisation;
 
 public class GameState implements GameStateAccessorInterface {
-	
-	
-	
+
 	public class Paddle {
 		public double y;
 		public double vel;
@@ -63,8 +63,9 @@ public class GameState implements GameStateAccessorInterface {
 	public int tickInterval;
 	public int missileStartPos;
 	public double missileSpeed;
-	
-	
+
+
+    private final ArrayList<UILine> lines = new ArrayList<UILine>();
 	private boolean gameEnded;
 	private int winner;
 	public int deflectionMode;
@@ -72,13 +73,18 @@ public class GameState implements GameStateAccessorInterface {
 	PongModel model;
 	
 	private class Missile {
+        Vector2 initialPosition;
 		Vector2 pos;
 		Vector2 vel;
 		boolean newMissile;
-		public Missile(Vector2 pos, Vector2 vel) {
+		long time;
+
+        public Missile(Vector2 pos, Vector2 vel) {
 			this.pos = pos;
+            this.initialPosition = new Vector2(pos);
 			this.vel = vel;
 			newMissile = true;
+            time = System.nanoTime();
 		}
 		boolean isNew() {
 			return newMissile;
@@ -113,7 +119,7 @@ public class GameState implements GameStateAccessorInterface {
 	public boolean hasEnded() {
 		return gameEnded;
 	}
-	public int getWinner() {
+    public int getWinner() {
 		return winner;
 	}
 	public void setPlayers(String player1, String player2) {
@@ -162,16 +168,20 @@ public class GameState implements GameStateAccessorInterface {
 	}
 	
 	public synchronized void tickGame() {
-		
-		
-		
-		for (int i = 0; i < missiles.size(); i++) {
-			Missile m = missiles.get(i); 
-			m.newMissile = false;
-			m.pos.x += m.vel.x;
-			m.pos.y += m.vel.y;
-		}
-		
+
+        {
+            long time = System.nanoTime();
+
+            for (int i = 0; i < missiles.size(); i++) {
+                Missile m = missiles.get(i);
+                m.newMissile = false;
+
+                double dt = (time - m.time) * 0.000001;
+
+                m.pos.x = m.initialPosition.x + dt * m.vel.x / (1000 / tickInterval);
+                m.pos.y = m.initialPosition.y + dt * m.vel.y / (1000 / tickInterval);
+            }
+        }
 		
 		for (int i = 0; i < paddle.length; i++) {
 			if (paddle[i].newMissile) {
@@ -524,7 +534,11 @@ public class GameState implements GameStateAccessorInterface {
 	}
 	@Override
 	public ArrayList<UILine> getExtraLines() {
-		return null;
+        lines.clear();
+        for(Missile missile : missiles) {
+            Visualisation.drawSquare(lines, Color.red, missile.pos.x, missile.pos.y);
+        }
+        return lines;
 	}
 	@Override
 	public ArrayList<UIString> getExtraStrings() {

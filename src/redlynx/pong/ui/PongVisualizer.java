@@ -42,7 +42,6 @@ public class PongVisualizer extends JPanel
 
         this.setMinimumSize(new Dimension(width, height));
         this.setPreferredSize(new Dimension(width, height));
-
     }
 
 
@@ -124,9 +123,7 @@ public class PongVisualizer extends JPanel
 
 
         g = imageBuffer.getGraphics();
-
         g.drawImage(renderBuffer,0,0,this);
-
 
         repaint();
 
