@@ -1,5 +1,6 @@
 package redlynx.pong.client;
 
+import java.awt.*;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Queue;
@@ -19,8 +20,10 @@ import redlynx.pong.collisionmodel.LinearModel;
 import redlynx.pong.collisionmodel.PongModel;
 import redlynx.pong.ui.GameStateAccessorInterface;
 import redlynx.pong.ui.PongVisualizer;
+import redlynx.pong.ui.UIString;
 import redlynx.pong.util.SoftVariable;
 import redlynx.pong.util.Vector2;
+import redlynx.pong.util.Vector2i;
 
 public abstract class PongGameBot implements PongMessageListener, PongMessageParser.Handler, LineVisualizer {
 
@@ -30,11 +33,15 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
     private final BallPositionHistory ballPositionHistory = new BallPositionHistory();
     private final PaddleVelocityStorage paddleVelocity = new PaddleVelocityStorage();
     private final SoftVariable ballVelocity = new SoftVariable(50);
+    private final ArrayList<UIString> strings = new ArrayList<UIString>();
+
     private final MessageLimiter messageLimiter = new MessageLimiter();
-
     public PongModel myModel = new LinearModel();
-    public final ClientGameState.Ball ballWorkMemory = new ClientGameState.Ball();
 
+    private int numWins = 0;
+    private int numGames = 0;
+
+    public final ClientGameState.Ball ballWorkMemory = new ClientGameState.Ball();
     public final ClientGameState.Ball ballTemp = new ClientGameState.Ball();
 
     public void setName(String name) {
@@ -63,6 +70,10 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
 
     public ArrayList<Avoidable> getOffensiveMissiles() {
         return offensiveMissiles;
+    }
+
+    public void setExtrapolatedTime(double extrapolatedTime) {
+        this.extrapolatedTime = extrapolatedTime;
     }
 
     public static class Avoidable {
@@ -170,6 +181,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
    
     @Override
 	public void missileReady(long missileId) {
+        System.out.println("Got missile!");
     	availableMissiles.add(missileId);
     }
 
@@ -192,7 +204,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
         // probably no point keeping track of missiles we have fired.
         // NOTE: We assume here that we are always playing on the left side.
         if(missile.vel.x > 0) {
-            double missileVelocityX = Math.abs(1000 * missile.vel.x / 20); // assumes 20ms physics step size.
+            double missileVelocityX = Math.abs(1000 * missile.vel.x / lastKnownStatus.conf.tickInterval); // assumes 20ms physics step size.
             double positionX = missile.pos.x;
             double time = (lastKnownStatus.conf.maxWidth - positionX) / missileVelocityX;
             System.out.println("my missile time: " + time);
@@ -200,7 +212,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
         }
         else {
             // find out how many seconds we have until missile hits.
-            double missileVelocityX = Math.abs(1000 * missile.vel.x / 20); // assumes 20ms physics step size.
+            double missileVelocityX = Math.abs(1000 * missile.vel.x / lastKnownStatus.conf.tickInterval); // assumes 20ms physics step size.
             double positionX = missile.pos.x;
             double time = positionX / missileVelocityX;
             avoidables.add(new Avoidable(missile.pos.y, time));
@@ -214,7 +226,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
     @Override
    	public void gameStateUpdate(GameStatusSnapShot snap) {
 
-        ClientGameState gameStatus = new ClientGameState(snap);       
+        ClientGameState gameStatus = new ClientGameState(snap);
 
     	// TODO encapsulate inside missile handler or something
     	{
@@ -324,6 +336,15 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
         offensiveMissiles.clear();
         availableMissiles.clear();
         onGameOver(won);
+
+        ++numGames;
+        if(won) {
+            ++numWins;
+        }
+
+        strings.clear();
+        strings.add(new UIString("" + numWins, new Vector2i(lastKnownStatus.conf.maxWidth * 0.5 - 75, lastKnownStatus.conf.maxHeight + 20), Color.green));
+        strings.add(new UIString("" + (numGames - numWins), new Vector2i(lastKnownStatus.conf.maxWidth * 0.5 + 75, lastKnownStatus.conf.maxHeight + 20), Color.red));
     }
 
     public abstract void onGameStateUpdate(ClientGameState newStatus);
@@ -408,5 +429,10 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
 
     public BallPositionHistory getBallPositionHistory() {
         return ballPositionHistory;
+    }
+
+    @Override
+    public ArrayList<UIString> getDrawStrings() {
+        return this.strings;
     }
 }

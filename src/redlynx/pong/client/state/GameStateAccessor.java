@@ -84,18 +84,13 @@ public class GameStateAccessor implements GameStateAccessorInterface {
     }
 	@Override
 	public ArrayList<UILine> getExtraLines() {
-		
 		ArrayList<UILine> lines = bot.getDrawLines();
-		for(PongGameBot.Avoidable avoidable : bot.getAvoidables()) {
-            lines.add(new UILine(avoidable.t * 100, avoidable.y, avoidable.t * 200, avoidable.y, Color.pink));
-        }
-		
         return lines;
 	}
 
     @Override
 	public ArrayList<UIString> getExtraStrings() {
-		return null;
+		return bot.getDrawStrings();
 	}
 
 }

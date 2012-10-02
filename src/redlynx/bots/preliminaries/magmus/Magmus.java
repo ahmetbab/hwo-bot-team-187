@@ -1,34 +1,60 @@
-package redlynx.bots.semifinals;
+package redlynx.bots.preliminaries.magmus;
 
-import java.awt.Color;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 
 import redlynx.pong.client.Pong;
-import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
+import redlynx.pong.client.PongGameBot;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector2;
 import redlynx.pong.util.Vector2i;
 import redlynx.pong.util.Vector3;
 
+import java.awt.Color;
 
-public class SFSauron extends PongGameBot {
 
-    public SFSauron() {
-        super();
-        myModel = new SFSauronModel(this);
+public class Magmus extends PongGameBot {
+
+    private boolean logged = true;
+
+    public Magmus() {
+        PrintStream logging = null;
+        try {
+            File logFile = new File("data.txt");
+            if(!logFile.exists())
+                logFile.createNewFile();
+            logging = new PrintStream(logFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        this.logging = logging;
     }
 
-	public static void main(String[] args) {
-		Pong.init(args, new SFSauron());
+    public static void main(String[] args) {
+		Pong.init(args, new Magmus());
 	}
 
-    private SFSauronEvaluator evaluator = new SFSauronEvaluator();
-    private SauronState myState = new SauronState();
+    private MagmusEvaluator evaluator = new MagmusEvaluator();
+    private MagmusState myState = new MagmusState();
     private final ArrayList<UILine> lines = new ArrayList<UILine>();
+    private boolean shoutPlan = true;
 
     double timeLeft = 10000;
+    private int numWins = 0;
+    private int numGames = 0;
+
+    // collecting statistics.
+    private boolean inVelocityReversed = true;
+    private final Vector2 dataCollectVelocityIn = new Vector2();
+    private final Vector2 dataCollectVelocityOut = new Vector2();
+    private double dataCollectCollisionPoint;
+    private final PrintStream logging;
+
 
     @Override
     public void onGameStateUpdate(ClientGameState newStatus) {
@@ -36,42 +62,63 @@ public class SFSauron extends PongGameBot {
         lines.clear();
         double ball_direction = newStatus.ball.vx;
 
-        // if(hasMissiles()) {
-        //    fireMissile();
-        //}
-
         if(getMySide().comingTowardsMe(ball_direction)) {
             // find out impact velocity and position.
             ballWorkMemory.copy(newStatus.ball, true);
             ballWorkMemory.setVelocity(getBallVelocity());
-            timeLeft = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
+            timeLeft = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
 
             Vector2 reach = getPaddlePossibleReturns(newStatus, ballWorkMemory, PlayerSide.LEFT, timeLeft);
             double minReach = reach.x;
             double maxReach = reach.y;
 
-            {
-                // hack.. if angle is high, don't try to hit the ball with the wrong end of the paddle..
-                double value = ballWorkMemory.vy / (Math.abs(ballWorkMemory.vx) + 0.000001);
-                double amount = Math.min(0.5, value * value * 0.3);
-                if(value < 0.0 && minReach < -1+amount) {
-                    minReach = -1+amount;
-                }
-                else if(value > 0.0 && maxReach > 1-amount) {
-                    maxReach = +1-amount;
-                }
-            }
-
             // this is the expected y value when colliding against our paddle.
-            Vector3 target = evaluator.offensiveEval(this, newStatus, PlayerSide.RIGHT, ballWorkMemory, ballTemp, minReach, maxReach);
+            Vector3 target = evaluator.offensiveEval(this, newStatus, PlayerSide.RIGHT, ballWorkMemory, ballTemp, minReach, maxReach, true, lines, Color.green);
+            boolean defending = false;
 
             // when no winning move available
             if(target.z < 100) {
+
+                /*
+                defending = true;
                 ballWorkMemory.copy(newStatus.ball, true);
                 ballWorkMemory.setVelocity(getBallVelocity());
-                timeLeft = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
-                target = evaluator.defensiveEval(this, lastKnownStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory);
+                timeLeft = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
+
+                long timer = System.nanoTime();
+                target = evaluator.defensiveEval(this, lastKnownStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory, 0);
+                long timer2 = System.nanoTime();
+
+                double dt = (timer2 - timer) / 1000000.0;
+                System.out.println("Def took: " + dt + " ms" + ", value: " + target.z);
+                */
+
             }
+
+
+            {
+                if(getBallPositionHistory().isReliable()) {
+                    // data collecting.
+                    inVelocityReversed = false;
+                    logged = false;
+                    dataCollectCollisionPoint = target.y;
+                    dataCollectVelocityIn.x = newStatus.ball.vx;
+                    dataCollectVelocityIn.y = newStatus.ball.vy;
+                }
+                else if(getBallPositionHistory().getLastCollisionPoint() != null && newStatus.ball.x < getBallPositionHistory().getLastCollisionPoint().x && !inVelocityReversed) {
+                    dataCollectVelocityIn.y *= -1;
+                    inVelocityReversed = true;
+                }
+            }
+
+            /*
+            if(defending) {
+                System.out.println("############## " + target.z);
+            }
+            else {
+                System.out.println("-------------- " + target.z);
+            }
+            */
 
             double targetPos = target.x;
             double paddleTarget = target.y;
@@ -85,17 +132,36 @@ public class SFSauron extends PongGameBot {
             if(myState.catching()) {
                 double myPos = lastKnownStatus.getPedal(getMySide()).y;
                 double distance = (targetPos - myPos);
-                if(needToReact(targetPos) || reallyShouldUpdateRegardless()) {
+                if(needToReact(targetPos)) {
                     changeCourse(distance);
                 }
             }
         }
         else {
+
+
+            {
+                // data collecting.
+                if(getBallPositionHistory().isReliable() && !logged) {
+                    logged = true;
+                    dataCollectVelocityOut.x = newStatus.ball.vx;
+                    dataCollectVelocityOut.y = newStatus.ball.vy;
+
+                    if(getBallPositionHistory() != null && getBallPositionHistory().getLastCollisionPoint() != null && getBallPositionHistory().getLastCollisionPoint().x > lastKnownStatus.conf.paddleWidth + lastKnownStatus.conf.ballRadius + 5) {
+                        dataCollectVelocityOut.y *= -1;
+                    }
+
+                    // TODO: Model could learn here.
+                    // logging.println("" + dataCollectCollisionPoint + " " + dataCollectVelocityIn.x + " " + dataCollectVelocityIn.y + " " + dataCollectVelocityOut.x + " " + dataCollectVelocityOut.y);
+                }
+            }
+
+
             // simulate twice, once there, and then back.
             ballWorkMemory.copy(newStatus.ball, true);
             ballWorkMemory.setVelocity(getBallVelocity());
 
-            timeLeft = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
+            timeLeft = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
             Vector2 reach = getPaddlePossibleReturns(newStatus, ballWorkMemory, PlayerSide.RIGHT, timeLeft);
 
             // add an extra ten percent, just to be sure.
@@ -103,7 +169,7 @@ public class SFSauron extends PongGameBot {
             double maxReach = reach.y + 0.1;
 
             // this is the current worst case. should try to cover that?
-            Vector3 target = evaluator.offensiveEval(this, newStatus, PlayerSide.LEFT, ballWorkMemory, ballTemp, minReach, maxReach);
+            Vector3 target = evaluator.offensiveEval(this, newStatus, PlayerSide.LEFT, ballWorkMemory, ballTemp, minReach, maxReach, false, lines, Color.red);
             double paddleTarget = target.y;
 
             // if no return is possible according to simulation. Then the least impossible return should be anticipated..
@@ -125,14 +191,14 @@ public class SFSauron extends PongGameBot {
             visualisePlan(0, Color.green);
 
             ballCollideToPaddle(paddleTarget, ballWorkMemory);
-            double timeLeftAfter = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.red);
+            double timeLeftAfter = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, lines, Color.red);
             timeLeft += timeLeftAfter;
 
             // now we are done.
             ClientGameState.Player myPedal = lastKnownStatus.getPedal(getMySide());
             double diff_y = ballWorkMemory.y - myPedal.y;
 
-            requestChangeSpeed((float) (0.999f * diff_y / (Math.abs(diff_y) + 0.0000001)));
+            requestChangeSpeed((float) (0.999f * diff_y / Math.abs(diff_y))); //TODO check div by zero
         }
 
         getBallPositionHistory().drawLastCollision(lines);
@@ -142,7 +208,7 @@ public class SFSauron extends PongGameBot {
     private void visualisePlan(double paddleTarget, Color color) {
         ballTemp.copy(ballWorkMemory, true);
         ballCollideToPaddle(paddleTarget, ballTemp);
-        PongUtil.simulateOld(ballTemp, lastKnownStatus.conf, lines, color);
+        PongUtil.simulateNew(ballTemp, lastKnownStatus.conf, lines, color);
     }
 
     private void visualiseModel(double x, double y, double minReach, double maxReach) {
@@ -177,13 +243,6 @@ public class SFSauron extends PongGameBot {
     private void changeCourse(double distance) {
         // ok seems we really have to change course.
         double idealVelocity = (distance / timeLeft / getPaddleMaxVelocity()); // this aims for the centre of current target
-
-        // run until near target.
-        //if(distance * distance > 2500) {
-        //    idealVelocity = distance > 0 ? +1 : -1;
-        //}
-
-        // not going faster than allowed
         if(idealVelocity * idealVelocity > 1.0) {
             if(idealVelocity > 0)
                 idealVelocity = +1;
@@ -232,6 +291,14 @@ public class SFSauron extends PongGameBot {
     public void onGameOver(boolean won) {
         myState.setToHandling();
         myState.setVelocity(0);
+
+        ++numGames;
+        if(won) {
+            ++numWins;
+        }
+
+        System.out.println("Game ended, wins " + numWins + "/" + numGames + " (" + ((float)numWins / numGames) + ")");
+
         lastKnownStatus.reset();
         extrapolatedStatus.reset();
         extrapolatedTime = 0;
@@ -243,7 +310,7 @@ public class SFSauron extends PongGameBot {
 
     @Override
     public String getDefaultName() {
-        return "SemiFinalsSauron";
+        return "Magmus";
     }
 
     @Override

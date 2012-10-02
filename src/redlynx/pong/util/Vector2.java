@@ -14,6 +14,11 @@ public class Vector2 {
         this.y = y;
     }
 
+    public Vector2(Vector2 pos) {
+        this.x = pos.x;
+        this.y = pos.y;
+    }
+
     public double length() {
         return Math.sqrt(x*x + y*y + 0.000000001);
     }

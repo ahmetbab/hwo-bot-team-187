@@ -227,7 +227,7 @@ public class PongServer {
 	public static void main(String args[])
 	{
 		try {
-			int port = Integer.parseInt(args[0]);
+			int port = 9090;
 			
 			PongServer server = new PongServer();
 			server.run(port);

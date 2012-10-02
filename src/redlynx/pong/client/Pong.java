@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.Socket;
 
-import redlynx.bots.magmus.Magmus;
+import redlynx.bots.preliminaries.magmus.Magmus;
 import redlynx.pong.client.network.Communicator;
 import redlynx.pong.client.network.NullCommunicator;
 import redlynx.pong.client.network.PongGameCommunicator;
@@ -14,7 +14,6 @@ import redlynx.pong.client.ui.PongClientFrame;
 import redlynx.pong.ui.GameStateAccessorInterface;
 import redlynx.pong.ui.PongVisualizer;
 import redlynx.pong.util.WinTimerHack;
-import redlynx.bots.test.TestBot;
 
 public class Pong {
     private  Socket connection;

@@ -1,8 +1,7 @@
 package redlynx.bots;
 
-import redlynx.bots.dataminer.DataMiner;
-import redlynx.bots.finals.FinalSauron;
-import redlynx.bots.semifinals.SFSauron;
+import redlynx.bots.preliminaries.dataminer.DataMiner;
+import redlynx.bots.finals.sauron.FinalSauron;
 import redlynx.pong.client.Pong;
 import redlynx.pong.client.PongGameBot;
 
@@ -11,14 +10,22 @@ public class PongMatcher {
     // takes no arguments.
     public static void main(String[] args) {
         PongGameBot bot2 = new FinalSauron();
-        PongGameBot bot1 = new DataMiner("miner1");
+        PongGameBot bot1 = new FinalSauron();
         createMatch(bot1, bot2);
     }
 
     private static void createMatch(final PongGameBot bot1, final PongGameBot bot2) {
 
-        final String[] args1 = {bot1.getDefaultName(), "boris.helloworldopen.fi", "9090", "-vis", "-match", bot2.getDefaultName()};
-        final String[] args2 = {bot2.getDefaultName(), "boris.helloworldopen.fi", "9090", "-vis", "-match", bot1.getDefaultName()};
+        String server = "boris.helloworldopen.fi";
+        String local = "localhost";
+
+        /*
+        final String[] args1 = {bot1.getDefaultName(), server, "9090", "-vis", "-match", bot2.getDefaultName()};
+        final String[] args2 = {bot2.getDefaultName(), server, "9090", "-vis", "-match", bot1.getDefaultName()};
+        */
+
+        final String[] args1 = {bot1.getDefaultName(), local, "9090", "-vis"};
+        final String[] args2 = {bot2.getDefaultName(), local, "9090", "-vis"};
 
         new Thread() {
             public void run() {

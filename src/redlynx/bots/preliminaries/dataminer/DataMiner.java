@@ -1,11 +1,13 @@
-package redlynx.bots.semifinals;
+package redlynx.bots.preliminaries.dataminer;
 
 import java.awt.Color;
 import java.util.ArrayList;
 
+import redlynx.bots.finals.DataCollector;
 import redlynx.pong.client.Pong;
 import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
+import redlynx.pong.collisionmodel.SFSauronGeneralModel;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector2;
@@ -13,22 +15,51 @@ import redlynx.pong.util.Vector2i;
 import redlynx.pong.util.Vector3;
 
 
-public class SFSauron extends PongGameBot {
+public class DataMiner extends PongGameBot {
 
-    public SFSauron() {
-        super();
-        myModel = new SFSauronModel(this);
+    private String defaultName;
+    private DataMinerModel dmModel;
+    private final DataCollector dataCollector;
+
+    public DataMiner() {
+        this("miner1");
     }
 
-	public static void main(String[] args) {
-		Pong.init(args, new SFSauron());
-	}
+    public DataMiner(String name) {
+        super();
+        defaultName = name;
+ 
+        dataCollector = new DataCollector(new DataMinerModel(new SFSauronGeneralModel()), true);
+        myModel = dataCollector.getModel();
+       
+    }
+
+    public static void main(String[] args) {
+        Pong.init(args, new DataMiner());
+    }
 
     private SFSauronEvaluator evaluator = new SFSauronEvaluator();
     private SauronState myState = new SauronState();
     private final ArrayList<UILine> lines = new ArrayList<UILine>();
+    private boolean shoutPlan = true;
 
     double timeLeft = 10000;
+    private int numWins = 0;
+    private int numGames = 0;
+
+
+
+
+    @Override
+    public void setName(String name) {
+        super.setName(name);
+        System.out.println("Avg SqrError in K: " + myModel.modelError());
+        dataCollector.learnFromFile(name+".txt",1);
+        System.out.println("Avg SqrError in K: " + myModel.modelError());
+       // dataCollector.optimizeModel(3);
+    }
+
+
 
     @Override
     public void onGameStateUpdate(ClientGameState newStatus) {
@@ -36,7 +67,9 @@ public class SFSauron extends PongGameBot {
         lines.clear();
         double ball_direction = newStatus.ball.vx;
 
-        // if(hasMissiles()) {
+        //System.out.println("k = "+(newStatus.ball.vy/newStatus.ball.vx));
+
+        //if(hasMissiles()) {
         //    fireMissile();
         //}
 
@@ -69,7 +102,7 @@ public class SFSauron extends PongGameBot {
             if(target.z < 100) {
                 ballWorkMemory.copy(newStatus.ball, true);
                 ballWorkMemory.setVelocity(getBallVelocity());
-                timeLeft = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
+                timeLeft = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
                 target = evaluator.defensiveEval(this, lastKnownStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory);
             }
 
@@ -89,8 +122,33 @@ public class SFSauron extends PongGameBot {
                     changeCourse(distance);
                 }
             }
+
+            //data collecting
+            {
+                if(getBallPositionHistory().isReliable()) {
+
+                    ClientGameState.Ball  ballCollision = new ClientGameState.Ball();
+                    ballCollision.copy(newStatus.ball, true);
+                    ballCollision.setVelocity(getBallVelocity());
+                    double time = PongUtil.simulate(ballCollision, lastKnownStatus.conf);
+                    dataCollector.prepareDataCollect(target, ballCollision);
+                }
+                else {
+                    dataCollector.setCollisionPoint(target.y);
+                }
+            }
+
         }
         else {
+
+
+            {
+                // data collecting.
+                if(getBallPositionHistory().isReliable() && !dataCollector.isLogged()) {
+                    dataCollector.updateModel(newStatus, this);
+                }
+            }
+
             // simulate twice, once there, and then back.
             ballWorkMemory.copy(newStatus.ball, true);
             ballWorkMemory.setVelocity(getBallVelocity());
@@ -125,7 +183,7 @@ public class SFSauron extends PongGameBot {
             visualisePlan(0, Color.green);
 
             ballCollideToPaddle(paddleTarget, ballWorkMemory);
-            double timeLeftAfter = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.red);
+            double timeLeftAfter = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, lines, Color.red);
             timeLeft += timeLeftAfter;
 
             // now we are done.
@@ -177,13 +235,6 @@ public class SFSauron extends PongGameBot {
     private void changeCourse(double distance) {
         // ok seems we really have to change course.
         double idealVelocity = (distance / timeLeft / getPaddleMaxVelocity()); // this aims for the centre of current target
-
-        // run until near target.
-        //if(distance * distance > 2500) {
-        //    idealVelocity = distance > 0 ? +1 : -1;
-        //}
-
-        // not going faster than allowed
         if(idealVelocity * idealVelocity > 1.0) {
             if(idealVelocity > 0)
                 idealVelocity = +1;
@@ -230,8 +281,20 @@ public class SFSauron extends PongGameBot {
 
     @Override
     public void onGameOver(boolean won) {
+
+        //clear collision logging info
+    	dataCollector.gameOver();
+
         myState.setToHandling();
         myState.setVelocity(0);
+
+        ++numGames;
+        if(won) {
+            ++numWins;
+        }
+
+        System.out.println(getDefaultName() + " wins " + numWins + "/" + numGames + " (" + ((float)numWins / numGames) + ")");
+
         lastKnownStatus.reset();
         extrapolatedStatus.reset();
         extrapolatedTime = 0;
@@ -243,7 +306,7 @@ public class SFSauron extends PongGameBot {
 
     @Override
     public String getDefaultName() {
-        return "SemiFinalsSauron";
+        return defaultName;
     }
 
     @Override
