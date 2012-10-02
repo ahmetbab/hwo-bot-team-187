@@ -13,10 +13,11 @@ public class MissileCommand {
         // should prevent opponent from being able to fire killshot missiles at us.
     }
 
-    void fireOffensiveMissiles(double timeLeft, ClientGameState.Ball ballWorkMemory) {
+    double fireOffensiveMissiles(double timeForMissile, double timeLeft, ClientGameState.Ball ballWorkMemory) {
 
-        double ballMe = ballWorkMemory.y - finalSauron.getLastKnownStatus().left.y;
-        double ballHim = ballWorkMemory.y - finalSauron.getLastKnownStatus().right.y;
+        double halfPaddle = finalSauron.getLastKnownStatus().conf.paddleHeight * 0.5;
+        double ballMe = ballWorkMemory.y - finalSauron.getLastKnownStatus().left.y - halfPaddle;
+        double ballHim = ballWorkMemory.y - finalSauron.getLastKnownStatus().right.y - halfPaddle;
         double paddleDistance = Math.abs(finalSauron.getLastKnownStatus().left.y - finalSauron.getLastKnownStatus().right.y);
         double idealDistance = 1.6 * finalSauron.getPaddleMaxVelocity();
         double error = paddleDistance - idealDistance;
@@ -40,13 +41,46 @@ public class MissileCommand {
             }
         }
 
-        double timeError = timeLeft - 1.6;
-        if (timeError * timeError < 0.1) {
-            if (ballMe * ballMe < 15 * 15) {
-                if (finalSauron.fireMissile()) {
-                    System.out.println("Firing missile at ball destination!");
+        if(ballWorkMemory.y < halfPaddle) {
+            ballMe -= halfPaddle - ballWorkMemory.y;
+        }
+        if(ballWorkMemory.y > finalSauron.lastKnownStatus.conf.maxHeight - halfPaddle) {
+            ballMe += ballWorkMemory.y - (finalSauron.lastKnownStatus.conf.maxHeight - halfPaddle);
+        }
+
+        for(double i=0; i<timeForMissile; i+=0.05) {
+            double requiredVelocity = ballMe / i;
+            if(requiredVelocity * requiredVelocity > 1)
+                continue;
+
+            double timeError = timeLeft - i - 1.6;
+            if(timeError * timeError < 0.2 * 0.2) {
+                // success!
+                if(i > 0.11) {
+                    // need to move! return the move velocity!
+                    System.out.println("Moving to missile launch position!");
+                    return requiredVelocity;
+                }
+                else {
+                    if(finalSauron.fireMissile()) {
+                        System.out.println("Firing killer missile at ball destination!");
+                    }
                 }
             }
         }
+
+
+        double ball_vy = finalSauron.getLastKnownStatus().ball.vy;
+        if(ball_vy * ball_vy < 50) {
+            System.out.println("Want to fire missiles just for lulz! :D");
+            // Ball not moving up & down much. Just fire the missiles.
+            if(ballMe * ballMe < halfPaddle * halfPaddle) {
+                if(finalSauron.fireMissile()) {
+                    System.out.println("Launching missiles RAWR :>");
+                }
+            }
+        }
+
+        return 100;
     }
 }

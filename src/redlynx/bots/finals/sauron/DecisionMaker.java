@@ -28,6 +28,8 @@ public class DecisionMaker {
         timeLeft = (PongUtil.simulateOld(finalSauron.getBallWorkMemory(), finalSauron.getLastKnownStatus().conf, finalSauron.getLines(), Color.green));
         finalSauron.getMissileCommand().fireDefensiveMissiles(timeLeft, finalSauron.getBallWorkMemory());
 
+        double requiredVelocityForMissiles = 100;
+
         Vector2 reach = finalSauron.getPaddlePossibleReturns(newStatus, finalSauron.getBallWorkMemory(), PongGameBot.PlayerSide.LEFT, timeLeft);
         double minReach = Math.max(-0.9, reach.x);
         double maxReach = Math.min(+0.9, reach.y);
@@ -67,7 +69,7 @@ public class DecisionMaker {
             tmpBall.copy(finalSauron.getBallWorkMemory(), true);
             finalSauron.ballCollideToPaddle(target.y, tmpBall);
             double opponentTime = PongUtil.simulateNew(tmpBall, finalSauron.getLastKnownStatus().conf, null, null) + timeLeft;
-            finalSauron.getMissileCommand().fireOffensiveMissiles(opponentTime, tmpBall);
+            requiredVelocityForMissiles = finalSauron.getMissileCommand().fireOffensiveMissiles(timeForMissile, opponentTime, tmpBall);
 
             Visualisation.visualizeOpponentReach(finalSauron.getLines(), finalSauron, opponentTime);
         }
@@ -90,15 +92,20 @@ public class DecisionMaker {
         finalSauron.getSauronVisualiser().visualisePlan(paddleTarget, Color.red);
         finalSauron.getSauronVisualiser().visualisePlan(0, Color.green);
 
-        // check if we need to do something.
-        if (finalSauron.getMyState().catching()) {
-            double myPos = newStatus.left.y;
-            double distance = (targetPos - myPos);
-            if (finalSauron.needToReact(targetPos, timeLeft) || finalSauron.reallyShouldUpdateRegardless()) {
-                finalSauron.changeCourse(distance, timeLeft);
+        if(requiredVelocityForMissiles * requiredVelocityForMissiles > 1) {
+            if (finalSauron.getMyState().catching()) {
+                double myPos = newStatus.left.y;
+                double distance = (targetPos - myPos);
+                if (finalSauron.needToReact(targetPos, timeLeft) || finalSauron.reallyShouldUpdateRegardless()) {
+                    finalSauron.changeCourse(distance, timeLeft);
+                }
             }
         }
-
+        else {
+            // MissileCommand has issued a move order! Apply!
+            System.out.println("Following MissileCommand's orders!");
+            finalSauron.requestChangeSpeed(requiredVelocityForMissiles);
+        }
         return timeLeft;
     }
 
@@ -110,7 +117,7 @@ public class DecisionMaker {
         timeLeft = (PongUtil.simulateOld(finalSauron.getBallWorkMemory(), finalSauron.getLastKnownStatus().conf, finalSauron.getLines(), Color.green));
         Vector2 reach = finalSauron.getPaddlePossibleReturns(newStatus, finalSauron.getBallWorkMemory(), PongGameBot.PlayerSide.RIGHT, timeLeft);
 
-        finalSauron.getMissileCommand().fireOffensiveMissiles(timeLeft, finalSauron.getBallWorkMemory());
+        finalSauron.getMissileCommand().fireOffensiveMissiles(0, timeLeft, finalSauron.getBallWorkMemory());
 
         Visualisation.visualizeOpponentReach(finalSauron.getLines(), finalSauron, timeLeft);
 
