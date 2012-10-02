@@ -1,22 +1,26 @@
 package redlynx.bots.finals;
 
+import java.awt.Color;
+import java.util.ArrayList;
+
 import redlynx.bots.dataminer.DataMinerModel;
 import redlynx.pong.client.Pong;
 import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.collisionmodel.SFSauronGeneralModel;
 import redlynx.pong.ui.UILine;
-import redlynx.pong.util.*;
+import redlynx.pong.util.PongUtil;
+import redlynx.pong.util.Vector2;
+import redlynx.pong.util.Vector2i;
+import redlynx.pong.util.Vector3;
+import redlynx.pong.util.Visualisation;
 
-import java.awt.*;
-import java.util.ArrayList;
 
-
-public class DeflectorBot extends PongGameBot {
+public class StraightShooterBot extends PongGameBot {
 
     private final DataCollector dataCollector;
 
-    public DeflectorBot() {
+    public StraightShooterBot() {
         super();
 
         dataCollector = new DataCollector(new DataMinerModel(new SFSauronGeneralModel()), true);
@@ -29,10 +33,10 @@ public class DeflectorBot extends PongGameBot {
     }
 
 	public static void main(String[] args) {
-		Pong.init(args, new DeflectorBot());
+		Pong.init(args, new StraightShooterBot());
 	}
 
-    private DeflectorEvaluator evaluator = new DeflectorEvaluator();
+    private StraightShooterEvaluator evaluator = new StraightShooterEvaluator();
     private SauronState myState = new SauronState();
     private final ArrayList<UILine> lines = new ArrayList<UILine>();
 
@@ -131,8 +135,8 @@ public class DeflectorBot extends PongGameBot {
 
             Visualisation.visualizeOpponentReach(lines, this, opponentTime);
 
-            double minVal = lastKnownStatus.conf.ballRadius * 2 - 2;
-            double maxVal = lastKnownStatus.conf.maxHeight - lastKnownStatus.conf.paddleHeight - 2 * lastKnownStatus.conf.ballRadius + 2;
+            double minVal = lastKnownStatus.conf.ballRadius ;
+            double maxVal = lastKnownStatus.conf.maxHeight - lastKnownStatus.conf.paddleHeight - lastKnownStatus.conf.ballRadius ;
             if(target.x < minVal) {
                 target.x = minVal;
             }
@@ -360,7 +364,7 @@ public class DeflectorBot extends PongGameBot {
 
     @Override
     public String getDefaultName() {
-        return "Deflector";
+        return "Straight Shooter";
     }
 
     @Override
