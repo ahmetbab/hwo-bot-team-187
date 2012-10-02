@@ -11,6 +11,7 @@ import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.collisionmodel.SFSauronGeneralModel;
 import redlynx.pong.ui.UILine;
+import redlynx.pong.ui.UIString;
 import redlynx.pong.util.PongUtil;
 import redlynx.pong.util.Vector2;
 import redlynx.pong.util.Vector2i;
@@ -23,6 +24,8 @@ public class Zeus extends PongGameBot {
     private DataMinerModel dmModel;
     private final DataCollector dataCollector;
 
+    private String desicion;
+    
     public Zeus() {
         this("Zeus");
     }
@@ -31,6 +34,8 @@ public class Zeus extends PongGameBot {
         super();
         defaultName = name;
  
+        desicion = "";
+        
         dataCollector = new DataCollector(new DataMinerModel(new SFSauronGeneralModel()), true);
         myModel = dataCollector.getModel();
         System.out.println("Avg SqrError in K: " + myModel.modelError());
@@ -111,11 +116,17 @@ public class Zeus extends PongGameBot {
             Vector3 target = evaluator.offensiveEval(this, newStatus,PlayerSide.RIGHT, newStatus.getPedal(PlayerSide.RIGHT).y,  ballWorkMemory, ballTemp, minReach, maxReach);
 
             // when no winning move available
-            if(target.z < 100) {
+            if(target.z < 8*newStatus.conf.ballRadius) {
+            	
+            	double offenceScore = target.z;
                 ballWorkMemory.copy(newStatus.ball, true);
                 ballWorkMemory.setVelocity(getBallVelocity());
                 timeLeft = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
                 target = evaluator.defensiveEval(this, lastKnownStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory);
+                desicion = "Defence "+target.z+" (offence "+offenceScore+")";
+            }
+            else {
+            	desicion = "Offence "+target.z;
             }
 
             double targetPos = target.x;
@@ -326,4 +337,14 @@ public class Zeus extends PongGameBot {
         return this.lines;
     }
 
+    
+    @Override
+    public ArrayList<UIString> getDrawStrings() {
+    	ArrayList<UIString> list =  super.getDrawStrings();
+      
+    	ArrayList<UIString> list2 = new ArrayList<>(list);
+    	list2.add(new UIString(desicion, new Vector2i(0, -10),Color.green));
+    	return list2;
+    }
+    
 }
