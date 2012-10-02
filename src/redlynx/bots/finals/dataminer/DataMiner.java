@@ -40,7 +40,6 @@ public class DataMiner extends PongGameBot {
 
     private SFSauronEvaluator evaluator = new SFSauronEvaluator();
     private SauronState myState = new SauronState();
-    private final ArrayList<UILine> lines = new ArrayList<UILine>();
     private boolean shoutPlan = true;
 
     double timeLeft = 10000;

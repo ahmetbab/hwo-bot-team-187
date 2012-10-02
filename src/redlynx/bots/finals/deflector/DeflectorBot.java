@@ -38,7 +38,6 @@ public class DeflectorBot extends PongGameBot {
 
     private DeflectorEvaluator evaluator = new DeflectorEvaluator();
     private SauronState myState = new SauronState();
-    private final ArrayList<UILine> lines = new ArrayList<UILine>();
 
     double timeLeft = 10000;
     private int numWins = 0;

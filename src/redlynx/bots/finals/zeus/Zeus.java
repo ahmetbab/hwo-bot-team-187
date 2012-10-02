@@ -52,7 +52,6 @@ public class Zeus extends PongGameBot {
 
     private ZeusEvaluator evaluator = new ZeusEvaluator();
     private SauronState myState = new SauronState();
-    private final ArrayList<UILine> lines = new ArrayList<UILine>();
     private boolean shoutPlan = true;
 
     double timeLeft = 10000;
@@ -341,8 +340,7 @@ public class Zeus extends PongGameBot {
     @Override
     public ArrayList<UIString> getDrawStrings() {
     	ArrayList<UIString> list =  super.getDrawStrings();
-      
-    	ArrayList<UIString> list2 = new ArrayList<>(list);
+    	ArrayList<UIString> list2 = new ArrayList<UIString>(list);
     	list2.add(new UIString(desicion, new Vector2i(0, -10),Color.green));
     	return list2;
     }

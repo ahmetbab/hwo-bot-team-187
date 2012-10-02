@@ -42,7 +42,6 @@ public class StraightShooterBot extends PongGameBot {
 
     private StraightShooterEvaluator evaluator = new StraightShooterEvaluator();
     private SauronState myState = new SauronState();
-    private final ArrayList<UILine> lines = new ArrayList<UILine>();
 
     double timeLeft = 10000;
     private int numWins = 0;

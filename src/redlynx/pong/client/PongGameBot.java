@@ -20,10 +20,12 @@ import redlynx.pong.collisionmodel.LinearModel;
 import redlynx.pong.collisionmodel.PongModel;
 import redlynx.pong.ui.GameStateAccessorInterface;
 import redlynx.pong.ui.PongVisualizer;
+import redlynx.pong.ui.UILine;
 import redlynx.pong.ui.UIString;
 import redlynx.pong.util.SoftVariable;
 import redlynx.pong.util.Vector2;
 import redlynx.pong.util.Vector2i;
+import redlynx.pong.util.Visualisation;
 
 public abstract class PongGameBot implements PongMessageListener, PongMessageParser.Handler, LineVisualizer {
 
@@ -33,7 +35,9 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
     private final BallPositionHistory ballPositionHistory = new BallPositionHistory();
     private final PaddleVelocityStorage paddleVelocity = new PaddleVelocityStorage();
     private final SoftVariable ballVelocity = new SoftVariable(50);
-    private final ArrayList<UIString> strings = new ArrayList<UIString>();
+
+    public final ArrayList<UIString> strings = new ArrayList<UIString>();
+    public final ArrayList<UILine> lines = new ArrayList<UILine>();
 
     private final MessageLimiter messageLimiter = new MessageLimiter();
     public PongModel myModel = new LinearModel();
@@ -295,7 +299,13 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
         long time = System.nanoTime() - startTime;
         float decisionTime = (time / 1000000.0f);
 
-        //System.out.println("time ("+name+"): "+decisionTime);
+
+        for(Avoidable avoidable : getAvoidables()) {
+            Visualisation.drawCross(lines, Color.pink, avoidable.t * 300, avoidable.y);
+        }
+        for(Avoidable avoidable : getOffensiveMissiles()) {
+            Visualisation.drawCross(lines, Color.green, lastKnownStatus.conf.maxWidth - avoidable.t * 300, avoidable.y);
+        }
         
         if (visualizer != null) {
         	visualizer.render();

@@ -33,7 +33,6 @@ public class FinalSauron extends PongGameBot {
 
     private FinalSauronEvaluator evaluator = new FinalSauronEvaluator();
     private SauronState myState = new SauronState();
-    private final ArrayList<UILine> lines = new ArrayList<UILine>();
 
     @Override
     public void onGameStateUpdate(ClientGameState newStatus) {
@@ -52,13 +51,6 @@ public class FinalSauron extends PongGameBot {
         MissileDodger.dodge(lines, this, 0); // visualisation only
         getBallPositionHistory().drawLastCollision(lines);
         getPaddleVelocity().drawReachableArea(lines, newStatus.getPedal(getMySide()).y + newStatus.conf.paddleHeight * 0.5, timeLeft, newStatus.conf.paddleHeight);
-
-        for(Avoidable avoidable : getAvoidables()) {
-            Visualisation.drawCross(lines, Color.pink, avoidable.t * 300, avoidable.y);
-        }
-        for(Avoidable avoidable : getOffensiveMissiles()) {
-            Visualisation.drawCross(lines, Color.green, lastKnownStatus.conf.maxWidth - avoidable.t * 300, avoidable.y);
-        }
     }
 
     public void changeCourse(double distance, double timeLeft) {
