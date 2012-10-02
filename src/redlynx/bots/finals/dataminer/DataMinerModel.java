@@ -1,4 +1,4 @@
-package redlynx.bots.preliminaries.dataminer;
+package redlynx.bots.finals.dataminer;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;

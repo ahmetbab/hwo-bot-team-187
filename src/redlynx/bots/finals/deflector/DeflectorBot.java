@@ -1,7 +1,7 @@
 package redlynx.bots.finals.deflector;
 
-import redlynx.bots.preliminaries.dataminer.DataMinerModel;
 import redlynx.bots.finals.DataCollector;
+import redlynx.bots.finals.dataminer.DataMinerModel;
 import redlynx.bots.finals.sauron.FinalSauronModel;
 import redlynx.bots.finals.sauron.MissileDodger;
 import redlynx.bots.finals.sauron.SauronState;

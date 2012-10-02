@@ -3,8 +3,8 @@ package redlynx.bots.finals.straight;
 import java.awt.Color;
 import java.util.ArrayList;
 
-import redlynx.bots.preliminaries.dataminer.DataMinerModel;
 import redlynx.bots.finals.DataCollector;
+import redlynx.bots.finals.dataminer.DataMinerModel;
 import redlynx.bots.finals.sauron.FinalSauronModel;
 import redlynx.bots.finals.sauron.MissileDodger;
 import redlynx.bots.finals.sauron.SauronState;

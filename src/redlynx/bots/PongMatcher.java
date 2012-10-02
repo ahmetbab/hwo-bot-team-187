@@ -1,6 +1,6 @@
 package redlynx.bots;
 
-import redlynx.bots.preliminaries.dataminer.DataMiner;
+import redlynx.bots.finals.dataminer.DataMiner;
 import redlynx.bots.finals.sauron.FinalSauron;
 import redlynx.pong.client.Pong;
 import redlynx.pong.client.PongGameBot;

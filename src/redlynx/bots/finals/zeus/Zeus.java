@@ -3,9 +3,9 @@ package redlynx.bots.finals.zeus;
 import java.awt.Color;
 import java.util.ArrayList;
 
-import redlynx.bots.preliminaries.dataminer.DataMinerModel;
-import redlynx.bots.preliminaries.dataminer.SauronState;
 import redlynx.bots.finals.DataCollector;
+import redlynx.bots.finals.dataminer.DataMinerModel;
+import redlynx.bots.finals.dataminer.SauronState;
 import redlynx.pong.client.Pong;
 import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;

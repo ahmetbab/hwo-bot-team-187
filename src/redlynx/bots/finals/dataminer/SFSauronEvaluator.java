@@ -1,4 +1,4 @@
-package redlynx.bots.preliminaries.dataminer;
+package redlynx.bots.finals.dataminer;
 
 import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;

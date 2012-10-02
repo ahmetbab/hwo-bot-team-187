@@ -1,6 +1,6 @@
 package redlynx.bots.finals;
 
-import redlynx.bots.preliminaries.dataminer.DataMinerModel;
+import redlynx.bots.finals.dataminer.DataMinerModel;
 import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.collisionmodel.PongModel;
