@@ -15,8 +15,10 @@ public class FinalSauronModel implements PongModel {
     private final Vector2 out = new Vector2();
     private final PongGameBot host;
 
-   
-    private double[] values = {0.2349, 0.1049, 0.0, 0.1};
+  
+
+    // private double[] values = {0.419, 0.3234, 0.08, 0.1}; // for angle based turns.
+    private double[] values = {0.250064111328125004, -0.245016210937, 0.27, 0.1};
 
     /*
     private double constantWeight = 0.349;
@@ -67,7 +69,7 @@ public class FinalSauronModel implements PongModel {
         }
         */
 
-        double k = vy_in / vx_in;
+        double k = Math.abs(vy_in / vx_in);
 
         out.x = -vx_in;
         out.y = +vy_in + pos * speed * (values[0] + (inAngle * values[1]) + (k * values[2]));

@@ -20,20 +20,31 @@ public class DataCollector {
     private boolean logged = true;
 
     private boolean learn = false;
+    private boolean doLogging;
     
-    public DataCollector(DataMinerModel model) {
+    public DataCollector(DataMinerModel model, boolean doLogging) {
         this.model = model;
         this.model.initialise();
         logging = System.out;
+        this.doLogging = doLogging;
     }
 
     public void prepareDataCollect(Vector3 target, ClientGameState.Ball ballCollision) {
-        logged = false;
+    	
+    	//if (!logged && ballCollision.getSpeed() > 200) {
+    	//	if (Math.abs(dataCollectHitPos.y - ballCollision.y) > 1) {
+    	//		System.out.println("Collision estimate Changed by: "+(dataCollectHitPos.y - ballCollision.y)+" ry "+((dataCollectHitPos.y - ballCollision.y)/ballCollision.vy));
+    	//	}
+    	//}
+    	
+        
         dataCollectCollisionPoint = target.y;
         dataCollectVelocityIn.x = ballCollision.vx;
         dataCollectVelocityIn.y = ballCollision.vy;
         dataCollectHitPos.x = ballCollision.x;
         dataCollectHitPos.y = ballCollision.y;
+        
+        logged = false;
     }
 
     public void setCollisionPoint(double y) {
@@ -62,8 +73,10 @@ public class DataCollector {
                     paddleCollisionPos < bot.lastKnownStatus.conf.maxHeight - (bot.lastKnownStatus.conf.paddleHeight * 3) / 2) {
 
             	
-                logging.println("" + dataCollectCollisionPoint + "\t" + dataCollectVelocityIn.x + "\t" + dataCollectVelocityIn.y + "\t" + dataCollectVelocityOut.x + "\t" + dataCollectVelocityOut.y);
-                logging.flush();
+            	if (doLogging) {
+	                logging.println("" + dataCollectCollisionPoint + "\t" + dataCollectVelocityIn.x + "\t" + dataCollectVelocityIn.y + "\t" + dataCollectVelocityOut.x + "\t" + dataCollectVelocityOut.y);
+	                logging.flush();
+            	}
                 if (learn)
                 	model.learn(dataCollectCollisionPoint,
                 			dataCollectVelocityIn.x, dataCollectVelocityIn.y,

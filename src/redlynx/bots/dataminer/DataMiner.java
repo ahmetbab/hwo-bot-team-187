@@ -29,7 +29,7 @@ public class DataMiner extends PongGameBot {
         super();
         defaultName = name;
  
-        dataCollector = new DataCollector(new DataMinerModel(new SFSauronGeneralModel()));
+        dataCollector = new DataCollector(new DataMinerModel(new SFSauronGeneralModel()), true);
         myModel = dataCollector.getModel();
        
     }
