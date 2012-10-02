@@ -131,8 +131,8 @@ public class FinalSauron extends PongGameBot {
 
             Visualisation.visualizeOpponentReach(lines, this, opponentTime);
 
-            double minVal = lastKnownStatus.conf.ballRadius * 2 - 1;
-            double maxVal = lastKnownStatus.conf.maxHeight - lastKnownStatus.conf.paddleHeight - 2 * lastKnownStatus.conf.ballRadius + 1;
+            double minVal = lastKnownStatus.conf.ballRadius * 2 - 2;
+            double maxVal = lastKnownStatus.conf.maxHeight - lastKnownStatus.conf.paddleHeight - 2 * lastKnownStatus.conf.ballRadius +2;
             if(target.x < minVal) {
                 target.x = minVal;
             }
