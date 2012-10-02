@@ -40,6 +40,7 @@ public class PongUtil {
         int radius = conf.ballRadius;
         int maxHeight = conf.maxHeight-radius;
         int folds = 0;
+        
         if (y < radius) {
         	 do {
         		 //flip at top
@@ -47,10 +48,14 @@ public class PongUtil {
         		 
 				 
 				 folds++;
+				 vy*=-1;
+				 y += 0.021*vy;
 				 if (y >= maxHeight) {
 					 //flip at bottom
 					 y = maxHeight+(maxHeight - y);
 					 folds++;
+					 vy*=-1;
+					 y += 0.021*vy;
 				 }
 				 else {
 					 break;
@@ -62,10 +67,14 @@ public class PongUtil {
         		//flip at bottom
 				y = maxHeight+(maxHeight - y);
 				folds++;
+				vy*=-1;
+				y += 0.021*vy;
 				if (y < radius) {
 					 //flip at top
 	        		 y = radius-(y-radius);
 	        		 folds++;
+	        		 vy*=-1;
+	        		 y += 0.021*vy;
 				 }
 				else
 					break;
@@ -73,11 +82,13 @@ public class PongUtil {
         }
        
         ball.vx = vx;
-        ball.vy = folds%2==1?-vy:vy;
+        //ball.vy = folds%2==1?-vy:vy;
+        ball.vy = vy;
         ball.y = y;
         ball.x = end_x;
 
         Visualisation.drawSquare(lines, color, ball.x, ball.y);
+        //Visualisation.drawSquare(lines, Color.cyan, ball.x, ball.y+folds*0.021*ball.vy);
         Visualisation.drawVector(lines, Color.yellow, ball.x,ball.y, ball.vx, ball.vy);
         return time;
     }
