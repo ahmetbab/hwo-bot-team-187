@@ -57,7 +57,7 @@ public class MissileCommand {
         double ballPos = ballWorkMemory.y;
         if(ballPos < bot.lastKnownStatus.conf.paddleHeight) ballPos = bot.lastKnownStatus.conf.paddleHeight;
         if(ballPos > bot.lastKnownStatus.conf.maxHeight - bot.lastKnownStatus.conf.paddleHeight) ballPos = bot.lastKnownStatus.conf.maxHeight - bot.lastKnownStatus.conf.paddleHeight;
-        double ballMe = ballPos - bot.getLastKnownStatus().left.y - halfPaddle;
+        double ballMe = ballPos + 1.5 * (ballWorkMemory.vy * bot.lastKnownStatus.conf.tickInterval / 1000.0) - bot.getLastKnownStatus().left.y - halfPaddle;
 
         double minimumError = 1000;
         double bestVelocity = 0;
@@ -81,7 +81,6 @@ public class MissileCommand {
         }
 
         if(minimumError < 0.2 * 0.2) {
-            // success!
             if(bestI > 0.11) {
                 // need to move! return the move velocity!
                 Visualisation.drawVector(bot.lines, Color.red, 0, ballWorkMemory.y, 100, 0);
@@ -99,6 +98,9 @@ public class MissileCommand {
 
     public double fireOffensiveMissiles(double timeLeft, ClientGameState.Ball ballWorkMemory, Vector3 currentPlan) {
 
+        if(!bot.hasMissiles())
+            return 100;
+
         double halfPaddle = bot.getLastKnownStatus().conf.paddleHeight * 0.5;
         double ballMe = ballWorkMemory.y - bot.getLastKnownStatus().left.y - halfPaddle;
         double ballHim = ballWorkMemory.y - bot.getLastKnownStatus().right.y - halfPaddle;
@@ -107,7 +109,7 @@ public class MissileCommand {
         double error = paddleDistance - idealDistance;
         error *= error;
 
-        if(bot.getMissileCount() > 1) {
+        if(bot.hasMissiles()) {
             if (ballHim * ballMe > 0 && Math.abs(ballHim) > Math.abs(ballMe)) {
                 // opponent must cross us before he can reach the ball destination.
                 if (error < bot.getLastKnownStatus().conf.paddleHeight * bot.getLastKnownStatus().conf.paddleHeight / 16.0) {
@@ -136,16 +138,33 @@ public class MissileCommand {
             ballMe += ballWorkMemory.y - (bot.lastKnownStatus.conf.maxHeight - halfPaddle);
         }
 
-        if(bot.getMissileCount() > 1) {
-            double ball_vy = bot.getLastKnownStatus().ball.vy;
-            if(ball_vy * ball_vy + ballWorkMemory.vx * ballWorkMemory.vx > 500 * 500) {
-                if(ball_vy * ball_vy < 20 * 20) {
-                    // very fast ball. just shoot and hope it hits or something.
-                    if(bot.fireMissile()) {
-                        System.out.println("Launching missiles RAWR :>");
+        double ball_vy = bot.getLastKnownStatus().ball.vy;
+        if(ball_vy * ball_vy < 10 * 10) {
+            // assume static ballspeed & continued vaakapallo.
+            double bv = bot.lastKnownStatus.ball.vx;
+            double pos = bot.lastKnownStatus.ball.vx;
+
+            double totalTime = 0;
+            while(totalTime < bot.missileCommand.getMissileTime()) {
+                if(bv < 0) {
+                    totalTime += Math.abs(pos / bv);
+                    pos = 10;
+                    bv *= -1;
+                }
+                else {
+                    totalTime += (bot.lastKnownStatus.conf.maxWidth - pos) / bv;
+                    pos = bot.lastKnownStatus.conf.maxWidth - 10;
+                    bv *= -1;
+
+                    double vaakaPalloError = totalTime - bot.missileCommand.getMissileTime();
+                    if(vaakaPalloError * vaakaPalloError < 0.1 * 0.1) {
+                        if(bot.fireMissile()) {
+                            System.out.println("Destroying vaakapallo players!");
+                        }
                     }
                 }
             }
+
         }
 
         return 100;

@@ -11,7 +11,7 @@ public class PongMatcher {
 
     // takes no arguments.
     public static void main(String[] args) {
-        PongGameBot bot2 = new SFSauron();
+        PongGameBot bot2 = new Zeus();
         PongGameBot bot1 = new Zeus();
         createMatch(bot1, bot2);
     }

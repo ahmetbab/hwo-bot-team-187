@@ -54,6 +54,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
 
     public final ClientGameState.Ball ballWorkMemory = new ClientGameState.Ball();
     public final ClientGameState.Ball ballTemp = new ClientGameState.Ball();
+    private long lastMissileFiredTime = 0;
 
     public void setName(String name) {
         this.name = name;
@@ -206,9 +207,10 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
     }
 
     public boolean fireMissile() {
-    	  if(messageLimiter.canSend() && hasMissiles()) {
+    	  if(messageLimiter.canSend() && hasMissiles() && System.currentTimeMillis() - lastMissileFiredTime > 300) {
               getCommunicator().sendFireMissile(availableMissiles.remove());
               messageLimiter.send();
+              lastMissileFiredTime = System.currentTimeMillis();
               return true;
           }
           return false;
