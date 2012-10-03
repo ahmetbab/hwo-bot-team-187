@@ -92,7 +92,7 @@ public class DecisionMaker {
             tmpBall.copy(finalSauron.getBallWorkMemory(), true);
             finalSauron.ballCollideToPaddle(target.y, tmpBall);
             double opponentTime = PongUtil.simulateNew(tmpBall, finalSauron.getLastKnownStatus().conf, null, null) + timeLeft;
-            requiredVelocityForMissiles = finalSauron.getMissileCommand().fireOffensiveMissiles(timeForMissile, opponentTime, tmpBall, target);
+            requiredVelocityForMissiles = finalSauron.getMissileCommand().fireOffensiveMissiles(opponentTime, tmpBall, target);
 
             Visualisation.visualizeOpponentReach(finalSauron.getLines(), finalSauron, opponentTime);
         }
@@ -149,7 +149,7 @@ public class DecisionMaker {
 
         // this is the current worst case. should try to cover that?
         Vector3 target = evaluator.oppOffensiveEval(finalSauron, newStatus, PongGameBot.PlayerSide.LEFT, newStatus.left.y + 0.5 * newStatus.conf.paddleHeight, finalSauron.getBallWorkMemory(), tmpBall, minReach, maxReach);
-        finalSauron.getMissileCommand().fireOffensiveMissiles(0, timeLeft, finalSauron.getBallWorkMemory(), target);
+        finalSauron.getMissileCommand().fireOffensiveMissiles(timeLeft, finalSauron.getBallWorkMemory(), target);
         finalSauron.getMissileCommand().unCommit();
         double paddleTarget = target.y;
 

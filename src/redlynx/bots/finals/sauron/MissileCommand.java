@@ -1,15 +1,20 @@
 package redlynx.bots.finals.sauron;
 
+import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.util.Vector3;
+import redlynx.pong.util.Visualisation;
+
+import java.awt.*;
 
 public class MissileCommand {
-    private final FinalSauron finalSauron;
+    private final PongGameBot bot;
     private final Vector3 plan = new Vector3(0, 0, 0); // store plan in case missile firing is based on a plan.
     private boolean committedToPlan = false;
+    private double missileTime = 1.5;
 
-    public MissileCommand(FinalSauron finalSauron) {
-        this.finalSauron = finalSauron;
+    public MissileCommand(PongGameBot bot) {
+        this.bot = bot;
     }
 
     public void onGameOver() {
@@ -34,28 +39,57 @@ public class MissileCommand {
         committedToPlan = false;
     }
 
-    double fireOffensiveMissiles(double timeForMissile, double timeLeft, ClientGameState.Ball ballWorkMemory, Vector3 currentPlan) {
 
-        double halfPaddle = finalSauron.getLastKnownStatus().conf.paddleHeight * 0.5;
-        double ballMe = ballWorkMemory.y - finalSauron.getLastKnownStatus().left.y - halfPaddle;
-        double ballHim = ballWorkMemory.y - finalSauron.getLastKnownStatus().right.y - halfPaddle;
-        double paddleDistance = Math.abs(finalSauron.getLastKnownStatus().left.y - finalSauron.getLastKnownStatus().right.y);
-        double idealDistance = 1.6 * finalSauron.getPaddleMaxVelocity();
+    public double fireKillShotMissiles(double timeForMissile, double timeLeft, ClientGameState.Ball ballWorkMemory) {
+        double halfPaddle = bot.getLastKnownStatus().conf.paddleHeight * 0.5;
+        double ballMe = ballWorkMemory.y - bot.getLastKnownStatus().left.y - halfPaddle;
+        for(double i=0.05; i<timeForMissile; i+=0.05) {
+            double requiredVelocity = ballMe / i;
+            if(requiredVelocity * requiredVelocity > 1)
+                continue;
+
+            double timeError = timeLeft - i - missileTime;
+            if(timeError * timeError < 0.2 * 0.2) {
+                // success!
+                if(i > 0.11) {
+                    // need to move! return the move velocity!
+                    Visualisation.drawVector(bot.lines, Color.red, 0, ballWorkMemory.y, 100, 0);
+                    System.out.println("Moving to missile launch position!");
+                    return requiredVelocity;
+                }
+                else {
+                    if(bot.fireMissile()) {
+                        System.out.println("Firing killer missile at ball destination!");
+                    }
+                }
+            }
+        }
+
+        return 100;
+    }
+
+    public double fireOffensiveMissiles(double timeLeft, ClientGameState.Ball ballWorkMemory, Vector3 currentPlan) {
+
+        double halfPaddle = bot.getLastKnownStatus().conf.paddleHeight * 0.5;
+        double ballMe = ballWorkMemory.y - bot.getLastKnownStatus().left.y - halfPaddle;
+        double ballHim = ballWorkMemory.y - bot.getLastKnownStatus().right.y - halfPaddle;
+        double paddleDistance = Math.abs(bot.getLastKnownStatus().left.y - bot.getLastKnownStatus().right.y);
+        double idealDistance = missileTime * bot.getPaddleMaxVelocity();
         double error = paddleDistance - idealDistance;
         error *= error;
 
         if (ballHim * ballMe > 0 && Math.abs(ballHim) > Math.abs(ballMe)) {
             // opponent must cross us before he can reach the ball destination.
-            if (error < finalSauron.getLastKnownStatus().conf.paddleHeight * finalSauron.getLastKnownStatus().conf.paddleHeight / 16.0) {
+            if (error < bot.getLastKnownStatus().conf.paddleHeight * bot.getLastKnownStatus().conf.paddleHeight / 16.0) {
 
-                double actualTimeLeft = timeLeft - finalSauron.getPaddleMaxVelocity() * 25;
-                double actualReach = actualTimeLeft * finalSauron.getPaddleMaxVelocity() + finalSauron.getLastKnownStatus().conf.paddleHeight * 0.5;
-                double actualPos = finalSauron.getLastKnownStatus().right.y + finalSauron.getLastKnownStatus().conf.paddleHeight * 0.5;
+                double actualTimeLeft = timeLeft - bot.getPaddleMaxVelocity() * 25;
+                double actualReach = actualTimeLeft * bot.getPaddleMaxVelocity() + bot.getLastKnownStatus().conf.paddleHeight * 0.5;
+                double actualPos = bot.getLastKnownStatus().right.y + bot.getLastKnownStatus().conf.paddleHeight * 0.5;
                 double botReach = actualPos - actualReach;
                 double topReach = actualPos + actualReach;
 
                 if (ballWorkMemory.y < botReach + 10 || ballWorkMemory.y > topReach - 10) {
-                    if (finalSauron.fireMissile()) {
+                    if (bot.fireMissile()) {
                         System.out.println("Firing slowdown missile!");
                         plan.copy(currentPlan);
                         committedToPlan = true;
@@ -67,39 +101,14 @@ public class MissileCommand {
         if(ballWorkMemory.y < halfPaddle) {
             ballMe -= halfPaddle - ballWorkMemory.y;
         }
-        if(ballWorkMemory.y > finalSauron.lastKnownStatus.conf.maxHeight - halfPaddle) {
-            ballMe += ballWorkMemory.y - (finalSauron.lastKnownStatus.conf.maxHeight - halfPaddle);
+        if(ballWorkMemory.y > bot.lastKnownStatus.conf.maxHeight - halfPaddle) {
+            ballMe += ballWorkMemory.y - (bot.lastKnownStatus.conf.maxHeight - halfPaddle);
         }
 
-        for(double i=0; i<timeForMissile; i+=0.05) {
-            double requiredVelocity = ballMe / i;
-            if(requiredVelocity * requiredVelocity > 1)
-                continue;
-
-            double timeError = timeLeft - i - 1.6;
-            if(timeError * timeError < 0.2 * 0.2) {
-                // success!
-                if(i > 0.11) {
-                    // need to move! return the move velocity!
-                    System.out.println("Moving to missile launch position!");
-                    plan.copy(currentPlan);
-                    committedToPlan = true;
-                    return requiredVelocity;
-                }
-                else {
-                    if(finalSauron.fireMissile()) {
-                        plan.copy(currentPlan);
-                        committedToPlan = true;
-                        System.out.println("Firing killer missile at ball destination!");
-                    }
-                }
-            }
-        }
-
-        double ball_vy = finalSauron.getLastKnownStatus().ball.vy;
+        double ball_vy = bot.getLastKnownStatus().ball.vy;
         if(ball_vy * ball_vy + ballWorkMemory.vx * ballWorkMemory.vx > 500 * 500) {
             // very fast ball. just shoot and hope it hits or something.
-            if(finalSauron.fireMissile()) {
+            if(bot.fireMissile()) {
                 System.out.println("Launching missiles RAWR :>");
             }
         }

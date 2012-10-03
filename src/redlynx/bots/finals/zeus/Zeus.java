@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import redlynx.bots.finals.DataCollector;
 import redlynx.bots.finals.dataminer.DataMinerModel;
 import redlynx.bots.finals.dataminer.SauronState;
+import redlynx.bots.finals.sauron.MissileCommand;
 import redlynx.bots.finals.sauron.MissileDodger;
 import redlynx.pong.client.Pong;
 import redlynx.pong.client.PongGameBot;
@@ -13,10 +14,7 @@ import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.collisionmodel.SFSauronGeneralModel;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.ui.UIString;
-import redlynx.pong.util.PongUtil;
-import redlynx.pong.util.Vector2;
-import redlynx.pong.util.Vector2i;
-import redlynx.pong.util.Vector3;
+import redlynx.pong.util.*;
 
 
 public class Zeus extends PongGameBot {
@@ -24,6 +22,7 @@ public class Zeus extends PongGameBot {
     private String defaultName;
     private DataMinerModel dmModel;
     private final DataCollector dataCollector;
+    private final MissileCommand missileCommand = new MissileCommand(this);
 
     private String decision;
     
@@ -73,17 +72,15 @@ public class Zeus extends PongGameBot {
             timeLeft = PongUtil.simulateOld(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
 
             Vector2 reach = getPaddlePossibleReturns(newStatus, ballWorkMemory, PlayerSide.LEFT, timeLeft);
-            double minReach = reach.x;
-            double maxReach = reach.y;
+            double minReach = Math.max(-0.95, reach.x);
+            double maxReach = Math.min(+0.95, reach.y);
 
             {
                 // hack.. if angle is high, don't try to hit the ball with the wrong end of the paddle..
                 double value = ballWorkMemory.vy / (Math.abs(ballWorkMemory.vx) + 0.000001);
                 double pixelsPerTickEstimate = Math.abs((ballWorkMemory.vy)/(1000.0/21)); 
-                //System.out.println("vy "+ pixelsPerTickEstimate);
                 double safelimit = (pixelsPerTickEstimate+1)/(lastKnownStatus.conf.paddleHeight/2);
-                
-                double amount = safelimit;//Math.min(0.5, value * value * 0.3);
+                double amount = safelimit;
                 
                 if(value < 0.0 && minReach < -1+amount) {
                     minReach = -1+amount;
@@ -94,7 +91,7 @@ public class Zeus extends PongGameBot {
             }
 
             // this is the expected y value when colliding against our paddle.
-            Vector3 target = evaluator.myOffensiveEval(timeLeft, this, newStatus,PlayerSide.RIGHT, newStatus.getPedal(PlayerSide.RIGHT).y,  ballWorkMemory, ballTemp, minReach, maxReach);
+            Vector3 target = evaluator.myOffensiveEval(timeLeft, this, newStatus, PlayerSide.RIGHT, newStatus.getPedal(PlayerSide.RIGHT).y, ballWorkMemory, ballTemp, minReach, maxReach);
 
             // when no winning move available
             if(target.z < 8*newStatus.conf.ballRadius) {
@@ -113,6 +110,28 @@ public class Zeus extends PongGameBot {
             double targetPos = target.x;
             double paddleTarget = target.y;
 
+
+            double requiredVelocityForMissiles = 100;
+
+            {
+                // time to target, time for missile. missile launcher reach.
+                double halfPaddle = 0.5 * newStatus.conf.paddleHeight;
+                double myPos = newStatus.left.y + halfPaddle;
+                double distanceToTarget = Math.abs(target.x - myPos);
+                double timeToTarget = distanceToTarget / getPaddleMaxVelocity();
+                double timeForMissile = (timeLeft - timeToTarget) * 0.5;
+                lines.add(new UILine(12, myPos - halfPaddle - timeForMissile * getPaddleMaxVelocity(), 12, myPos + halfPaddle + timeForMissile * getPaddleMaxVelocity(), Color.magenta));
+
+                // see if should make an offensive missile shot with current plan.
+                ClientGameState.Ball tmpBall = new ClientGameState.Ball();
+                tmpBall.copy(ballWorkMemory, true);
+                ballCollideToPaddle(target.y, tmpBall);
+                double opponentTime = PongUtil.simulateNew(tmpBall, getLastKnownStatus().conf, null, null) + timeLeft;
+                missileCommand.fireOffensiveMissiles(opponentTime, tmpBall, target);
+                // requiredVelocityForMissiles = missileCommand.fireKillShotMissiles(timeForMissile, opponentTime, ballWorkMemory);
+                Visualisation.visualizeOpponentReach(lines, this, opponentTime);
+            }
+
             // draw stuff on the hud.
             visualiseModel(0, lastKnownStatus.getPedal(PlayerSide.LEFT).y, minReach, maxReach);
             visualisePlan(paddleTarget, Color.red);
@@ -126,32 +145,8 @@ public class Zeus extends PongGameBot {
                     changeCourse(distance);
                 }
             }
-
-            //data collecting
-            {
-                if(getBallPositionHistory().isReliable()) {
-
-                    ClientGameState.Ball  ballCollision = new ClientGameState.Ball();
-                    ballCollision.copy(newStatus.ball, true);
-                    ballCollision.setVelocity(getBallVelocity());
-                    double time = PongUtil.simulate(ballCollision, lastKnownStatus.conf);
-                    dataCollector.prepareDataCollect(target, ballCollision);
-                }
-                else {
-                    dataCollector.setCollisionPoint(target.y);
-                }
-            }
-
         }
         else {
-
-
-            {
-                // data collecting.
-                if(getBallPositionHistory().isReliable() && !dataCollector.isLogged()) {
-                    dataCollector.updateModel(newStatus, this);
-                }
-            }
 
             // simulate twice, once there, and then back.
             ballWorkMemory.copy(newStatus.ball, true);
@@ -160,40 +155,48 @@ public class Zeus extends PongGameBot {
             timeLeft = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
             Vector2 reach = getPaddlePossibleReturns(newStatus, ballWorkMemory, PlayerSide.RIGHT, timeLeft);
 
-            // add an extra ten percent, just to be sure.
-            double minReach = reach.x - 0.1;
-            double maxReach = reach.y + 0.1;
+            double killshotMissileVel = missileCommand.fireKillShotMissiles(timeLeft, timeLeft, ballWorkMemory);
 
-            // this is the current worst case. should try to cover that?
-            Vector3 target = evaluator.oppOffensiveEval(this, newStatus, PlayerSide.LEFT, newStatus.left.y+0.5*newStatus.conf.paddleHeight, ballWorkMemory, ballTemp, minReach, maxReach);
-            double paddleTarget = target.y;
+            if(killshotMissileVel > 1) {
+                // no killshot available. do the normal stuff.
+                double minReach = reach.x - 0.1;
+                double maxReach = reach.y + 0.1;
 
-            // if no return is possible according to simulation. Then the least impossible return should be anticipated..
-            if(target.z < -1000) {
-                double deltaPaddle = (ballWorkMemory.y - newStatus.right.y);
-                if(deltaPaddle > 0) {
-                    // paddle is below ball. anticipate a high return.
-                    paddleTarget = +1;
+                // this is the current worst case. should try to cover that?
+                Vector3 target = evaluator.oppOffensiveEval(this, newStatus, PlayerSide.LEFT, newStatus.left.y + 0.5 * newStatus.conf.paddleHeight, ballWorkMemory, ballTemp, minReach, maxReach);
+                double paddleTarget = target.y;
+
+                // if no return is possible according to simulation. Then the least impossible return should be anticipated..
+                if(target.z < -1000) {
+                    double deltaPaddle = (ballWorkMemory.y - newStatus.right.y);
+                    if(deltaPaddle > 0) {
+                        // paddle is below ball. anticipate a high return.
+                        paddleTarget = +1;
+                    }
+                    else {
+                        // paddle above ball. anticipate a low return.
+                        paddleTarget = -1;
+                    }
                 }
-                else {
-                    // paddle above ball. anticipate a low return.
-                    paddleTarget = -1;
-                }
+
+                // draw stuff on the hud.
+                visualiseModel(lastKnownStatus.conf.maxWidth, lastKnownStatus.getPedal(PlayerSide.RIGHT).y, minReach, maxReach);
+                visualisePlan(paddleTarget, Color.red);
+                visualisePlan(0, Color.green);
+
+                ballCollideToPaddle(paddleTarget, ballWorkMemory);
+                double timeLeftAfter = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, lines, Color.red);
+                timeLeft += timeLeftAfter;
+
+                // now we are done.
+                ClientGameState.Player myPedal = lastKnownStatus.getPedal(getMySide());
+                double diff_y = ballWorkMemory.y - myPedal.y;
+                changeCourse(diff_y * 10000);
             }
-
-            // draw stuff on the hud.
-            visualiseModel(lastKnownStatus.conf.maxWidth, lastKnownStatus.getPedal(PlayerSide.RIGHT).y, minReach, maxReach);
-            visualisePlan(paddleTarget, Color.red);
-            visualisePlan(0, Color.green);
-
-            ballCollideToPaddle(paddleTarget, ballWorkMemory);
-            double timeLeftAfter = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, lines, Color.red);
-            timeLeft += timeLeftAfter;
-
-            // now we are done.
-            ClientGameState.Player myPedal = lastKnownStatus.getPedal(getMySide());
-            double diff_y = ballWorkMemory.y - myPedal.y;
-            changeCourse(diff_y * 10000);
+            else {
+                System.out.println("Going for missile killshot!");
+                changeCourse(killshotMissileVel * timeLeft);
+            }
         }
 
         getBallPositionHistory().drawLastCollision(lines);
