@@ -9,4 +9,10 @@ public class Vector3 {
         this.y = y;
         this.z = z;
     }
+
+    public void copy(Vector3 v) {
+        this.x = v.x;
+        this.y = v.y;
+        this.z = v.z;
+    }
 }

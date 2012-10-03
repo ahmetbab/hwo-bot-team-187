@@ -1,19 +1,36 @@
 package redlynx.bots.finals.sauron;
 
 import redlynx.pong.client.state.ClientGameState;
+import redlynx.pong.util.Vector3;
 
 public class MissileCommand {
     private final FinalSauron finalSauron;
+    private final Vector3 plan = new Vector3(0, 0, 0); // store plan in case missile firing is based on a plan.
+    private boolean committedToPlan = false;
 
     public MissileCommand(FinalSauron finalSauron) {
         this.finalSauron = finalSauron;
     }
 
-    void fireDefensiveMissiles(double timeLeft, ClientGameState.Ball ball) {
+    public void onGameOver() {
+        committedToPlan = false;
+    }
+
+    public Vector3 getPlan() {
+        if(committedToPlan)
+            return plan;
+        return null;
+    }
+
+    public void fireDefensiveMissiles(double timeLeft, ClientGameState.Ball ball) {
         // should prevent opponent from being able to fire killshot missiles at us.
     }
 
-    double fireOffensiveMissiles(double timeForMissile, double timeLeft, ClientGameState.Ball ballWorkMemory) {
+    public void unCommit() {
+        committedToPlan = false;
+    }
+
+    double fireOffensiveMissiles(double timeForMissile, double timeLeft, ClientGameState.Ball ballWorkMemory, Vector3 currentPlan) {
 
         double halfPaddle = finalSauron.getLastKnownStatus().conf.paddleHeight * 0.5;
         double ballMe = ballWorkMemory.y - finalSauron.getLastKnownStatus().left.y - halfPaddle;
@@ -36,6 +53,8 @@ public class MissileCommand {
                 if (ballWorkMemory.y < botReach + 10 || ballWorkMemory.y > topReach - 10) {
                     if (finalSauron.fireMissile()) {
                         System.out.println("Firing slowdown missile!");
+                        plan.copy(currentPlan);
+                        committedToPlan = true;
                     }
                 }
             }
@@ -59,10 +78,14 @@ public class MissileCommand {
                 if(i > 0.11) {
                     // need to move! return the move velocity!
                     System.out.println("Moving to missile launch position!");
+                    plan.copy(currentPlan);
+                    committedToPlan = true;
                     return requiredVelocity;
                 }
                 else {
                     if(finalSauron.fireMissile()) {
+                        plan.copy(currentPlan);
+                        committedToPlan = true;
                         System.out.println("Firing killer missile at ball destination!");
                     }
                 }
@@ -72,8 +95,7 @@ public class MissileCommand {
 
         double ball_vy = finalSauron.getLastKnownStatus().ball.vy;
         if(ball_vy * ball_vy < 50) {
-            System.out.println("Want to fire missiles just for lulz! :D");
-            // Ball not moving up & down much. Just fire the missiles.
+            // Ball not moving up & down much. Just fire the missiles. Might cause some harm.
             if(ballMe * ballMe < halfPaddle * halfPaddle) {
                 if(finalSauron.fireMissile()) {
                     System.out.println("Launching missiles RAWR :>");

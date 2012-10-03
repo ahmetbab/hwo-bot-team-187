@@ -100,6 +100,7 @@ public class FinalSauron extends PongGameBot {
     @Override
     public void onGameOver(boolean won) {
         gameOverHandler.onGameOver(won);
+        missileCommand.unCommit();
     }
 
     @Override

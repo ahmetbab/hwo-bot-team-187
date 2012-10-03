@@ -56,6 +56,11 @@ public class DecisionMaker {
             target = evaluator.defensiveEval(finalSauron, finalSauron.getLastKnownStatus(), PongGameBot.PlayerSide.RIGHT, minReach, maxReach, finalSauron.getBallWorkMemory());
         }
 
+        if(finalSauron.getMissileCommand().getPlan() != null) {
+            System.out.println("Following MissileCommand plan!");
+            target.copy(finalSauron.getMissileCommand().getPlan());
+        }
+
         {
             // time to target, time for missile. missile launcher reach.
             double halfPaddle = 0.5 * newStatus.conf.paddleHeight;
@@ -69,7 +74,7 @@ public class DecisionMaker {
             tmpBall.copy(finalSauron.getBallWorkMemory(), true);
             finalSauron.ballCollideToPaddle(target.y, tmpBall);
             double opponentTime = PongUtil.simulateNew(tmpBall, finalSauron.getLastKnownStatus().conf, null, null) + timeLeft;
-            requiredVelocityForMissiles = finalSauron.getMissileCommand().fireOffensiveMissiles(timeForMissile, opponentTime, tmpBall);
+            requiredVelocityForMissiles = finalSauron.getMissileCommand().fireOffensiveMissiles(timeForMissile, opponentTime, tmpBall, target);
 
             Visualisation.visualizeOpponentReach(finalSauron.getLines(), finalSauron, opponentTime);
         }
@@ -118,8 +123,6 @@ public class DecisionMaker {
         timeLeft = (PongUtil.simulateOld(finalSauron.getBallWorkMemory(), finalSauron.getLastKnownStatus().conf, finalSauron.getLines(), Color.green));
         Vector2 reach = finalSauron.getPaddlePossibleReturns(newStatus, finalSauron.getBallWorkMemory(), PongGameBot.PlayerSide.RIGHT, timeLeft);
 
-        finalSauron.getMissileCommand().fireOffensiveMissiles(0, timeLeft, finalSauron.getBallWorkMemory());
-
         Visualisation.visualizeOpponentReach(finalSauron.getLines(), finalSauron, timeLeft);
 
         // add an extra ten percent, just to be sure.
@@ -128,6 +131,8 @@ public class DecisionMaker {
 
         // this is the current worst case. should try to cover that?
         Vector3 target = evaluator.offensiveEval(finalSauron, newStatus, PongGameBot.PlayerSide.LEFT, finalSauron.getBallWorkMemory(), tmpBall, minReach, maxReach);
+        finalSauron.getMissileCommand().fireOffensiveMissiles(0, timeLeft, finalSauron.getBallWorkMemory(), target);
+        finalSauron.getMissileCommand().unCommit();
         double paddleTarget = target.y;
 
         // if no return is possible according to simulation. Then the least impossible return should be anticipated..

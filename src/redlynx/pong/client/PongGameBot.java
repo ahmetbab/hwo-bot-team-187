@@ -356,7 +356,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
 
     public void gameOver(boolean won) {
 
-        if(lastKnownStatus.ball.x > 20 && lastKnownStatus.ball.x < lastKnownStatus.conf.maxWidth - 20) {
+        if(lastKnownStatus.ball.x > 40 && lastKnownStatus.ball.x < lastKnownStatus.conf.maxWidth - 40) {
             System.out.println("Game ended by missile.");
             collisionStorage.clear();
         }
