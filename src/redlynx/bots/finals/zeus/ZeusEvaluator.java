@@ -66,8 +66,8 @@ public class ZeusEvaluator {
                 double missileDistance = Math.abs(collidingBallState.y - tmpBall.y);
                 double moveTime = opponentTime - missileTime - 0.1 - timeLeft;
                 if(bot.hasMissiles() && moveTime * bot.getPaddleMaxVelocity() > missileDistance) {
-                    tmpTopValue = 1000000; // should be an easy win.
-                    tmpBotValue = 1000000; // should be an easy win.
+                    tmpTopValue = 1000000 + moveTime * bot.getPaddleMaxVelocity(); // should be an easy win.
+                    tmpBotValue = 1000000 + moveTime * bot.getPaddleMaxVelocity(); // should be an easy win.
                 }
 
                 botScores[pointer] = tmpBotValue;
