@@ -22,7 +22,6 @@ public class Zeus extends PongGameBot {
     private String defaultName;
     private DataMinerModel dmModel;
     private final DataCollector dataCollector;
-    private final MissileCommand missileCommand = new MissileCommand(this);
 
     private String decision;
     
@@ -194,8 +193,12 @@ public class Zeus extends PongGameBot {
                 changeCourse(diff_y * 10000);
             }
             else {
-                System.out.println("Going for missile killshot!");
-                changeCourse(killshotMissileVel * timeLeft);
+                // killshot killshot! :D  lets have some shrooooms on the screen, mkay?
+                changeCourse(killshotMissileVel * timeLeft * getPaddleMaxVelocity());
+                for(int i=0; i<10; ++i) {
+                    Visualisation.drawCross(lines, Color.PINK, Math.random() * lastKnownStatus.conf.maxWidth, Math.random() * lastKnownStatus.conf.maxHeight);
+                    Visualisation.drawSquare(lines, Color.PINK, Math.random() * lastKnownStatus.conf.maxWidth, Math.random() * lastKnownStatus.conf.maxHeight);
+                }
             }
         }
 

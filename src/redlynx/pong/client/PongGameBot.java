@@ -5,6 +5,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Queue;
 
+import redlynx.bots.finals.sauron.MissileCommand;
 import redlynx.pong.client.network.Communicator;
 import redlynx.pong.client.network.MessageLimiter;
 import redlynx.pong.client.network.PongMessageListener;
@@ -43,6 +44,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
     public final ArrayList<UIString> strings = new ArrayList<UIString>();
     public final ArrayList<UILine> lines = new ArrayList<UILine>();
 
+    public final MissileCommand missileCommand = new MissileCommand(this);
     private final MessageLimiter messageLimiter = new MessageLimiter();
     public PongModel myModel = new LinearModel();
 
@@ -83,6 +85,10 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
 
     public void setExtrapolatedTime(double extrapolatedTime) {
         this.extrapolatedTime = extrapolatedTime;
+    }
+
+    public int getMissileCount() {
+        return availableMissiles.size();
     }
 
     public static class Avoidable {
@@ -217,7 +223,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
             double missileVelocityX = Math.abs(1000 * missile.vel.x / lastKnownStatus.conf.tickInterval); // assumes 20ms physics step size.
             double positionX = missile.pos.x;
             double time = (lastKnownStatus.conf.maxWidth - positionX) / missileVelocityX;
-            System.out.println("my missile time: " + time);
+            missileCommand.setMissileTime(time);
             offensiveMissiles.add(new Avoidable(missile.pos.y, time));
         }
         else {
@@ -226,9 +232,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
             double positionX = missile.pos.x;
             double time = positionX / missileVelocityX;
             avoidables.add(new Avoidable(missile.pos.y, time));
-            System.out.println("Nuclear launch detected! " + time);
-
-            System.out.println(avoidables.size());
+            missileCommand.setMissileTime(time);
         }
     }
     

@@ -23,6 +23,7 @@ public class FinalSauron extends PongGameBot {
     private final SauronVisualiser sauronVisualiser = new SauronVisualiser(this);
     private final DecisionMaker decisionMaker = new DecisionMaker(this);
     private final DataCollector dataCollector;
+
     public FinalSauron() {
         super();
         dataCollector = new DataCollector(new DataMinerModel(new SFSauronGeneralModel()), false);
