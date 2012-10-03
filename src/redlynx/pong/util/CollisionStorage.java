@@ -39,6 +39,14 @@ public class CollisionStorage {
             double dvy = endPoint.vy - velocity.y;
             return 1.0 / (1.0 + dx * dx + dy * dy + dvx * dvx + dvy * dvy);
         }
+
+        public double invDistance(ClientGameState.Ball endPoint, double maxPoint) {
+            double dx = maxPoint - endPoint.x - position.x;
+            double dy = endPoint.y - position.y;
+            double dvx = -endPoint.vx - velocity.x;
+            double dvy = endPoint.vy - velocity.y;
+            return 1.0 / (1.0 + dx * dx + dy * dy + dvx * dvx + dvy * dvy);
+        }
     }
     public static class EndPointChain {
 
@@ -85,13 +93,19 @@ public class CollisionStorage {
     private EndPointChain activeChain = new EndPointChain();
 
     // after simulating a ball trajectory to one end point, returns the expected value of such a shot.
-    public double getValue(ClientGameState.Ball endPoint) {
+    public double getValue(ClientGameState.Ball endPoint, ClientGameState.Conf conf) {
         double score = 0;
 
         for(EndPointChain chain : chains) {
             for(EndPointCollision collision : chain.chain) {
+
+                // use data from our perspective
                 double weight = collision.distance(endPoint);
                 score += weight * chain.value;
+
+                // use data from opponent's perspective
+                double inverseWeight = collision.invDistance(endPoint, conf.maxWidth-conf.paddleWidth);
+                score -= inverseWeight * chain.value;
             }
         }
 
