@@ -167,7 +167,7 @@ public class Zeus extends PongGameBot {
             double maxReach = reach.y + 0.1;
 
             // this is the current worst case. should try to cover that?
-            Vector3 target = evaluator.oppOffensiveEval(this, newStatus, PlayerSide.LEFT, newStatus.getPedal(PlayerSide.LEFT).y, ballWorkMemory, ballTemp, minReach, maxReach);
+            Vector3 target = evaluator.oppOffensiveEval(this, newStatus, PlayerSide.LEFT, newStatus.left.y+0.5*newStatus.conf.paddleHeight, ballWorkMemory, ballTemp, minReach, maxReach);
             double paddleTarget = target.y;
 
             // if no return is possible according to simulation. Then the least impossible return should be anticipated..

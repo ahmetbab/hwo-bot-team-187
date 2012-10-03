@@ -261,8 +261,8 @@ public class ZeusEvaluator {
             double score = -opponentBestDefensiveMove.z;
             if (score > minScore) {
                 System.out.println("found a good defensive shot!");
+                return new Vector3(minTargetPos, minTarget, score);
             }
-            return new Vector3(minTargetPos, minTarget, Math.max(minScore,  score));
         }
 
         // if score < 0, opponent can make a winning move now.
