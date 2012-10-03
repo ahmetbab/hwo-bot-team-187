@@ -142,7 +142,7 @@ public class MissileCommand {
         if(ball_vy * ball_vy < 25 * 25) {
             // assume static ballspeed & continued vaakapallo.
             double bv = bot.lastKnownStatus.ball.vx;
-            double pos = bot.lastKnownStatus.ball.vx;
+            double pos = bot.lastKnownStatus.ball.x;
 
             double totalTime = 0;
             while(totalTime < bot.missileCommand.getMissileTime()) {
