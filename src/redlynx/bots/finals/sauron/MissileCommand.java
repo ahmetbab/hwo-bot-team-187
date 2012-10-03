@@ -138,8 +138,8 @@ public class MissileCommand {
             ballMe += ballWorkMemory.y - (bot.lastKnownStatus.conf.maxHeight - halfPaddle);
         }
 
-        double ball_vy = bot.getLastKnownStatus().ball.vy;
-        if(ball_vy * ball_vy < 10 * 10) {
+        double ball_vy = bot.getLastKnownStatus().left.y - bot.getLastKnownStatus().right.y;
+        if(ball_vy * ball_vy < 25 * 25) {
             // assume static ballspeed & continued vaakapallo.
             double bv = bot.lastKnownStatus.ball.vx;
             double pos = bot.lastKnownStatus.ball.vx;
