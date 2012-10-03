@@ -1,6 +1,6 @@
 package redlynx.pong.client;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Queue;
@@ -9,10 +9,10 @@ import redlynx.pong.client.network.Communicator;
 import redlynx.pong.client.network.MessageLimiter;
 import redlynx.pong.client.network.PongMessageListener;
 import redlynx.pong.client.network.PongMessageParser;
+import redlynx.pong.client.state.BallPositionHistory;
 import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.client.state.GameStateAccessor;
 import redlynx.pong.client.state.GameStatusSnapShot;
-import redlynx.pong.client.state.BallPositionHistory;
 import redlynx.pong.client.state.MissileState;
 import redlynx.pong.client.state.PaddleVelocityStorage;
 import redlynx.pong.client.ui.LineVisualizer;
@@ -22,12 +22,16 @@ import redlynx.pong.ui.GameStateAccessorInterface;
 import redlynx.pong.ui.PongVisualizer;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.ui.UIString;
-import redlynx.pong.util.*;
+import redlynx.pong.util.PongUtil;
+import redlynx.pong.util.SoftVariable;
+import redlynx.pong.util.Vector2;
+import redlynx.pong.util.Vector2i;
+import redlynx.pong.util.Visualisation;
 
 public abstract class PongGameBot implements PongMessageListener, PongMessageParser.Handler, LineVisualizer {
 
 
-    private final CollisionStorage collisionStorage = new CollisionStorage();
+    //private final CollisionStorage collisionStorage = new CollisionStorage();
 
     private double totalTime = 0;
     private final ArrayList<Avoidable> avoidables = new ArrayList<Avoidable>();
@@ -157,7 +161,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
         availableMissiles = new ArrayDeque<Long>();
         messageParser = new PongMessageParser(this);
         accessor = new GameStateAccessor(this);
-        collisionStorage.read(getName());
+        //collisionStorage.read(getName());
     }
 
     public Vector2 getPaddlePossibleReturns(ClientGameState state, ClientGameState.Ball ball, PlayerSide side, double timeLeft) {
@@ -263,14 +267,14 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
                 ClientGameState.Ball ballCopy = new ClientGameState.Ball();
                 ballCopy.copy(lastKnownStatus.ball, true);
                 PongUtil.simulate(ballCopy, lastKnownStatus.conf);
-                collisionStorage.push(new CollisionStorage.EndPointCollision(ballCopy));
+                //collisionStorage.push(new CollisionStorage.EndPointCollision(ballCopy));
                 ballEndPosHistoryMarker = false;
             }
             else if(!ballEndPosHistoryMarker && lastKnownStatus.ball.vx > 0) {
                 ClientGameState.Ball ballCopy = new ClientGameState.Ball();
                 ballCopy.copy(lastKnownStatus.ball, true);
                 PongUtil.simulate(ballCopy, lastKnownStatus.conf);
-                collisionStorage.push(new CollisionStorage.EndPointCollision(ballCopy));
+                //collisionStorage.push(new CollisionStorage.EndPointCollision(ballCopy));
                 ballEndPosHistoryMarker = true;
             }
         }
@@ -356,6 +360,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
 
     public void gameOver(boolean won) {
 
+    	/*
         if(lastKnownStatus.ball.x > 40 && lastKnownStatus.ball.x < lastKnownStatus.conf.maxWidth - 40) {
             System.out.println("Game ended by missile.");
             collisionStorage.clear();
@@ -364,6 +369,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
             collisionStorage.end(won);
             collisionStorage.write(getName());
         }
+        */
 
         ballPositionHistory.reset();
         lastKnownStatus.reset();
