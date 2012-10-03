@@ -65,8 +65,11 @@ public class MissileCommand {
 
         for(double i=0.05; i<timeForMissile; i+=0.05) {
             double requiredVelocity = ballMe / i / bot.getPaddleMaxVelocity();
-            if(requiredVelocity * requiredVelocity > 1)
+            if(requiredVelocity * requiredVelocity > 1 && Math.abs(ballMe) > bot.lastKnownStatus.conf.paddleHeight * 0.10)
                 continue;
+
+            if(Math.abs(ballMe) < bot.lastKnownStatus.conf.paddleHeight * 0.10)
+                requiredVelocity *= 0.1;
 
             double timeError = timeLeft - i - missileTime;
 
@@ -79,10 +82,9 @@ public class MissileCommand {
 
         if(minimumError < 0.2 * 0.2) {
             // success!
-            if(bestI > 0.21) {
+            if(bestI > 0.11) {
                 // need to move! return the move velocity!
                 Visualisation.drawVector(bot.lines, Color.red, 0, ballWorkMemory.y, 100, 0);
-                System.out.println("Moving to missile launch position!");
                 return bestVelocity;
             }
             else {
