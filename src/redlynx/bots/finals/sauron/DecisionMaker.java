@@ -1,14 +1,17 @@
 package redlynx.bots.finals.sauron;
 
+import java.awt.Color;
+
 import redlynx.bots.finals.zeus.ZeusEvaluator;
 import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.ui.UIString;
-import redlynx.pong.util.*;
-import sun.beans.editors.StringEditor;
-
-import java.awt.Color;
+import redlynx.pong.util.PongUtil;
+import redlynx.pong.util.Vector2;
+import redlynx.pong.util.Vector2i;
+import redlynx.pong.util.Vector3;
+import redlynx.pong.util.Visualisation;
 
 public class DecisionMaker {
     private final FinalSauron finalSauron;
