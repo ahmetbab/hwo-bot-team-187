@@ -112,7 +112,7 @@ public class Zeus extends PongGameBot {
             }
 
             // this is the expected y value when colliding against our paddle.
-            Vector3 target = evaluator.offensiveEval(this, newStatus,PlayerSide.RIGHT, newStatus.getPedal(PlayerSide.RIGHT).y,  ballWorkMemory, ballTemp, minReach, maxReach);
+            Vector3 target = evaluator.myOffensiveEval(timeLeft, this, newStatus,PlayerSide.RIGHT, newStatus.getPedal(PlayerSide.RIGHT).y,  ballWorkMemory, ballTemp, minReach, maxReach);
 
             // when no winning move available
             if(target.z < 8*newStatus.conf.ballRadius) {
@@ -121,13 +121,37 @@ public class Zeus extends PongGameBot {
                 ballWorkMemory.copy(newStatus.ball, true);
                 ballWorkMemory.setVelocity(getBallVelocity());
                 timeLeft = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
-                target = evaluator.defensiveEval(this, lastKnownStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory);
+                target = evaluator.defensiveEval(0, 0, this, lastKnownStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory);
                 desicion = "Defence "+target.z+" (offence "+offenceScore+")";
             }
             else {
             	desicion = "Offence "+target.z;
             }
 
+            /*
+            double ballCollisionK = Math.abs(ballWorkMemory.vy/ballWorkMemory.vx);
+            if (ballWorkMemory.y >= newStatus.conf.maxHeight-newStatus.conf.ballRadius-3 
+            		&& ballWorkMemory.vy > 0 
+            		&& ballCollisionK > 0.7  && ballCollisionK < 1.0) {
+            	System.out.println("Ultimate corner shot down!");
+            	double maxVal = lastKnownStatus.conf.maxHeight - lastKnownStatus.conf.paddleHeight - 2 * lastKnownStatus.conf.ballRadius + 1;
+            	if(target.x > maxVal) {
+                    target.x = maxVal;
+            	}
+                
+            }
+            else if (ballWorkMemory.y <= newStatus.conf.ballRadius+3
+            		&& ballWorkMemory.vy < 0 
+            		&& ballCollisionK > 0.7  && ballCollisionK < 1.0) {
+            	System.out.println("Ultimate corner shot up!");
+            	 double minVal = lastKnownStatus.conf.ballRadius * 2 - 1;
+            	  if(target.x < minVal) {
+                      target.x = minVal;
+                  }
+            }
+            */
+                       
+            
             double targetPos = target.x;
             double paddleTarget = target.y;
 
@@ -183,7 +207,7 @@ public class Zeus extends PongGameBot {
             double maxReach = reach.y + 0.1;
 
             // this is the current worst case. should try to cover that?
-            Vector3 target = evaluator.offensiveEval(this, newStatus, PlayerSide.LEFT, newStatus.getPedal(PlayerSide.LEFT).y, ballWorkMemory, ballTemp, minReach, maxReach);
+            Vector3 target = evaluator.oppOffensiveEval(this, newStatus, PlayerSide.LEFT, newStatus.getPedal(PlayerSide.LEFT).y, ballWorkMemory, ballTemp, minReach, maxReach);
             double paddleTarget = target.y;
 
             // if no return is possible according to simulation. Then the least impossible return should be anticipated..
