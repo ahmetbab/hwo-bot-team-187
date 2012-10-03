@@ -104,7 +104,8 @@ public class DecisionMaker {
         else {
             // MissileCommand has issued a move order! Apply!
             System.out.println("Following MissileCommand's orders!");
-            finalSauron.requestChangeSpeed(requiredVelocityForMissiles);
+            finalSauron.changeCourse(100.0, 100.0 / requiredVelocityForMissiles);
+            // finalSauron.requestChangeSpeed(requiredVelocityForMissiles);
         }
         return timeLeft;
     }
@@ -154,8 +155,7 @@ public class DecisionMaker {
         ClientGameState.Player myPedal = finalSauron.getLastKnownStatus().getPedal(finalSauron.getMySide());
         double diff_y = finalSauron.getBallWorkMemory().y - myPedal.y;
 
-        finalSauron.requestChangeSpeed((float) (0.999f * diff_y / (Math.abs(diff_y) + 0.0000001)));
-
+        finalSauron.changeCourse(diff_y * 10000, timeLeft);
         return timeLeft;
     }
 }

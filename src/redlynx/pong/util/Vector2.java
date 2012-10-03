@@ -46,10 +46,6 @@ public class Vector2 {
         return dx * dx + dy * dy;
     }
 
-    public String toString() {
-        return "(" + x + ", " + y + ")";
-    }
-
     public Vector2 minus(Vector2 v) {
         return new Vector2(x - v.x, y - v.y);
     }
@@ -65,10 +61,13 @@ public class Vector2 {
         y *= mul;
         return this;
     }
-    
 
     public void copy(Vector2 v) {
         x = v.x;
         y = v.y;
+    }
+
+    public String toString() {
+        return " " + x + " " + y;
     }
 }
