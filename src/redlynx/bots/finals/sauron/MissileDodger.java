@@ -23,8 +23,6 @@ public class MissileDodger {
                 for(PongGameBot.Avoidable avoidable : bot.getAvoidables()) {
                     double testVelocity = (i - 50) / 50.0;
                     double dPos = avoidable.t * bot.getPaddleMaxVelocity() * testVelocity;
-                    if(dPos > 100)
-                        System.out.println("dpos: " + dPos);
                     double paddleTop = myPos + dPos + 15 + 0.5 * conf.paddleHeight;
                     double paddleBot = myPos + dPos - 15 - 0.5 * conf.paddleHeight;
                     boolean possiblePosition = paddleBot > 0 && paddleTop < conf.maxHeight;
