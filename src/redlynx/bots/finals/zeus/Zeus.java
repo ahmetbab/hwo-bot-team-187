@@ -35,7 +35,7 @@ public class Zeus extends PongGameBot {
  
         decision = "";
         
-        dataCollector = new DataCollector(new DataMinerModel(new SFSauronGeneralModel()), true);
+        dataCollector = new DataCollector(new DataMinerModel(new SFSauronGeneralModel()), false);
         myModel = dataCollector.getModel();
         System.out.println("Avg SqrError in K: " + myModel.modelError());
         dataCollector.learnFromFile("miner1.txt",1);        
