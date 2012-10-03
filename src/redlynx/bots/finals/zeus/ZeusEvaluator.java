@@ -15,20 +15,7 @@ public class ZeusEvaluator {
     private ClientGameState.Ball ballMemory4 = new ClientGameState.Ball();
 
     public Vector3 myOffensiveEval(double timeLeft, PongGameBot bot, ClientGameState state, PongGameBot.PlayerSide catcher, double catcherPos, ClientGameState.Ball collidingBallState, ClientGameState.Ball tmpBall, double minVal, double maxVal) {
-    	
-    	/*
-    	{//calculate estimated opponent position
-    		double opponentReach = timeLeft * bot.getPaddleMaxVelocity() + state.conf.paddleHeight * 0.5;
-    		double opponentBot = state.getPedal(catcher).y - opponentReach + state.conf.paddleHeight * 0.5;
-         	double opponentTop = state.getPedal(catcher).y + opponentReach + state.conf.paddleHeight * 0.5;
 
-         	double botReach = +(opponentBot - ballMemory.y) / (state.conf.paddleHeight * 0.5);
-         	double topReach = +(opponentTop - ballMemory.y) / (state.conf.paddleHeight * 0.5);
-    	
-         	Vector3 target = defensiveEval(bot, state, PlayerSide.getOtherSide(catcher), botReach, topReach, tmpBall);
-    	}
-    	*/
-    	
         double targetPos = collidingBallState.y - state.conf.paddleHeight * 0.5;
         double botValue = -10000;
         double topValue = -10000;
@@ -48,7 +35,7 @@ public class ZeusEvaluator {
         int pointer = 0;
 
         double paddleReach = state.conf.paddleHeight * 0.5+state.conf.ballRadius;
-        
+
         {
             for(int i=3; i<97; ++i) {
                 double tmpTarget = (i - 50) / 50.0;
@@ -74,23 +61,6 @@ public class ZeusEvaluator {
 
                 double tmpBotValue = +(opponentBot - tmpBall.y);
                 double tmpTopValue = -(opponentTop - tmpBall.y);
-
-                double botReach = +(opponentBot - tmpBall.y) / (state.conf.paddleHeight * 0.5);
-                double topReach = +(opponentTop - tmpBall.y) / (state.conf.paddleHeight * 0.5);
-
-                /*
-                botReach = Math.max(-1, botReach);
-                topReach = Math.min(+1, topReach);
-
-                double possibleReturns = topReach - botReach;
-                if(possibleReturns > 0 && possibleReturns < 0.3) {
-                    // TODO: check what happens deeper in the game tree.
-                    // NOTE: Should attribute opponents time from this round to my time for next, since it is forced.
-
-
-                }
-                */
-
 
                 botScores[pointer] = tmpBotValue;
                 topScores[pointer] = tmpTopValue;
@@ -125,7 +95,7 @@ public class ZeusEvaluator {
         targetPos = targetPos > paddleMaxPos ? paddleMaxPos : targetPos;
         return new Vector3(targetPos, paddleTarget, bestValue);
     }
-    
+
     public Vector3 oppOffensiveEval( PongGameBot bot, ClientGameState state, PongGameBot.PlayerSide catcher, double catcherPos, ClientGameState.Ball collidingBallState, ClientGameState.Ball tmpBall, double minVal, double maxVal) {
         double targetPos = collidingBallState.y - state.conf.paddleHeight * 0.5;
         double botValue = -10000;
@@ -146,7 +116,7 @@ public class ZeusEvaluator {
         int pointer = 0;
 
         double paddleReach = state.conf.paddleHeight * 0.5+state.conf.ballRadius;
-        
+
         {
             for(int i=3; i<97; ++i) {
                 double tmpTarget = (i - 50) / 50.0;
@@ -172,23 +142,6 @@ public class ZeusEvaluator {
 
                 double tmpBotValue = +(opponentBot - tmpBall.y);
                 double tmpTopValue = -(opponentTop - tmpBall.y);
-
-                double botReach = +(opponentBot - tmpBall.y) / (state.conf.paddleHeight * 0.5);
-                double topReach = +(opponentTop - tmpBall.y) / (state.conf.paddleHeight * 0.5);
-
-                /*
-                botReach = Math.max(-1, botReach);
-                topReach = Math.min(+1, topReach);
-
-                double possibleReturns = topReach - botReach;
-                if(possibleReturns > 0 && possibleReturns < 0.3) {
-                    // TODO: check what happens deeper in the game tree.
-                    // NOTE: Should attribute opponents time from this round to my time for next, since it is forced.
-
-
-                }
-                */
-
 
                 botScores[pointer] = tmpBotValue;
                 topScores[pointer] = tmpTopValue;
@@ -236,20 +189,6 @@ public class ZeusEvaluator {
         double minTarget = 0;
         double minTargetPos = targetPos;
 
-        /*
-        double[] scoresSlidingWindow = new double[8];
-        for(int i=0; i<=7; ++i) {
-            scoresSlidingWindow[i] = -1000;
-        }
-        */
-
-  
-        
-   
-        
-        
-        
-        
         for(int i=5; i<=95; i+=1) {
             double tmpTarget = (i - 50) / 50.0;
             double evaluatedPaddlePos = targetPos - tmpTarget * state.conf.paddleHeight * 0.5;
@@ -279,54 +218,52 @@ public class ZeusEvaluator {
             double botReach = +(opponentBot - ballMemory.y) / (state.conf.paddleHeight * 0.5);
             double topReach = +(opponentTop - ballMemory.y) / (state.conf.paddleHeight * 0.5);
 
-            
+
             double myPos = state.getPedal(PongGameBot.PlayerSide.getOtherSide(catcher)).y;
             Vector3 opponentBestMove = oppOffensiveEval(bot, state, PongGameBot.PlayerSide.getOtherSide(catcher), myPos, ballMemory, ballMemory2, botReach, topReach);
             double score = -opponentBestMove.z;
 
             double k = Math.abs(ballMemory.vy/ballMemory.vx);
             if (ballMemory.y < state.conf.paddleHeight*0.3 && ballMemory.y > state.conf.paddleHeight*0.1 && ballMemory.vy < 0 && k < 1.3) {
-            	//System.out.println("Prefered target 1!");
-            	score += 50;
+                //System.out.println("Preferred target 1!");
+                score += 50;
             }
             else if (ballMemory.y > state.conf.maxHeight-  state.conf.paddleHeight*0.3 && ballMemory.y < state.conf.maxHeight-state.conf.paddleHeight*0.1 && ballMemory.vy > 0 && k < 1.3) {
-            	//System.out.println("Prefered target 2!");
-            	score += 50;
-            } 
-            	
-            
+                //System.out.println("Preferred target 2!");
+                score += 50;
+            }
+
+
             if(score > minScore) {
-            	
-            	ballMemory3.copy(ballMemory, true);
+
+                ballMemory3.copy(ballMemory, true);
                 minScore = score;
                 minTarget = tmpTarget;
                 minTargetPos = targetPos - tmpTarget * state.conf.paddleHeight * 0.5;
             }
         }
-        
+
         if (depth < 1 && minScore > 100) {
-        	ballMemory4.copy(ballMemory3, true);
-        	ballMemory.copy(tmpBall, true);
+            ballMemory4.copy(ballMemory3, true);
+            ballMemory.copy(tmpBall, true);
             bot.ballCollideToPaddle(minTarget, ballMemory);
-        	double defenceTime = PongUtil.simulate(ballMemory, state.conf)+timeLeft;
+            double defenceTime = PongUtil.simulate(ballMemory, state.conf)+timeLeft;
 
-              // which returns are possible for the opponent?
-              // Vector2 possibleReturns = bot.getPaddlePossibleReturns(state, ballMemory, PongGameBot.PlayerSide.getOtherSide(catcher), defenseTime);
-              double opponentReach = defenceTime * bot.getPaddleMaxVelocity() + state.conf.paddleHeight * 0.5;
-              double opponentBot = state.getPedal(catcher).y - opponentReach + state.conf.paddleHeight * 0.5;
-              double opponentTop = state.getPedal(catcher).y + opponentReach + state.conf.paddleHeight * 0.5;
-              double botReach = +(opponentBot - ballMemory.y) / (state.conf.paddleHeight * 0.5);
-              double topReach = +(opponentTop - ballMemory.y) / (state.conf.paddleHeight * 0.5);
+            // which returns are possible for the opponent?
+            // Vector2 possibleReturns = bot.getPaddlePossibleReturns(state, ballMemory, PongGameBot.PlayerSide.getOtherSide(catcher), defenseTime);
+            double opponentReach = defenceTime * bot.getPaddleMaxVelocity() + state.conf.paddleHeight * 0.5;
+            double opponentBot = state.getPedal(catcher).y - opponentReach + state.conf.paddleHeight * 0.5;
+            double opponentTop = state.getPedal(catcher).y + opponentReach + state.conf.paddleHeight * 0.5;
+            double botReach = +(opponentBot - ballMemory.y) / (state.conf.paddleHeight * 0.5);
+            double topReach = +(opponentTop - ballMemory.y) / (state.conf.paddleHeight * 0.5);
 
-        	Vector3 opponentBestDefensiveMove = defensiveEval(defenceTime, depth+1, bot, state, PongGameBot.PlayerSide.getOtherSide(catcher), botReach, topReach, ballMemory4);
-        	double score = -opponentBestDefensiveMove.z;
-        	if (score > minScore) {
-        		System.out.println("found a good defencive shot!");
-        	
-        	}
-        	return new Vector3(minTargetPos, minTarget, Math.max(minScore,  score));
+            Vector3 opponentBestDefensiveMove = defensiveEval(defenceTime, depth+1, bot, state, PongGameBot.PlayerSide.getOtherSide(catcher), botReach, topReach, ballMemory4);
+            double score = -opponentBestDefensiveMove.z;
+            if (score > minScore) {
+                System.out.println("found a good defensive shot!");
+            }
+            return new Vector3(minTargetPos, minTarget, Math.max(minScore,  score));
         }
-        
 
         // if score < 0, opponent can make a winning move now.
         // otherwise we should be able to counter anything.

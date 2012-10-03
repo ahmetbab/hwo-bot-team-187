@@ -24,7 +24,7 @@ public class Zeus extends PongGameBot {
     private DataMinerModel dmModel;
     private final DataCollector dataCollector;
 
-    private String desicion;
+    private String decision;
     
     public Zeus() {
         this("Zeus");
@@ -34,7 +34,7 @@ public class Zeus extends PongGameBot {
         super();
         defaultName = name;
  
-        desicion = "";
+        decision = "";
         
         dataCollector = new DataCollector(new DataMinerModel(new SFSauronGeneralModel()), true);
         myModel = dataCollector.getModel();
@@ -55,33 +55,17 @@ public class Zeus extends PongGameBot {
     private boolean shoutPlan = true;
 
     double timeLeft = 10000;
-    private int numWins = 0;
-    private int numGames = 0;
-
-
-
 
     @Override
     public void setName(String name) {
         super.setName(name);
-        
     }
-
-
-
-    
     
     @Override
     public void onGameStateUpdate(ClientGameState newStatus) {
 
         lines.clear();
         double ball_direction = newStatus.ball.vx;
-
-        //System.out.println("k = "+(newStatus.ball.vy/newStatus.ball.vx));
-
-        //if(hasMissiles()) {
-        //    fireMissile();
-        //}
 
         if(getMySide().comingTowardsMe(ball_direction)) {
         	
@@ -122,36 +106,12 @@ public class Zeus extends PongGameBot {
                 ballWorkMemory.setVelocity(getBallVelocity());
                 timeLeft = PongUtil.simulateNew(ballWorkMemory, lastKnownStatus.conf, lines, Color.green);
                 target = evaluator.defensiveEval(0, 0, this, lastKnownStatus, PlayerSide.RIGHT, minReach, maxReach, ballWorkMemory);
-                desicion = "Defence "+target.z+" (offence "+offenceScore+")";
+                decision = "Defence "+target.z+" (offence "+offenceScore+")";
             }
             else {
-            	desicion = "Offence "+target.z;
+            	decision = "Offence "+target.z;
             }
 
-            /*
-            double ballCollisionK = Math.abs(ballWorkMemory.vy/ballWorkMemory.vx);
-            if (ballWorkMemory.y >= newStatus.conf.maxHeight-newStatus.conf.ballRadius-3 
-            		&& ballWorkMemory.vy > 0 
-            		&& ballCollisionK > 0.7  && ballCollisionK < 1.0) {
-            	System.out.println("Ultimate corner shot down!");
-            	double maxVal = lastKnownStatus.conf.maxHeight - lastKnownStatus.conf.paddleHeight - 2 * lastKnownStatus.conf.ballRadius + 1;
-            	if(target.x > maxVal) {
-                    target.x = maxVal;
-            	}
-                
-            }
-            else if (ballWorkMemory.y <= newStatus.conf.ballRadius+3
-            		&& ballWorkMemory.vy < 0 
-            		&& ballCollisionK > 0.7  && ballCollisionK < 1.0) {
-            	System.out.println("Ultimate corner shot up!");
-            	 double minVal = lastKnownStatus.conf.ballRadius * 2 - 1;
-            	  if(target.x < minVal) {
-                      target.x = minVal;
-                  }
-            }
-            */
-                       
-            
             double targetPos = target.x;
             double paddleTarget = target.y;
 
@@ -333,14 +293,6 @@ public class Zeus extends PongGameBot {
 
         myState.setToHandling();
         myState.setVelocity(0);
-
-        ++numGames;
-        if(won) {
-            ++numWins;
-        }
-
-        System.out.println(getDefaultName() + " wins " + numWins + "/" + numGames + " (" + ((float)numWins / numGames) + ")");
-
         lastKnownStatus.reset();
         extrapolatedStatus.reset();
         extrapolatedTime = 0;
@@ -365,7 +317,7 @@ public class Zeus extends PongGameBot {
     public ArrayList<UIString> getDrawStrings() {
     	ArrayList<UIString> list =  super.getDrawStrings();
     	ArrayList<UIString> list2 = new ArrayList<UIString>(list);
-    	list2.add(new UIString(desicion, new Vector2i(0, -10),Color.green));
+    	list2.add(new UIString(decision, new Vector2i(0, -10),Color.green));
     	return list2;
     }
     
