@@ -17,8 +17,8 @@ public class DataCollector {
     private Vector2 dataCollectVelocityOut = new Vector2();
     private double dataCollectCollisionPoint;
     private PrintStream logging;
-    private boolean logged = true;
 
+    private boolean logged = true;
     private boolean learn = false;
     private boolean doLogging;
     
@@ -30,20 +30,11 @@ public class DataCollector {
     }
 
     public void prepareDataCollect(Vector3 target, ClientGameState.Ball ballCollision) {
-    	
-    	//if (!logged && ballCollision.getSpeed() > 200) {
-    	//	if (Math.abs(dataCollectHitPos.y - ballCollision.y) > 1) {
-    	//		System.out.println("Collision estimate Changed by: "+(dataCollectHitPos.y - ballCollision.y)+" ry "+((dataCollectHitPos.y - ballCollision.y)/ballCollision.vy));
-    	//	}
-    	//}
-    	
-        
         dataCollectCollisionPoint = target.y;
         dataCollectVelocityIn.x = ballCollision.vx;
         dataCollectVelocityIn.y = ballCollision.vy;
         dataCollectHitPos.x = ballCollision.x;
         dataCollectHitPos.y = ballCollision.y;
-        
         logged = false;
     }
 

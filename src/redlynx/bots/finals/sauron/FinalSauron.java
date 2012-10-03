@@ -1,9 +1,13 @@
 package redlynx.bots.finals.sauron;
 
+import redlynx.bots.finals.DataCollector;
+import redlynx.bots.finals.dataminer.DataMinerModel;
+import redlynx.bots.semifinals.SFSauronModel;
 import redlynx.pong.client.Pong;
 import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.collisionmodel.PongModel;
+import redlynx.pong.collisionmodel.SFSauronGeneralModel;
 import redlynx.pong.ui.UILine;
 import redlynx.pong.ui.UIString;
 import redlynx.pong.util.*;
@@ -18,13 +22,12 @@ public class FinalSauron extends PongGameBot {
     private final GameOverHandler gameOverHandler = new GameOverHandler(this);
     private final SauronVisualiser sauronVisualiser = new SauronVisualiser(this);
     private final DecisionMaker decisionMaker = new DecisionMaker(this);
-
+    private final DataCollector dataCollector;
     public FinalSauron() {
         super();
-
-        FinalSauronModel model = new FinalSauronModel(this);
-        myModel = model; // dataCollector.getModel();
-        model.tweak();
+        dataCollector = new DataCollector(new DataMinerModel(new SFSauronGeneralModel()), false);
+        dataCollector.learnFromFile("miner1.txt", 1);
+        myModel = dataCollector.getModel();
     }
 
 	public static void main(String[] args) {

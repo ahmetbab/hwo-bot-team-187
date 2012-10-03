@@ -23,15 +23,13 @@ public class MissileDodger {
                 for(PongGameBot.Avoidable avoidable : bot.getAvoidables()) {
                     double testVelocity = (i - 50) / 50.0;
                     double dPos = avoidable.t * bot.getPaddleMaxVelocity() * testVelocity;
-                    double paddleTop = myPos + dPos + 10 + 0.5 * conf.paddleHeight;
-                    double paddleBot = myPos + dPos - 10 - 0.5 * conf.paddleHeight;
-
+                    if(dPos > 100)
+                        System.out.println("dpos: " + dPos);
+                    double paddleTop = myPos + dPos + 15 + 0.5 * conf.paddleHeight;
+                    double paddleBot = myPos + dPos - 15 - 0.5 * conf.paddleHeight;
                     boolean possiblePosition = paddleBot > 0 && paddleTop < conf.maxHeight;
 
-                    double inBot = avoidable.y - paddleBot;
-                    double inTop = paddleTop - avoidable.y;
-
-                    if(inBot * inTop > 0 || !possiblePosition) {
+                    if( (avoidable.y < paddleTop && avoidable.y > paddleBot) || !possiblePosition) {
                         velocityScores.set(i, -1.0);
                     }
                 }
@@ -46,7 +44,7 @@ public class MissileDodger {
             }
 
             int index = (int) ((relativeVelocity * 0.5 + 0.5) * 99);
-            if(velocityScores.get(index) > 0 || velocityScores.get(25) > 0 || velocityScores.get(75) > 0) {
+            if(velocityScores.get(index) > 0 || velocityScores.get(35) > 0 || velocityScores.get(65) > 0) {
                 // all ok, still easy to dodge the missile.
             }
             else {

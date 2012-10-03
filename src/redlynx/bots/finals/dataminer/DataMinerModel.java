@@ -25,43 +25,20 @@ public class DataMinerModel implements PongModel {
     public DataMinerModel(PongModel referenceModel) {
         this.model = referenceModel;
     }
-    
-    /**
-     *
-     * @param pos paddle hit position,discrete values  [0-99] which compared to [-1, 1]
-     */
+
     private void addData(int pos, int inK, float outK, float weight) {
 
         float newValue = (1-weight)*deflectionData[pos][inK]+weight*outK;
     	if (weight != 1) {
-    		//System.out.println("pos "+pos+" inK "+inK+" outK "+outK+" old "+deflectionData[pos][inK]+
-    		//		" error "+Math.abs(outK/deflectionData[pos][inK])+"("+(outK-deflectionData[pos][inK])+") w "+weight);
     		if (Math.abs(newValue-deflectionData[pos][inK]) > 0.1) {
-    			// System.out.println("BIG ERROR!!!" + (newValue-deflectionData[pos][inK]));
-    			// System.out.println("pos "+pos+" inK "+inK+" outK "+outK+" old "+deflectionData[pos][inK]+
-                // " error "+Math.abs(outK/deflectionData[pos][inK])+"("+(outK-deflectionData[pos][inK])+") w "+weight);
     			return;
     		}
     	}
-    	
-    		
-    	
+
     	deflectionData[pos][inK] = newValue;
-    	
     }
-    
-    /**
-     *  Bilinear interpolated outK based on paddle hit position and inK 
-     * @param pos
-     * @param inK
-     * @param interpolateP
-     * @param interpolateK
-     * @return estimated outK
-     */
+
     private float getDataBilinear(int pos, int inK, float interpolateP, float interpolateK) {
-    	//int inKi = inK+1<narrowAngleAccuracy+wideAngleAccuracy?inK+1:inK;
-    	//int posi = pos+1<paddlePosAccuracy?pos+1:pos;
-    	
     	int inKi = inK+1;
     	int posi = pos+1;
     	
@@ -70,11 +47,9 @@ public class DataMinerModel implements PongModel {
     	
     	float value21 = deflectionData[posi][inK];
     	float value22 = deflectionData[posi][inKi];
-    	
-    	
+
     	return 	(value11*(1-interpolateK)+value12*interpolateK)*(1-interpolateP)
     			+(value21*(1-interpolateK)+value22*interpolateK)*(interpolateP);
-    	
     }
     
     private float spline(float t, float p0, float p1, float p2, float p3) {
@@ -86,15 +61,10 @@ public class DataMinerModel implements PongModel {
     }
     
     private float getDataBicubic(int pos, int inK, float interpolateP, float interpolateK) {
-    	//int inKi = inK+1<narrowAngleAccuracy+wideAngleAccuracy?inK+1:inK;
-    	//int posi = pos+1<paddlePosAccuracy?pos+1:pos;
-    	
     	int inKm = inK-1;
     	int posm = pos-1;
     	if (inKm < 0) inKm = 0;
     	if (posm < 0) posm = 0;
-    		
-    	
     	
     	int inKi = inK+1;
     	int posi = pos+1;
@@ -102,16 +72,14 @@ public class DataMinerModel implements PongModel {
     		inKi = narrowAngleAccuracy+wideAngleAccuracy-1;
     	if (posi >= paddlePosAccuracy)
     		posi = paddlePosAccuracy-1;
-    	
-    	
+
     	int inK2 = inK+2;
     	int pos2 = pos+2;
     	if (inK2 >= narrowAngleAccuracy+wideAngleAccuracy)
     		inK2 = narrowAngleAccuracy+wideAngleAccuracy-1;
     	if (pos2 >= paddlePosAccuracy)
     		pos2 = paddlePosAccuracy-1;
-    		
-    	
+
     	float p00 = deflectionData[posm][inKm];
     	float p01 = deflectionData[posm][inK];
     	float p02 = deflectionData[posm][inKi];
@@ -138,8 +106,7 @@ public class DataMinerModel implements PongModel {
     			spline(interpolateK, p20,p21,p22,p23),
     			spline(interpolateK, p30,p31,p32,p33));   	
     }
-    
-    
+
     private void testAgainstModel(PongModel model) {
     	System.out.println("Running tests:");
     	int paddlePosTests = 50;
@@ -150,17 +117,13 @@ public class DataMinerModel implements PongModel {
     		for (int dir = 0; dir < 4; dir++) {
     			double vx_in = (dir&1)==0?-1:1;
     			double vy_in = (dir&2)==0?-1:1;
-    			
-    			
-    			
-    			
+
     			for (int dirs = 0; dirs < dirTests; dirs++) {
     				double k = dirs* (wideAngleRange/(double)dirTests);
     				
     				Vector2 deflected = guess(pos, vx_in, vy_in*k);
     				Vector2 deflected2 = model.guess(pos, vx_in, vy_in*k);
-    				//System.out.println(" "+deflected.x+" "+deflected.y+" "+deflected2.x+" "+deflected2.y);
-    				
+
     				if ((deflected.x < 0 && deflected2.x > 0) || (deflected2.x < 0 && deflected.x > 0)) 
     					System.out.println("x not working"+pos+" "+vx_in+" "+(vy_in*k));
     				if ((deflected.y < 0 && deflected2.y > 0) || (deflected2.y < 0 && deflected.y > 0)) 
@@ -178,6 +141,7 @@ public class DataMinerModel implements PongModel {
     	}
     	System.out.println("Tests finished");
     }
+
     public void initialise() {
     	initialiseFromModel(model);
     }
@@ -207,9 +171,8 @@ public class DataMinerModel implements PongModel {
     			
     		}
     	}
-    	
+
     	//testAgainstModel(model);
-    	
     }
 
 
@@ -240,49 +203,13 @@ public class DataMinerModel implements PongModel {
     	}	
     	    	
     }
-    
-    void initialiseFromData() {
-    	
-    }
-    
 
     private void learnWithData(int pos, int k, float interpolateP, float interpolateK, float outK) {
-    	
     	float mainWeight = 0.03f;
-    	//getData(pos, inK, interpolateP, interpolateK)
-    	int inKi = k+1;
-    	int posi = pos+1;
-    	
-    	
-    	//TODO do we need to take the old value in account here?
-    	/*
-    	float value11 = deflectionData[pos][k];
-    	float value12 = deflectionData[pos][inKi];
-    	
-    	float value21 = deflectionData[posi][k];
-    	float value22 = deflectionData[posi][inKi];
-    	*/
-    	
-    	
-    	//TODO should we modify the sample for each corner value
-    	
-    	//TODO maybe calculate the multiplier for the new sample based on the old interpolated value
-    	//eg. error = 1.05 -> modify each corner value towards a value that is 5% bigger than previously
-    	//float oldValue = getData(pos, k, interpolateP, interpolateK);
-    	//float error = outK / oldValue; //TODO avoid div by zero
-
-    	
-    	//main data update
-    	
     	addData(pos, k, outK,    mainWeight*(1-interpolateP)*(1-interpolateK));  
     	addData(pos, k+1, outK,  mainWeight*(1-interpolateP)*(interpolateK));
     	addData(pos+1, k, outK,  mainWeight*(interpolateP)*(1-interpolateK));
     	addData(pos+1, k+1, outK,mainWeight*(interpolateP)*(interpolateK));
-    	
-    	    	
-    	//TODO add sample to surrounding elements with smaller weight
-    	//not needed if deflectionsample array is kept small
-    	
     }
     
     @Override
@@ -305,16 +232,9 @@ public class DataMinerModel implements PongModel {
     	int discretePos = (int)(paddlePosAccuracy*(tpos+1)/2);
     	float pInterpolate = (float)((paddlePosAccuracy*(tpos+1)/2)-discretePos);
     	if (discretePos < 0) {
-    		discretePos = 0;
-    		pInterpolate = 0;
-    		
-    		//out of paddle hit (big ball radius), cannot learn
     		return;
     	}
     	else if (discretePos >= paddlePosAccuracy) {
-    		discretePos = paddlePosAccuracy-1;
-    		pInterpolate = 0;
-    		//out of paddle hit (big ball radius), cannot learn
     		return;
     	}
     	
@@ -330,10 +250,6 @@ public class DataMinerModel implements PongModel {
     		discreteK = (int) (wideAngleAccuracy/(double)wideAngleRange*(k-1)+narrowAngleAccuracy);
     		kInterpolate = (float) ((wideAngleAccuracy/(double)wideAngleRange*(k-1)+narrowAngleAccuracy)-discreteK);
     		if (discreteK >= wideAngleAccuracy+narrowAngleAccuracy) {
-    			discreteK = wideAngleAccuracy+narrowAngleAccuracy-1;
-    			kInterpolate = 0;
-    			
-    			//too steep angle to learn
     			return;
     		}
     	}
@@ -350,15 +266,12 @@ public class DataMinerModel implements PongModel {
     	if (k < 0.2)
     		return model.guess(pos, vx_in, vy_in);
     	double tpos;
-    	
-    	double tvy_in;
+
     	if (vy_in < 0) {
     		tpos = -pos;
-    		tvy_in = -vy_in;
     	}
     	else {
     		tpos = pos;
-    		tvy_in = vy_in;
     	}
     	
     	int discretePos = (int)(paddlePosAccuracy*(tpos+1)/2);
@@ -402,16 +315,20 @@ public class DataMinerModel implements PongModel {
     }
 
     @Override
-    public double getAngle(double vx_in, double vy_in) {return 0;}
+    public double getAngle(double vx_in, double vy_in) {
+        return 0;
+    }
 
     @Override
     public Vector2 guessGivenAngle(double pos, double vx_in, double vy_in, double angle) {
     	return guess(pos, vx_in, vy_in);
     }
+
     @Override
     public Vector2 guessGivenSpeed(double pos, double vx_in, double vy_in, double speed) {
     	 return guess(pos, vx_in, vy_in);
     }
+
     public void smooth() {
     	for (int i = 0; i < paddlePosAccuracy; i++) {
     		float prev; 
@@ -443,7 +360,6 @@ public class DataMinerModel implements PongModel {
 				next =deflectionData[i][k];
 				if (prev > current) {
 					deflectionData[i-1][k] = current = (prev+next)/2;
-					  
 				}
 			}
 		}
@@ -454,8 +370,8 @@ public class DataMinerModel implements PongModel {
     	double prevError;
     	double change = 0.1;
     	int p = 0;
-    	do {
-    		
+
+        do {
     		prevError = error;
     		for (int i = 0; i < paddlePosAccuracy; i++) {
     			for (int k = 0; k < narrowAngleAccuracy+wideAngleAccuracy; k++) {
@@ -481,7 +397,7 @@ public class DataMinerModel implements PongModel {
 	    	if (Math.abs(prevError -error) < 0.0001)
 	    		change *= 0.5;
 	    	p++;
-    	}while (prevError != error && change > 0.005 && p < passes);
+    	} while (prevError != error && change > 0.005 && p < passes);
     }
     
     @Override
@@ -519,10 +435,6 @@ public class DataMinerModel implements PongModel {
  			 System.out.println("model eval failed.");
  			System.out.println("Malformed data");
  		}
-    	
-   
-
-  
 
         return sqrErrorSum / numSamples;
     }

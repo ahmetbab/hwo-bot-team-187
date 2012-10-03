@@ -17,8 +17,12 @@ public class MissileCommand {
     }
 
     public Vector3 getPlan() {
+        /*
         if(committedToPlan)
             return plan;
+        return null;
+        */
+
         return null;
     }
 
@@ -92,14 +96,11 @@ public class MissileCommand {
             }
         }
 
-
         double ball_vy = finalSauron.getLastKnownStatus().ball.vy;
-        if(ball_vy * ball_vy < 50) {
-            // Ball not moving up & down much. Just fire the missiles. Might cause some harm.
-            if(ballMe * ballMe < halfPaddle * halfPaddle) {
-                if(finalSauron.fireMissile()) {
-                    System.out.println("Launching missiles RAWR :>");
-                }
+        if(ball_vy * ball_vy + ballWorkMemory.vx * ballWorkMemory.vx > 500 * 500) {
+            // very fast ball. just shoot and hope it hits or something.
+            if(finalSauron.fireMissile()) {
+                System.out.println("Launching missiles RAWR :>");
             }
         }
 

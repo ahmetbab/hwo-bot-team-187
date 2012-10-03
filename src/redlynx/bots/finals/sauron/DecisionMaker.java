@@ -4,28 +4,29 @@ import redlynx.bots.finals.zeus.ZeusEvaluator;
 import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
 import redlynx.pong.ui.UILine;
-import redlynx.pong.util.PongUtil;
-import redlynx.pong.util.Vector2;
-import redlynx.pong.util.Vector3;
-import redlynx.pong.util.Visualisation;
+import redlynx.pong.ui.UIString;
+import redlynx.pong.util.*;
+import sun.beans.editors.StringEditor;
 
 import java.awt.Color;
 
 public class DecisionMaker {
     private final FinalSauron finalSauron;
-    // private final FinalSauronEvaluator evaluator;
     private final ZeusEvaluator evaluator;
     private final ClientGameState.Ball tmpBall = new ClientGameState.Ball();
     private double timeLeft = 0;
+    private String kekkonen = new String();
 
     public DecisionMaker(FinalSauron finalSauron) {
         this.finalSauron = finalSauron;
-        // this.evaluator = new FinalSauronEvaluator();
         this.evaluator = new ZeusEvaluator();
+
+        finalSauron.strings.add(new UIString(kekkonen, new Vector2i(0, -15), Color.magenta));
     }
 
     public double decisionMakerMyTurn(ClientGameState newStatus) {
         // find out impact velocity and position.
+        ClientGameState.Ball ballWorkMemory = finalSauron.getBallWorkMemory();
         finalSauron.getBallWorkMemory().copy(newStatus.ball, true);
         finalSauron.getBallWorkMemory().setVelocity(finalSauron.getBallVelocity());
         timeLeft = (PongUtil.simulateOld(finalSauron.getBallWorkMemory(), finalSauron.getLastKnownStatus().conf, finalSauron.getLines(), Color.green));
@@ -39,26 +40,39 @@ public class DecisionMaker {
 
         {
             // hack.. if angle is high, don't try to hit the ball with the wrong end of the paddle..
-            double value = finalSauron.getBallWorkMemory().vy * 0.05;
-            double amount = Math.min(0.5, value * value);
-            if (value < 0.0 && minReach < -1 + amount) {
-                minReach = -1 + amount;
-            } else if (value > 0.0 && maxReach > 1 - amount) {
-                maxReach = +1 - amount;
+            double value = ballWorkMemory.vy / (Math.abs(ballWorkMemory.vx) + 0.000001);
+            double pixelsPerTickEstimate = Math.abs((ballWorkMemory.vy) / (1000.0 / 21));
+            double safelimit = (pixelsPerTickEstimate+1)/(finalSauron.lastKnownStatus.conf.paddleHeight/2);
+            double amount = safelimit;
+
+            if(value < 0.0 && minReach < -1+amount) {
+                minReach = -1+amount;
+            }
+            else if(value > 0.0 && maxReach > 1-amount) {
+                maxReach = +1-amount;
             }
         }
 
+
         // this is the expected y value when colliding against our paddle.
         // Vector3 target = evaluator.offensiveEval(finalSauron, newStatus, PongGameBot.PlayerSide.RIGHT, finalSauron.getBallWorkMemory(), tmpBall, minReach, maxReach);
-        Vector3 target = evaluator.myOffensiveEval(timeLeft, finalSauron, newStatus, PongGameBot.PlayerSide.RIGHT, newStatus.right.y+newStatus.conf.paddleHeight*0.5, finalSauron.getBallWorkMemory(), tmpBall, minReach, maxReach);
+        Vector3 target = evaluator.myOffensiveEval(timeLeft, finalSauron, newStatus, PongGameBot.PlayerSide.RIGHT, newStatus.right.y + newStatus.conf.paddleHeight * 0.5, finalSauron.getBallWorkMemory(), tmpBall, minReach, maxReach);
 
         // when no winning move available, use defense
         if (target.z < 8 * newStatus.conf.ballRadius) {
+            double offenseScore = target.z;
             finalSauron.getBallWorkMemory().copy(newStatus.ball, true);
             finalSauron.getBallWorkMemory().setVelocity(finalSauron.getBallVelocity());
             timeLeft = (PongUtil.simulateOld(finalSauron.getBallWorkMemory(), finalSauron.getLastKnownStatus().conf, finalSauron.getLines(), Color.green));
             target = evaluator.defensiveEval(0, 0, finalSauron, finalSauron.getLastKnownStatus(), PongGameBot.PlayerSide.RIGHT, minReach, maxReach, finalSauron.getBallWorkMemory());
+            kekkonen = "Def: " + ((int)(target.z)) + ", Off: " + ((int)offenseScore);
         }
+        else {
+            kekkonen = "Off: " + ((int)(target.z));
+        }
+
+        finalSauron.strings.remove(finalSauron.strings.size()-1);
+        finalSauron.strings.add(new UIString(kekkonen, new Vector2i(20, -10), Color.magenta));
 
         if(finalSauron.getMissileCommand().getPlan() != null) {
             System.out.println("Following MissileCommand plan!");
@@ -124,7 +138,7 @@ public class DecisionMaker {
         finalSauron.getBallWorkMemory().copy(newStatus.ball, true);
         finalSauron.getBallWorkMemory().setVelocity(finalSauron.getBallVelocity());
 
-        timeLeft = (PongUtil.simulateOld(finalSauron.getBallWorkMemory(), finalSauron.getLastKnownStatus().conf, finalSauron.getLines(), Color.green));
+        timeLeft = (PongUtil.simulateNew(finalSauron.getBallWorkMemory(), finalSauron.getLastKnownStatus().conf, finalSauron.getLines(), Color.green));
         Vector2 reach = finalSauron.getPaddlePossibleReturns(newStatus, finalSauron.getBallWorkMemory(), PongGameBot.PlayerSide.RIGHT, timeLeft);
 
         Visualisation.visualizeOpponentReach(finalSauron.getLines(), finalSauron, timeLeft);
@@ -134,7 +148,7 @@ public class DecisionMaker {
         double maxReach = reach.y + 0.1;
 
         // this is the current worst case. should try to cover that?
-        Vector3 target = evaluator.oppOffensiveEval(finalSauron, newStatus, PongGameBot.PlayerSide.LEFT, newStatus.left.y+0.5*newStatus.conf.paddleHeight, finalSauron.getBallWorkMemory(), tmpBall, minReach, maxReach);
+        Vector3 target = evaluator.oppOffensiveEval(finalSauron, newStatus, PongGameBot.PlayerSide.LEFT, newStatus.left.y + 0.5 * newStatus.conf.paddleHeight, finalSauron.getBallWorkMemory(), tmpBall, minReach, maxReach);
         finalSauron.getMissileCommand().fireOffensiveMissiles(0, timeLeft, finalSauron.getBallWorkMemory(), target);
         finalSauron.getMissileCommand().unCommit();
         double paddleTarget = target.y;

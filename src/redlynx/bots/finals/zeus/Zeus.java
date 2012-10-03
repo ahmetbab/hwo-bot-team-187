@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import redlynx.bots.finals.DataCollector;
 import redlynx.bots.finals.dataminer.DataMinerModel;
 import redlynx.bots.finals.dataminer.SauronState;
+import redlynx.bots.finals.sauron.MissileDodger;
 import redlynx.pong.client.Pong;
 import redlynx.pong.client.PongGameBot;
 import redlynx.pong.client.state.ClientGameState;
@@ -41,9 +42,6 @@ public class Zeus extends PongGameBot {
         System.out.println("Avg SqrError in K: " + myModel.modelError());
         dataCollector.learnFromFile("miner1.txt",1);        
         System.out.println("Avg SqrError in K: " + myModel.modelError());
-       // dataCollector.optimizeModel(3);
-
-       
     }
 
     public static void main(String[] args) {
@@ -195,8 +193,7 @@ public class Zeus extends PongGameBot {
             // now we are done.
             ClientGameState.Player myPedal = lastKnownStatus.getPedal(getMySide());
             double diff_y = ballWorkMemory.y - myPedal.y;
-
-            requestChangeSpeed((float) (0.999f * diff_y / (Math.abs(diff_y) + 0.0000001)));
+            changeCourse(diff_y * 10000);
         }
 
         getBallPositionHistory().drawLastCollision(lines);
@@ -247,6 +244,8 @@ public class Zeus extends PongGameBot {
             else
                 idealVelocity = -1;
         }
+
+        idealVelocity = MissileDodger.dodge(lines, this, idealVelocity);
 
         if(idealVelocity != myState.velocity()) {
             requestChangeSpeed(idealVelocity);
