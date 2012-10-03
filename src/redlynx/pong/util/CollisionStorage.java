@@ -11,6 +11,8 @@ import java.util.Scanner;
 
 public class CollisionStorage {
 
+    private EndPointCollision nextCollision = null;
+
     public static class EndPointCollision {
         Vector2 velocity = new Vector2();
         Vector2 position = new Vector2();
@@ -28,6 +30,14 @@ public class CollisionStorage {
             position.y = scanner.nextDouble();
             velocity.x = scanner.nextDouble();
             velocity.y = scanner.nextDouble();
+        }
+
+        public double distance(ClientGameState.Ball endPoint) {
+            double dx = endPoint.x - position.x;
+            double dy = endPoint.y - position.y;
+            double dvx = endPoint.vx - velocity.x;
+            double dvy = endPoint.vy - velocity.y;
+            return 1.0 / (1.0 + dx * dx + dy * dy + dvx * dvx + dvy * dvy);
         }
     }
     public static class EndPointChain {
@@ -74,9 +84,26 @@ public class CollisionStorage {
     private ArrayList<EndPointChain> chains = new ArrayList<EndPointChain>();
     private EndPointChain activeChain = new EndPointChain();
 
+    // after simulating a ball trajectory to one end point, returns the expected value of such a shot.
+    public double getValue(ClientGameState.Ball endPoint) {
+        double score = 0;
+
+        for(EndPointChain chain : chains) {
+            for(EndPointCollision collision : chain.chain) {
+                double weight = collision.distance(endPoint);
+                score += weight * chain.value;
+            }
+        }
+
+        return score;
+    }
+
     public void push(EndPointCollision p) {
-        System.out.println("Pushed point");
-        activeChain.push(p);
+        // last chain point is not taken into account, since it assumes the opponent can't make the return.
+        // those cases are detected and handled by our offensive evaluator.
+        if(nextCollision != null)
+            activeChain.push(nextCollision);
+        nextCollision = p;
     }
 
     public void end(boolean won) {
@@ -87,6 +114,7 @@ public class CollisionStorage {
 
     public void clear() {
         activeChain = new EndPointChain();
+        nextCollision = null;
     }
 
     public void write(String botName) {
