@@ -93,7 +93,7 @@ public class Zeus extends PongGameBot {
             Vector3 target = evaluator.myOffensiveEval(timeLeft, this, newStatus, PlayerSide.RIGHT, newStatus.getPedal(PlayerSide.RIGHT).y, ballWorkMemory, ballTemp, minReach, maxReach);
 
             // when no winning move available
-            if(target.z < 8*newStatus.conf.ballRadius) {
+            if(target.z < 0) {
             	
             	double offenceScore = target.z;
                 ballWorkMemory.copy(newStatus.ball, true);

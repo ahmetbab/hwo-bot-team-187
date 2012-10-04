@@ -89,6 +89,7 @@ public class MissileCommand {
             }
             else {
                 if(bot.fireMissile()) {
+                    lastTimeFiredSlowDownMissile = System.currentTimeMillis();
                     System.out.println("Firing killer missile at ball destination!");
                 }
             }
@@ -137,7 +138,7 @@ public class MissileCommand {
         if(bot.hasMissiles() && System.currentTimeMillis() - lastTimeFiredSlowDownMissile < 300) {
             if (bot.fireMissile()) {
                 lastTimeFiredSlowDownMissile = System.currentTimeMillis();
-                System.out.println("Firing slowdown missile!");
+                System.out.println("DIE DIE DIE!");
                 plan.copy(currentPlan);
                 committedToPlan = true;
             }
