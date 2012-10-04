@@ -207,7 +207,7 @@ public abstract class PongGameBot implements PongMessageListener, PongMessagePar
     }
 
     public boolean fireMissile() {
-    	  if(messageLimiter.canSend() && hasMissiles() && System.currentTimeMillis() - lastMissileFiredTime > 300) {
+    	  if(messageLimiter.canSend() && hasMissiles() && System.currentTimeMillis() - lastMissileFiredTime > 200) {
               getCommunicator().sendFireMissile(availableMissiles.remove());
               messageLimiter.send();
               lastMissileFiredTime = System.currentTimeMillis();

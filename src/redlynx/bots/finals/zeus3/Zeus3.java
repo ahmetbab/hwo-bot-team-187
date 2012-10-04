@@ -311,7 +311,7 @@ public class Zeus3 extends PongGameBot {
         int prevVelocity = (int)(myState.velocity() * 100);
         int delta = requestedVelocity - prevVelocity;
 
-        if(delta * delta < 1) {
+        if(delta * delta < 5 && !reallyShouldUpdateRegardless()) {
             return false;
         }
 

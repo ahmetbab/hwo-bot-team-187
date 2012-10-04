@@ -12,6 +12,7 @@ public class MissileCommand {
     private final Vector3 plan = new Vector3(0, 0, 0); // store plan in case missile firing is based on a plan.
     private boolean committedToPlan = false;
     private double missileTime = 1.5;
+    private long lastTimeFiredSlowDownMissile = 0;
 
     public MissileCommand(PongGameBot bot) {
         this.bot = bot;
@@ -122,12 +123,23 @@ public class MissileCommand {
 
                     if (ballWorkMemory.y < botReach + 10 || ballWorkMemory.y > topReach - 10) {
                         if (bot.fireMissile()) {
+                            lastTimeFiredSlowDownMissile = System.currentTimeMillis();
                             System.out.println("Firing slowdown missile!");
                             plan.copy(currentPlan);
                             committedToPlan = true;
                         }
                     }
                 }
+            }
+        }
+
+        // Empty entire missile salvo if get the chance to slowdown. Fires missiles at 200-300ms intervals.
+        if(bot.hasMissiles() && System.currentTimeMillis() - lastTimeFiredSlowDownMissile < 300) {
+            if (bot.fireMissile()) {
+                lastTimeFiredSlowDownMissile = System.currentTimeMillis();
+                System.out.println("Firing slowdown missile!");
+                plan.copy(currentPlan);
+                committedToPlan = true;
             }
         }
 
